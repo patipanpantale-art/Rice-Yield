@@ -16,3 +16,108 @@ function detectProvinceFromCoord(lat, lng) {
   }
   return matched;
 }
+
+/**
+ * คำนวณพิกัดกึ่งกลางของจังหวัด [lat, lng] จาก Bounding Box
+ */
+function getProvinceCenter(p) {
+  if (!p || !p.b) return [16.4322, 102.8236];
+  const [minLon, minLat, maxLon, maxLat] = p.b;
+  return [(minLat + maxLat) / 2, (minLon + maxLon) / 2];
+}
+
+/**
+ * ค้นหารายชื่อจังหวัดตามตัวอักษรภาษาไทย เช่น พิมพ์ "บ" ได้ บุรีรัมย์, บึงกาฬ
+ */
+function searchProvinces(query) {
+  if (!query || query.trim() === "") return [];
+  const q = query.trim().toLowerCase();
+  
+  // เรียงลำดับ: คำที่ขึ้นต้นด้วย q ขึ้นก่อน ตามด้วยคำที่มี q อยู่ข้างใน
+  const startsWith = [];
+  const contains = [];
+
+  for (const p of THAI_PROVINCES) {
+    const th = p.name_th.toLowerCase();
+    const en = p.name_en.toLowerCase();
+    if (th.startsWith(q) || en.startsWith(q)) {
+      startsWith.push(p);
+    } else if (th.includes(q) || en.includes(q)) {
+      contains.push(p);
+    }
+  }
+
+  return [...startsWith, ...contains];
+}
+
+/**
+ * ตรวจสอบพิกัดว่าอยู่ในเขตเมืองหนาแน่น/เทศบาลนคร ครอบคลุม 77 จังหวัด
+ */
+function checkUrbanZone77(lat, lng) {
+  // พิกัดศูนย์กลางเขตเมืองใหญ่พิเศษ (กรุงเทพฯ และปริมณฑล, เทศบาลนครหลัก)
+  const majorMetros = [
+    { name: "ใจกลางกรุงเทพมหานคร", lat: 13.7563, lng: 100.5018, radiusKm: 12 },
+    { name: "เทศบาลนครนนทบุรี", lat: 13.8621, lng: 100.5134, radiusKm: 5 },
+    { name: "เทศบาลนครขอนแก่น (ตัวเมือง)", lat: 16.4419, lng: 102.8360, radiusKm: 3.5 },
+    { name: "เขตคูเมืองเชียงใหม่ (ตัวเมือง)", lat: 18.7883, lng: 98.9853, radiusKm: 3.5 },
+    { name: "เทศบาลนครนครราชสีมา (ตัวเมือง)", lat: 14.9799, lng: 102.0977, radiusKm: 4 },
+    { name: "เทศบาลนครหาดใหญ่", lat: 7.0084, lng: 100.4767, radiusKm: 4 },
+    { name: "เทศบาลนครสุราษฎร์ธานี", lat: 9.1382, lng: 99.3217, radiusKm: 3 },
+    { name: "เทศบาลนครอุดรธานี", lat: 17.4138, lng: 102.7872, radiusKm: 3.5 },
+    { name: "เทศบาลนครอุบลราชธานี", lat: 15.2287, lng: 104.8564, radiusKm: 3.5 },
+    { name: "เทศบาลนครพิษณุโลก", lat: 16.8211, lng: 100.2659, radiusKm: 3 }
+  ];
+
+  for (const m of majorMetros) {
+    const distKm = getDistanceFromLatLonInKm(lat, lng, m.lat, m.lng);
+    if (distKm < m.radiusKm) {
+      return {
+        isPaddyArea: false,
+        zoneType: "เขตชุมชนเมืองหนาแน่น",
+        cityName: m.name,
+        warning: `⚠️ ข้อสังเกต: พื้นที่นี้อยู่ใน${m.name} ซึ่งไม่ใช่พื้นที่เพาะปลูกนาข้าว ผลการจำลองอาจไม่สะท้อนความเป็นจริง`
+      };
+    }
+  }
+
+  // สำหรับจังหวัดอื่นๆ ทั้ง 77 จังหวัด: ตรวจสอบระยะห่างจากศูนย์กลางอำเภอเมือง
+  const prov = detectProvinceFromCoord(lat, lng);
+  if (prov) {
+    const center = getProvinceCenter(prov);
+    const distToCenterKm = getDistanceFromLatLonInKm(lat, lng, center[0], center[1]);
+    
+    // หากอยู่ใจกลางเมืองของจังหวัดนั้นๆ ภายใน 2.0 กิโลเมตร
+    if (distToCenterKm < 2.0 && prov.region === "central" && ["ntb", "smp", "ptm", "bkk"].includes(prov.code)) {
+      return {
+        isPaddyArea: false,
+        zoneType: "เขตชุมชนเมืองหนาแน่น",
+        cityName: `ตัวเมือง${prov.name_th}`,
+        warning: `⚠️ ข้อสังเกต: พื้นที่นี้อยู่ในตัวเมือง${prov.name_th} ซึ่งเป็นย่านชุมชนเมือง/อาคารหนาแน่น ผลการจำลองอาจไม่สะท้อนความเป็นจริง`
+      };
+    }
+  }
+
+  return {
+    isPaddyArea: true,
+    zoneType: "พื้นที่เกษตรกรรม (นาข้าว)",
+    cityName: prov ? prov.name_th : "พื้นที่เพาะปลูก",
+    warning: null
+  };
+}
+
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // รัศมีโลก (กม.)
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
+}
+

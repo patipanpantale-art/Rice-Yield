@@ -44,225 +44,252 @@
     <!-- 2.1 แผงซ้าย: กำหนดตัวแปร, สภาพอากาศตามปี และทดลองมรสุม (Left Panel) -->
     <aside class="panel" id="panelLeft">
       
-      <!-- ข้อมูลนำเข้าหลักและปฏิทินเพาะปลูก -->
-      <section class="panel-section">
-        <div class="panel-heading">
+      <!-- ข้อมูลนำเข้าหลักและปฏิทินเพาะปลูก (ย่อ/พับได้) -->
+      <section class="panel-section collapsible" id="secInput">
+        <div class="panel-heading" title="คลิกเพื่อย่อ/ขยายส่วนนี้">
           <div class="panel-heading-left">
             <i class="fa-solid fa-seedling"></i>
             <span>ข้อมูลนำเข้า & ปฏิทินเพาะปลูก</span>
           </div>
+          <div class="panel-heading-right">
+            <i class="fa-solid fa-chevron-down section-toggle-chevron"></i>
+          </div>
         </div>
         
-        <div class="form-group">
-          <label class="form-label" for="riceVariety">
-            <span>พันธุ์ข้าวอ้างอิง</span>
-            <span class="info-tooltip" data-tooltip="พันธุ์ข้าวที่ปลูกส่งผลต่ออายุเก็บเกี่ยวและน้ำหนักเมล็ด ขาวดอกมะลิ 105 เป็นข้าวนาปีไวแสง"><i class="fa-solid fa-circle-info"></i></span>
-          </label>
-          <select id="riceVariety" class="form-select">
-            <option value="kdml105" selected>ขาวดอกมะลิ 105 (นาปี 120 วัน - ข้าวยอดนิยม)</option>
-            <option value="rd6">กข6 (เหนียวหอม 130 วัน - แตกกอดี)</option>
-            <option value="rd41">กข41 (นาปรัง 105 วัน - ผลผลิตสูง)</option>
-          </select>
-        </div>
-
-        <!-- ตัวเลือกปีสภาพอากาศจำลอง -->
-        <div class="form-group">
-          <label class="form-label" for="climateYearSelect">
-            <span>ปีสภาพอากาศจำลอง</span>
-            <span class="info-tooltip" data-tooltip="เลือกสภาพอากาศตามปีจริง เพื่อทดสอบผลกระทบจากลานีญา/เอลนีโญในแต่ละปี"><i class="fa-solid fa-circle-info"></i></span>
-          </label>
-          <select id="climateYearSelect" class="form-select">
-            <option value="2024" selected>ปี 2024 (ลานีญา - ฝนมาเร็วและชุก ระวังท่วมช่วงท้าย)</option>
-            <option value="2023">ปี 2023 (เอลนีโญ - แล้งทิ้งช่วงกลางฤดู อุณหภูมิร้อนจัด)</option>
-            <option value="2022">ปี 2022 (ลานีญาฝนชุก - ร่องมรสุมพาดผ่านสม่ำเสมอ)</option>
-            <option value="baseline">ค่าเฉลี่ยภูมิอากาศ 30 ปี (TMD Normal Baseline)</option>
-          </select>
-        </div>
-
-        <!-- การ์ดคำแนะนำปฏิทินเพาะปลูกตามสภาพอากาศปีนั้นๆ -->
-        <div class="advisory-card">
-          <div class="advisory-title">
-            <i class="fa-solid fa-calendar-day"></i> <span id="dispAdvisoryBadge">ปีลานีญา (ฝนมาเร็ว)</span>
+        <div class="section-content">
+          <div class="form-group">
+            <label class="form-label" for="riceVariety">
+              <span>พันธุ์ข้าวอ้างอิง</span>
+              <span class="info-tooltip" data-tooltip="พันธุ์ข้าวที่ปลูกส่งผลต่ออายุเก็บเกี่ยวและน้ำหนักเมล็ด ขาวดอกมะลิ 105 เป็นข้าวนาปีไวแสง"><i class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <select id="riceVariety" class="form-select">
+              <option value="kdml105" selected>ขาวดอกมะลิ 105 (นาปี 120 วัน - ข้าวยอดนิยม)</option>
+              <option value="rd6">กข6 (เหนียวหอม 130 วัน - แตกกอดี)</option>
+              <option value="rd41">กข41 (นาปรัง 105 วัน - ผลผลิตสูง)</option>
+            </select>
           </div>
-          <div id="dispAdvisoryText" style="color: var(--text-secondary); margin-bottom: 4px;">
-            💡 คำแนะนำ: ฝนเริ่มมาเร็วตั้งแต่กลางเดือน พ.ค. แนะนำเริ่มปลูกปลาย พ.ค. ถึงต้น มิ.ย.
-          </div>
-          <button id="btnApplyAdvisoryDate" class="advisory-btn">
-            <i class="fa-regular fa-calendar-check"></i> ตั้งวันเริ่มปลูกตามคำแนะนำนี้
-          </button>
-        </div>
 
-        <div class="form-group" style="margin-top: 10px;">
-          <label class="form-label" for="plantDate">
-            <span>วันเริ่มปลูก (Planting Date)</span>
-            <span class="info-tooltip" data-tooltip="วันปักดำหรือหว่าน มีผลต่อสภาพอากาศที่จะเจอในแต่ละช่วงอายุข้าว"><i class="fa-solid fa-circle-info"></i></span>
-          </label>
-          <input type="date" id="plantDate" class="form-input" value="2026-06-15">
+          <!-- ตัวเลือกปีสภาพอากาศจำลอง -->
+          <div class="form-group">
+            <label class="form-label" for="climateYearSelect">
+              <span>ปีสภาพอากาศจำลอง</span>
+              <span class="info-tooltip" data-tooltip="เลือกสภาพอากาศตามปีจริง เพื่อทดสอบผลกระทบจากลานีญา/เอลนีโญในแต่ละปี"><i class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <select id="climateYearSelect" class="form-select">
+              <option value="2024" selected>ปี 2024 (ลานีญา - ฝนมาเร็วและชุก ระวังท่วมช่วงท้าย)</option>
+              <option value="2023">ปี 2023 (เอลนีโญ - แล้งทิ้งช่วงกลางฤดู อุณหภูมิร้อนจัด)</option>
+              <option value="2022">ปี 2022 (ลานีญาฝนชุก - ร่องมรสุมพาดผ่านสม่ำเสมอ)</option>
+              <option value="baseline">ค่าเฉลี่ยภูมิอากาศ 30 ปี (TMD Normal Baseline)</option>
+            </select>
+          </div>
+
+          <!-- การ์ดคำแนะนำปฏิทินเพาะปลูกตามสภาพอากาศปีนั้นๆ -->
+          <div class="advisory-card">
+            <div class="advisory-title">
+              <i class="fa-solid fa-calendar-day"></i> <span id="dispAdvisoryBadge">ปีลานีญา (ฝนมาเร็ว)</span>
+            </div>
+            <div id="dispAdvisoryText" style="color: var(--text-secondary); margin-bottom: 4px;">
+              💡 คำแนะนำ: ฝนเริ่มมาเร็วตั้งแต่กลางเดือน พ.ค. แนะนำเริ่มปลูกปลาย พ.ค. ถึงต้น มิ.ย.
+            </div>
+            <button id="btnApplyAdvisoryDate" class="advisory-btn">
+              <i class="fa-regular fa-calendar-check"></i> ตั้งวันเริ่มปลูกตามคำแนะนำนี้
+            </button>
+          </div>
+
+          <div class="form-group" style="margin-top: 10px;">
+            <label class="form-label" for="plantDate">
+              <span>วันเริ่มปลูก (Planting Date)</span>
+              <span class="info-tooltip" data-tooltip="วันปักดำหรือหว่าน มีผลต่อสภาพอากาศที่จะเจอในแต่ละช่วงอายุข้าว"><i class="fa-solid fa-circle-info"></i></span>
+            </label>
+            <input type="date" id="plantDate" class="form-input" value="2026-06-15">
+          </div>
         </div>
       </section>
 
-      <!-- แผงจำลองสภาพอากาศสุดวิสัยและมรสุมตามช่วงเวลา (What-If Sandbox) -->
-      <section class="panel-section">
-        <div class="panel-heading">
+      <!-- แผงจำลองสภาพอากาศสุดวิสัยและมรสุมตามช่วงเวลา (ย่อ/พับได้) -->
+      <section class="panel-section collapsible" id="secDisaster">
+        <div class="panel-heading" title="คลิกเพื่อย่อ/ขยายส่วนนี้">
           <div class="panel-heading-left">
             <i class="fa-solid fa-cloud-bolt"></i>
             <span>จำลองมรสุม & ภัยธรรมชาติ</span>
           </div>
-          <span class="info-tooltip" data-tooltip="จำลองภัยธรรมชาติฉับพลัน หรือกำหนดช่วงวันเกิดภัยพิบัติเพื่อดูความเสียหายตามระยะการเติบโต"><i class="fa-solid fa-circle-info"></i></span>
+          <div class="panel-heading-right">
+            <span class="info-tooltip" data-tooltip="จำลองภัยธรรมชาติฉับพลัน หรือกำหนดช่วงวันเกิดภัยพิบัติเพื่อดูความเสียหายตามระยะการเติบโต"><i class="fa-solid fa-circle-info"></i></span>
+            <i class="fa-solid fa-chevron-down section-toggle-chevron"></i>
+          </div>
         </div>
 
-        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">
-          คลิกเปิด/ปิดภัยธรรมชาติฉับพลัน ณ วันจำลองปัจจุบัน:
-        </div>
-        <div class="weather-sandbox-grid">
-          <button id="btnScenarioRain" class="scenario-btn" title="ฝนตกชุ่มฉ่ำ น้ำในแปลงพอเหมาะ">
-            <i class="fa-solid fa-cloud-showers-heavy" style="color: #0284c7;"></i>
-            <span>ฝนชุ่มฉ่ำ</span>
-          </button>
-          <button id="btnScenarioFlood" class="scenario-btn" title="น้ำท่วมขังมิดแปลง หากเกิดช่วงตั้งท้องดอกจะลีบถาวร">
-            <i class="fa-solid fa-water" style="color: #2563eb;"></i>
-            <span>น้ำท่วมขัง</span>
-          </button>
-          <button id="btnScenarioDrought" class="scenario-btn" title="ฝนแล้งทิ้งช่วง ดินแห้งแตกระแหง">
-            <i class="fa-solid fa-sun" style="color: #ea580c;"></i>
-            <span>ฝนแล้ง</span>
-          </button>
-          <button id="btnScenarioHeat" class="scenario-btn" title="คลื่นความร้อน อุณหภูมิเกิน 37°C เกสรเป็นหมัน">
-            <i class="fa-solid fa-temperature-arrow-up" style="color: #dc2626;"></i>
-            <span>ร้อนจัด</span>
-          </button>
-        </div>
-
-        <!-- กล่องกำหนดภัยพิบัติตามช่วงเวลา (Disaster Window) -->
-        <div class="disaster-window-box">
-          <div style="font-weight: 600; font-size: 11px; color: var(--text-primary); margin-bottom: 6px;">
-            <i class="fa-solid fa-timeline" style="color: var(--rice-gold);"></i> กำหนดภัยพิบัติตามช่วงเวลา
+        <div class="section-content">
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">
+            คลิกเปิด/ปิดภัยธรรมชาติฉับพลัน ณ วันจำลองปัจจุบัน:
           </div>
-          <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-            <select id="disasterTypeSelect" class="form-select" style="font-size: 11.5px; padding: 4px 8px;">
-              <option value="none">-- ไม่มีภัยพิบัติ --</option>
-              <option value="flood" selected>น้ำท่วมขัง (Flood)</option>
-              <option value="drought">ฝนแล้งทิ้งช่วง (Drought)</option>
-              <option value="heat">คลื่นความร้อน (Heatwave)</option>
-            </select>
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary);">
-            <span>วันที่:</span>
-            <input type="number" id="disasterStartDay" class="form-input" style="width: 50px; padding: 3px 6px;" value="30" min="1" max="120">
-            <span>ถึง:</span>
-            <input type="number" id="disasterEndDay" class="form-input" style="width: 50px; padding: 3px 6px;" value="75" min="1" max="120">
-            <button id="btnApplyDisasterWindow" class="advisory-btn" style="margin-top: 0; padding: 3px 8px;">
-              ใช้งาน
+          <div class="weather-sandbox-grid">
+            <button id="btnScenarioRain" class="scenario-btn" title="ฝนตกชุ่มฉ่ำ น้ำในแปลงพอเหมาะ">
+              <i class="fa-solid fa-cloud-showers-heavy" style="color: #0284c7;"></i>
+              <span>ฝนชุ่มฉ่ำ</span>
+            </button>
+            <button id="btnScenarioFlood" class="scenario-btn" title="น้ำท่วมขังมิดแปลง หากเกิดช่วงตั้งท้องดอกจะลีบถาวร">
+              <i class="fa-solid fa-water" style="color: #2563eb;"></i>
+              <span>น้ำท่วมขัง</span>
+            </button>
+            <button id="btnScenarioDrought" class="scenario-btn" title="ฝนแล้งทิ้งช่วง ดินแห้งแตกระแหง">
+              <i class="fa-solid fa-sun" style="color: #ea580c;"></i>
+              <span>ฝนแล้ง</span>
+            </button>
+            <button id="btnScenarioHeat" class="scenario-btn" title="คลื่นความร้อน อุณหภูมิเกิน 37°C เกสรเป็นหมัน">
+              <i class="fa-solid fa-temperature-arrow-up" style="color: #dc2626;"></i>
+              <span>ร้อนจัด</span>
             </button>
           </div>
-          <div id="dispDisasterWindowBadge" class="disaster-timeline-badge" style="display: inline-block;">
-            ⚠️ จำลองน้ำท่วมขังในวันที่ 30 ถึง 75 (ระยะแตกกอถึงออกรวง)
+
+          <!-- กล่องกำหนดภัยพิบัติตามช่วงเวลา (Disaster Window) -->
+          <div class="disaster-window-box">
+            <div style="font-weight: 600; font-size: 11px; color: var(--text-primary); margin-bottom: 6px;">
+              <i class="fa-solid fa-timeline" style="color: var(--rice-gold);"></i> กำหนดภัยพิบัติตามช่วงเวลา
+            </div>
+            <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+              <select id="disasterTypeSelect" class="form-select" style="font-size: 11.5px; padding: 4px 8px;">
+                <option value="none">-- ไม่มีภัยพิบัติ --</option>
+                <option value="flood" selected>น้ำท่วมขัง (Flood)</option>
+                <option value="drought">ฝนแล้งทิ้งช่วง (Drought)</option>
+                <option value="heat">คลื่นความร้อน (Heatwave)</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary);">
+              <span>วันที่:</span>
+              <input type="number" id="disasterStartDay" class="form-input" style="width: 50px; padding: 3px 6px;" value="30" min="1" max="120">
+              <span>ถึง:</span>
+              <input type="number" id="disasterEndDay" class="form-input" style="width: 50px; padding: 3px 6px;" value="75" min="1" max="120">
+              <button id="btnApplyDisasterWindow" class="advisory-btn" style="margin-top: 0; padding: 3px 8px;">
+                ใช้งาน
+              </button>
+            </div>
+            <div id="dispDisasterWindowBadge" class="disaster-timeline-badge" style="display: inline-block;">
+              ⚠️ จำลองน้ำท่วมขังในวันที่ 30 ถึง 75 (ระยะแตกกอถึงออกรวง)
+            </div>
+
+            <button id="btnReRunScenario" class="advisory-btn" style="width: 100%; justify-content: center; margin-top: 8px; padding: 6px;">
+              <i class="fa-solid fa-rotate-right"></i> จำลองใหม่ & เปรียบเทียบกับรอบเดิม
+            </button>
           </div>
 
-          <button id="btnReRunScenario" class="advisory-btn" style="width: 100%; justify-content: center; margin-top: 8px; padding: 6px;">
-            <i class="fa-solid fa-rotate-right"></i> จำลองใหม่ & เปรียบเทียบกับรอบเดิม
-          </button>
-        </div>
+          <div id="dispWeatherDesc" style="font-size: 11.5px; margin-top: 8px; font-weight: 500; color: #16a34a;">
+            🌤️ สภาพอากาศปกติตามฤดูกาล
+          </div>
 
-        <div id="dispWeatherDesc" style="font-size: 11.5px; margin-top: 8px; font-weight: 500; color: #16a34a;">
-          🌤️ สภาพอากาศปกติตามฤดูกาล
+          <!-- ปุ่มเปิดหน้าต่างวิเคราะห์ผลกระทบมรสุมแบบละเอียด (Draggable Floating Window) -->
+          <button id="btnOpenDisasterReport" class="btn-open-disaster-report" style="margin-top: 8px;">
+            <i class="fa-solid fa-chart-column"></i> สรุปผลกระทบมรสุม & ความเสียหายตลอดฤดู
+          </button>
         </div>
       </section>
 
-      <!-- ตัวแปรชีวภาพ พร้อมคู่มือเพื่อการศึกษา -->
-      <section class="panel-section">
-        <div class="panel-heading">
+      <!-- ตัวแปรชีวภาพ พร้อมคำแนะนำใน Tooltips (ย่อ/พับได้) -->
+      <section class="panel-section collapsible" id="secBio">
+        <div class="panel-heading" title="คลิกเพื่อย่อ/ขยายส่วนนี้">
           <div class="panel-heading-left">
             <i class="fa-solid fa-dna"></i>
             <span>ตัวแปรชีวภาพ (สมการที่ 3)</span>
           </div>
-          <span class="info-tooltip" data-tooltip="ผลผลิตศักยภาพทางชีววิทยา = กอ x รวง x เมล็ดดี x น้ำหนักเมล็ด x สัดส่วนติดเมล็ดจริง"><i class="fa-solid fa-circle-info"></i></span>
+          <div class="panel-heading-right">
+            <span class="info-tooltip" data-tooltip="📘 ค่ามาตรฐานข้าวไทย (สศก./กรมการข้าว): ขาวดอกมะลิ 105: 16 กอ/ตร.ม. | 8 รวง/กอ | 95 เมล็ดดี/รวง | W=25.5 กรัม (ผลผลิตเฉลี่ย ~356 กก./ไร่) • กข6: 16 กอ/ตร.ม. | 9 รวง/กอ | 100 เมล็ด/รวง | W=26.5 กรัม • สัดส่วนเมล็ดติดจริงเฉลี่ย 80-85%"><i class="fa-solid fa-circle-info"></i></span>
+            <i class="fa-solid fa-chevron-down section-toggle-chevron"></i>
+          </div>
         </div>
 
-        <div class="form-group">
-          <div class="form-label">
-            <span>
-              จำนวนกอต่อ ตร.ม. (H)
-              <span class="info-tooltip" data-tooltip="ความหนาแน่นการปักดำ มาตรฐานข้าวไทย 16 กอ/ตร.ม. (ระยะ 25x25 ซม.) ข้าวหว่าน 20-25 กอ"><i class="fa-solid fa-circle-info"></i></span>
-            </span>
-            <span class="form-val-display" id="dispHills">16</span>
+        <div class="section-content">
+          <div class="form-group">
+            <div class="form-label">
+              <span>
+                จำนวนกอต่อ ตร.ม. (H)
+                <span class="info-tooltip" data-tooltip="ความหนาแน่นการปักดำ มาตรฐานข้าวไทย 16 กอ/ตร.ม. (ระยะ 25x25 ซม.) ข้าวหว่าน 20-25 กอ"><i class="fa-solid fa-circle-info"></i></span>
+              </span>
+              <span class="form-val-display" id="dispHills">16</span>
+            </div>
+            <input type="range" id="inputHills" class="form-range" min="10" max="30" value="16" step="1">
           </div>
-          <input type="range" id="inputHills" class="form-range" min="10" max="30" value="16" step="1">
-        </div>
 
-        <div class="form-group">
-          <div class="form-label">
-            <span>
-              จำนวนรวงต่อกอ (P)
-              <span class="info-tooltip" data-tooltip="จำนวนรวงข้าวที่แตกกอสมบูรณ์ ค่าเฉลี่ยนาปีอยู่ที่ 7-10 รวง/กอ ดินดีใส่ปุ๋ยอาจได้ 12-14 รวง"><i class="fa-solid fa-circle-info"></i></span>
-            </span>
-            <span class="form-val-display" id="dispPanicles">8</span>
+          <div class="form-group">
+            <div class="form-label">
+              <span>
+                รวงต่อกอ (P)
+                <span class="info-tooltip" data-tooltip="จำนวนรวงข้าวที่แตกกอสมบูรณ์ ค่าเฉลี่ยนาปีอยู่ที่ 7-10 รวง/กอ ดินดีใส่ปุ๋ยอาจได้ 12-14 รวง"><i class="fa-solid fa-circle-info"></i></span>
+              </span>
+              <span class="form-val-display" id="dispPanicles">8</span>
+            </div>
+            <input type="range" id="inputPanicles" class="form-range" min="4" max="20" value="8" step="1">
           </div>
-          <input type="range" id="inputPanicles" class="form-range" min="4" max="20" value="8" step="1">
-        </div>
 
-        <div class="form-group">
-          <div class="form-label">
-            <span>
-              เมล็ดดีต่อรวง (G)
-              <span class="info-tooltip" data-tooltip="จำนวนเมล็ดข้าวที่ติดแป้งดี ไม่ลีบ ค่าเฉลี่ย 80-110 เมล็ด/รวง หากแล้งหรือร้อนจัดช่วงออกดอกจะลดลง"><i class="fa-solid fa-circle-info"></i></span>
-            </span>
-            <span class="form-val-display" id="dispGrains">95</span>
+          <div class="form-group">
+            <div class="form-label">
+              <span>
+                เมล็ดดีต่อรวง (G)
+                <span class="info-tooltip" data-tooltip="จำนวนเมล็ดข้าวที่ติดแป้งดี ไม่ลีบ ค่าเฉลี่ย 80-110 เมล็ด/รวง หากแล้งหรือร้อนจัดช่วงออกดอกจะลดลง"><i class="fa-solid fa-circle-info"></i></span>
+              </span>
+              <span class="form-val-display" id="dispGrains">95</span>
+            </div>
+            <input type="range" id="inputGrains" class="form-range" min="60" max="180" value="95" step="5">
           </div>
-          <input type="range" id="inputGrains" class="form-range" min="60" max="180" value="95" step="5">
-        </div>
 
-        <div class="form-group">
-          <div class="form-label">
-            <span>
-              น้ำหนัก 1,000 เมล็ด (W)
-              <span class="info-tooltip" data-tooltip="น้ำหนักข้าวเปลือกแห้ง 1,000 เมล็ด ขาวดอกมะลิ 105 อยู่ที่ 25-26 กรัม"><i class="fa-solid fa-circle-info"></i></span>
-            </span>
-            <span class="form-val-display" id="dispWeight">25.5 กรัม</span>
-          </div>
-          <input type="range" id="inputWeight" class="form-range" min="20" max="32" value="25.5" step="0.5">
-        </div>
-
-        <!-- กล่องคู่มืออ้างอิงค่าชีวภาพเพื่อการศึกษา -->
-        <div class="guide-box">
-          <div class="guide-header" id="guideHeader">
-            <span><i class="fa-solid fa-book-open-reader" style="color: var(--rice-green);"></i> 📘 ค่าเฉลี่ยมาตรฐานข้าวไทย (เพื่อการศึกษา)</span>
-            <i class="fa-solid fa-chevron-down" id="guideChevron" style="font-size: 10px; transition: transform 0.2s;"></i>
-          </div>
-          <div class="guide-content" id="guideContent">
-            <p><strong>• ขาวดอกมะลิ 105 (นาปี):</strong> 16 กอ/ตร.ม. | 8 รวง/กอ | 95 เมล็ด/รวง | W = 25.5 กรัม (ผลผลิต สศก. ~356 กก./ไร่)</p>
-            <p style="margin-top: 4px;"><strong>• กข6 (ข้าวเหนียว):</strong> 16 กอ/ตร.ม. | 9 รวง/กอ | 100 เมล็ด/รวง | W = 26.5 กรัม</p>
-            <p style="margin-top: 4px;"><strong>• สัดส่วนเมล็ดติดจริง:</strong> เฉลี่ย 80-85% จากเมล็ดลีบธรรมชาติปลายรวง</p>
+          <div class="form-group">
+            <div class="form-label">
+              <span>
+                น้ำหนัก 1,000 เมล็ด (W)
+                <span class="info-tooltip" data-tooltip="น้ำหนักข้าวเปลือกแห้ง 1,000 เมล็ด ขาวดอกมะลิ 105 อยู่ที่ 25-26 กรัม"><i class="fa-solid fa-circle-info"></i></span>
+              </span>
+              <span class="form-val-display" id="dispWeight">25.5 กรัม</span>
+            </div>
+            <input type="range" id="inputWeight" class="form-range" min="20" max="32" value="25.5" step="0.5">
           </div>
         </div>
       </section>
 
-      <!-- ควบคุมความเร็วจำลอง -->
-      <section class="panel-section">
-        <div class="panel-heading">
+      <!-- ควบคุมความเร็วจำลอง (ย่อ/พับได้) -->
+      <section class="panel-section collapsible" id="secSpeed">
+        <div class="panel-heading" title="คลิกเพื่อย่อ/ขยายส่วนนี้">
           <div class="panel-heading-left">
             <i class="fa-solid fa-gauge-high"></i>
             <span>ความเร็วการเร่งเวลา</span>
           </div>
+          <div class="panel-heading-right">
+            <i class="fa-solid fa-chevron-down section-toggle-chevron"></i>
+          </div>
         </div>
-        <div class="form-group">
-          <select id="simSpeedSelect" class="form-select">
-            <option value="1">1x (ความเร็วปกติ)</option>
-            <option value="2" selected>2x (แนะนำ)</option>
-            <option value="5">5x (เร็วปานกลาง)</option>
-            <option value="10">10x (เร็วมาก)</option>
-          </select>
+        <div class="section-content">
+          <div class="form-group">
+            <select id="simSpeedSelect" class="form-select">
+              <option value="1">1x (ความเร็วปกติ)</option>
+              <option value="2" selected>2x (แนะนำ)</option>
+              <option value="5">5x (เร็วปานกลาง)</option>
+              <option value="10">10x (เร็วมาก)</option>
+            </select>
+          </div>
         </div>
       </section>
 
     </aside>
 
-    <!-- 2.2 แผงกลาง: แผนที่ Leaflet + แถบแปลงนาแบบย่อไม่ดันจอ + ลิ้นชักเครื่องมือพับได้ + ไทม์ไลน์ -->
+    <!-- 2.2 แผงกลาง: แผนที่ Leaflet + กรอบแผนที่ + แถบแปลงนา + ลิ้นชักเครื่องมือ + ช่องค้นหาจังหวัด 77 จังหวัด -->
     <div class="map-view-container">
       
+      <!-- การแจ้งเตือนขอบเขตระบบเฉพาะประเทศไทย (Thailand Scope Welcome Banner) -->
+      <div class="thailand-scope-banner" id="thailandScopeBanner">
+        <span><i class="fa-solid fa-circle-info" style="color: #16a34a;"></i> ขอบเขตระบบ: ฐานข้อมูลชุดดิน (LDD 77 จังหวัด) และสถิติภูมิอากาศเฉพาะในประเทศไทย</span>
+        <button class="banner-close-btn" id="btnCloseScopeBanner" title="ปิดการแจ้งเตือน">✕</button>
+      </div>
+
       <!-- แถบแสดงรายการแปลงนา (Multi-Paddy Tabs) แบบกระชับ มีปุ่มกากบาทลบแปลง -->
       <div id="paddyTabsContainer" class="paddy-tabs-bar">
         <button class="paddy-tab active">🌾 แปลงที่ 1 <span class="paddy-tab-del" title="ลบแปลงนี้">✕</span></button>
+      </div>
+
+      <!-- ช่องค้นหาจังหวัด 77 จังหวัด พร้อม Auto-Suggest และ Smooth Flight -->
+      <div class="map-search-bar-container">
+        <div class="map-search-input-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="provinceSearchInput" placeholder="🔍 ค้นหาจังหวัด... (เช่น ขอนแก่น, บุรีรัมย์)" autocomplete="off">
+        </div>
+        <div id="provinceSuggestBox" class="province-suggest-dropdown" style="display: none;"></div>
       </div>
 
       <!-- ลิ้นชักแถบเครื่องมือวาดแปลง พับเก็บได้ไม่บังแท็บแปลงนา (Retractable Toolbar Drawer) -->
@@ -303,36 +330,43 @@
         </div>
       </div>
 
-      <!-- แผนที่ Leaflet -->
+      <!-- แผนที่ Leaflet (มีกรอบขอบมนมินิมอล) -->
       <div id="map"></div>
 
-      <!-- แถบไทม์ไลน์แบบ Scrubbing ลากกรอเวลาไปหน้า-ย้อนหลังได้ 60 FPS -->
-      <div class="timeline-overlay">
+      <!-- แถบไทม์ไลน์แบบ Scrubbing พร้อมปุ่มย่อ/ขยาย (Minimizable Timeline) -->
+      <div class="timeline-overlay" id="timelineOverlay">
         <div class="timeline-header-row">
           <div class="timeline-info-badge">
             <span class="stage-tag" id="dispStageName">1. ระยะกล้า (Seedling)</span>
             <span style="color: var(--text-muted); font-size: 11.5px;" id="dispSimDate">15 มิ.ย. 2569</span>
           </div>
-          <div style="font-size: 12px; font-weight: 600; color: var(--rice-green);">
-            <span id="dispDap">วันที่ 1 / 120</span> (<span id="dispPercent">1%</span>)
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="font-size: 12px; font-weight: 600; color: var(--rice-green);">
+              <span id="dispDap">วันที่ 1 / 120</span> (<span id="dispPercent">1%</span>)
+            </div>
+            <button id="btnToggleTimeline" class="btn-toggle-timeline" title="ย่อ/ขยายแถบเร่งเวลา">
+              <i class="fa-solid fa-chevron-down" id="timelineChevron"></i>
+            </button>
           </div>
         </div>
 
-        <div class="timeline-controls-row">
-          <button id="btnPlay" class="btn-ctrl" title="เริ่มเร่งเวลา"><i class="fa-solid fa-play"></i></button>
-          <button id="btnPause" class="btn-ctrl" title="หยุดชั่วคราว"><i class="fa-solid fa-pause"></i></button>
-          <button id="btnReset" class="btn-ctrl" title="รีเซ็ตกลับวันแรก"><i class="fa-solid fa-rotate-left"></i></button>
+        <div class="timeline-body-collapsible" id="timelineBodyContent">
+          <div class="timeline-controls-row">
+            <button id="btnPlay" class="btn-ctrl" title="เริ่มเร่งเวลา"><i class="fa-solid fa-play"></i></button>
+            <button id="btnPause" class="btn-ctrl" title="หยุดชั่วคราว"><i class="fa-solid fa-pause"></i></button>
+            <button id="btnReset" class="btn-ctrl" title="รีเซ็ตกลับวันแรก"><i class="fa-solid fa-rotate-left"></i></button>
 
-          <!-- แถบ Scrubber Slider -->
-          <input type="range" id="timelineScrubber" min="1" max="120" value="1" class="scrubber-slider" title="ลากเพื่อกรอเวลา">
-        </div>
+            <!-- แถบ Scrubber Slider -->
+            <input type="range" id="timelineScrubber" min="1" max="120" value="1" class="scrubber-slider" title="ลากเพื่อกรอเวลา">
+          </div>
 
-        <div class="stages-indicator-bar">
-          <span class="stage-item-label active">1. กล้า</span>
-          <span class="stage-item-label">2. แตกกอ</span>
-          <span class="stage-item-label">3. ตั้งท้อง</span>
-          <span class="stage-item-label">4. ออกรวง</span>
-          <span class="stage-item-label">5. สุกแก่ (เกี่ยว)</span>
+          <div class="stages-indicator-bar">
+            <span class="stage-item-label active">1. กล้า</span>
+            <span class="stage-item-label">2. แตกกอ</span>
+            <span class="stage-item-label">3. ตั้งท้อง</span>
+            <span class="stage-item-label">4. ออกรวง</span>
+            <span class="stage-item-label">5. สุกแก่ (เกี่ยว)</span>
+          </div>
         </div>
       </div>
     </div>
@@ -340,188 +374,254 @@
     <!-- 2.3 แผงขวา: ผลการประมาณผลผลิตและการเปรียบเทียบ (Right Analytics Panel) -->
     <aside class="panel panel-right" id="panelRight">
       
-      <!-- การ์ดผลผลิตหลัก พร้อมระบบเปรียบเทียบ Process ปัจจุบัน vs Process ก่อนหน้า -->
-      <section class="panel-section">
-        <div class="panel-heading">
+      <!-- การ์ดผลผลิตหลัก พร้อมระบบเปรียบเทียบ Process ปัจจุบัน vs Process ก่อนหน้า (ย่อ/พับได้) -->
+      <section class="panel-section collapsible" id="secYield">
+        <div class="panel-heading" title="คลิกเพื่อย่อ/ขยายส่วนนี้">
           <div class="panel-heading-left">
             <i class="fa-solid fa-chart-pie"></i>
             <span>ประมาณการผลผลิต (สมการ 3 ถึง 5)</span>
           </div>
-          <span class="info-tooltip" data-tooltip="ผลผลิตจริงถูกคำนวณจากแบบจำลอง Hybrid Model: Y_final = Y_pot x F_soil x F_temp x F_climate x F_NDVI x F_stress"><i class="fa-solid fa-circle-info"></i></span>
-        </div>
-
-        <div class="metric-card-grid">
-          <div class="metric-card gold-highlight">
-            <div class="metric-title">
-              <span>ผลผลิตรวมที่คาดหมาย</span>
-              <span class="info-tooltip" data-tooltip="ผลผลิตข้าวเปลือกแห้งรวมทั้งแปลง ณ วันจำลองปัจจุบัน"><i class="fa-solid fa-circle-info"></i></span>
-            </div>
-            <div class="metric-value gold" id="dispTotalYield">3.51 ตัน</div>
-            <div class="metric-sub" id="dispPotYield">ศักยภาพ: 4.85 ตัน</div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-title">
-              <span>ผลผลิตเฉลี่ยต่อไร่</span>
-              <span class="info-tooltip" data-tooltip="ผลผลิตเฉลี่ยต่อไร่ เทียบเคียงกับเกณฑ์มาตรฐาน สศก. ภาคอีสาน 356 กก./ไร่"><i class="fa-solid fa-circle-info"></i></span>
-            </div>
-            <div class="metric-value green" id="dispYieldPerRai">355 กก./ไร่</div>
-            
-            <!-- เปรียบเทียบกับรอบก่อนหน้า (Ghosted Scenario Comparison) -->
-            <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-              <div id="dispComparisonPill" class="comparison-pill" style="display: none;">รอบก่อนหน้า: 356 กก./ไร่</div>
-              <span id="dispCompareDiff"></span>
-            </div>
-
-            <div class="metric-sub" id="dispOaeBenchmark" style="color: #15803d; margin-top: 3px;">
-              0% เทียบ สศก. (356 กก./ไร่)
-            </div>
+          <div class="panel-heading-right">
+            <span class="info-tooltip" data-tooltip="ผลผลิตจริงถูกคำนวณจากแบบจำลอง Hybrid Model: Y_final = Y_pot x F_soil x F_temp x F_climate x F_NDVI x F_stress"><i class="fa-solid fa-circle-info"></i></span>
+            <i class="fa-solid fa-chevron-down section-toggle-chevron"></i>
           </div>
         </div>
 
-        <!-- แจกแจงตัวคูณตามแบบจำลองสูตรผสมผสาน พร้อมเกรด 5 ระดับ -->
-        <div class="multipliers-list">
-          <!-- F_soil -->
-          <div class="multiplier-item">
-            <div>
-              <span style="color: var(--text-secondary);"><i class="fa-solid fa-mountain" style="color:#92400e;"></i> สภาพดิน (F_soil)</span>
-              <span class="info-tooltip" data-tooltip="ตัวคูณความเหมาะสมของดิน อิงตามการประเมินที่ดิน LDD: S1=ดีมาก, S2=ดี/ปานกลาง, S3=พอใช้, N=ไม่เหมาะสม"><i class="fa-solid fa-circle-info"></i></span>
+        <div class="section-content">
+          <div class="metric-card-grid">
+            <div class="metric-card gold-highlight">
+              <div class="metric-title">
+                <span>ผลผลิตรวมที่คาดหมาย</span>
+                <span class="info-tooltip" data-tooltip="ผลผลิตข้าวเปลือกแห้งรวมทั้งแปลง ณ วันจำลองปัจจุบัน"><i class="fa-solid fa-circle-info"></i></span>
+              </div>
+              <div class="metric-value gold" id="dispTotalYield">3.51 ตัน</div>
+              <div class="metric-sub" id="dispPotYield">ศักยภาพ: 4.85 ตัน</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="dispSoilQual" class="qual-badge lvl-4">ดี (S2-สูง)</span>
-              <span class="multiplier-badge" id="dispFsoil">× 0.85</span>
+
+            <div class="metric-card">
+              <div class="metric-title">
+                <span>ผลผลิตเฉลี่ยต่อไร่</span>
+                <span class="info-tooltip" data-tooltip="ผลผลิตเฉลี่ยต่อไร่ เทียบเคียงกับเกณฑ์มาตรฐาน สศก. ภาคอีสาน 356 กก./ไร่"><i class="fa-solid fa-circle-info"></i></span>
+              </div>
+              <div class="metric-value green" id="dispYieldPerRai">355 กก./ไร่</div>
+              
+              <!-- เปรียบเทียบกับรอบก่อนหน้า (Ghosted Scenario Comparison) -->
+              <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 2px;">
+                <div id="dispComparisonPill" class="comparison-pill" style="display: none;">รอบก่อนหน้า: 356 กก./ไร่</div>
+                <div id="dispDisasterGhostPill" class="comparison-pill ghost-gold" style="display: none;">🌾 หากไม่เกิดมรสุม: 356 กก./ไร่</div>
+                <span id="dispCompareDiff"></span>
+              </div>
+
+              <div class="metric-sub" id="dispOaeBenchmark" style="color: #15803d; margin-top: 3px;">
+                0% เทียบ สศก. (356 กก./ไร่)
+              </div>
             </div>
           </div>
 
-          <!-- F_temp -->
-          <div class="multiplier-item">
-            <div>
-              <span style="color: var(--text-secondary);"><i class="fa-solid fa-temperature-half" style="color:#d97706;"></i> อุณหภูมิ (F_temp)</span>
-              <span class="info-tooltip" data-tooltip="ช่วงอุณหภูมิที่เหมาะสมต่อข้าวคือ 25-30°C หากเกิน 35°C เกสรจะเป็นหมัน"><i class="fa-solid fa-circle-info"></i></span>
+          <!-- แจกแจงตัวคูณตามแบบจำลองสูตรผสมผสาน พร้อมเกรด 5 ระดับ -->
+          <div class="multipliers-list">
+            <!-- F_soil -->
+            <div class="multiplier-item">
+              <div>
+                <span style="color: var(--text-secondary);"><i class="fa-solid fa-mountain" style="color:#92400e;"></i> สภาพดิน (F_soil)</span>
+                <span class="info-tooltip" data-tooltip="ตัวคูณความเหมาะสมของดิน อิงตามการประเมินที่ดิน LDD: S1=ดีมาก, S2=ดี/ปานกลาง, S3=พอใช้, N=ไม่เหมาะสม"><i class="fa-solid fa-circle-info"></i></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span id="dispSoilQual" class="qual-badge lvl-4">ดี (S2-สูง)</span>
+                <span class="multiplier-badge" id="dispFsoil">× 0.85</span>
+              </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="dispTempQual" class="qual-badge lvl-4">ดี (ปกติ)</span>
-              <span class="multiplier-badge" id="dispFtemp">× 0.95</span>
-            </div>
-          </div>
 
-          <!-- F_climate -->
-          <div class="multiplier-item">
-            <div>
-              <span style="color: var(--text-secondary);"><i class="fa-solid fa-cloud-rain" style="color:#0284c7;"></i> ภาวะน้ำ (F_climate)</span>
-              <span class="info-tooltip" data-tooltip="ดัชนีความเพียงพอของน้ำตาม FAO-33 คำนวณจากสมดุลฝนและจำนวนวันแล้ง CDD"><i class="fa-solid fa-circle-info"></i></span>
+            <!-- F_temp -->
+            <div class="multiplier-item">
+              <div>
+                <span style="color: var(--text-secondary);"><i class="fa-solid fa-temperature-half" style="color:#d97706;"></i> อุณหภูมิ (F_temp)</span>
+                <span class="info-tooltip" data-tooltip="ช่วงอุณหภูมิที่เหมาะสมต่อข้าวคือ 25-30°C หากเกิน 35°C เกสรจะเป็นหมัน"><i class="fa-solid fa-circle-info"></i></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span id="dispTempQual" class="qual-badge lvl-4">ดี (ปกติ)</span>
+                <span class="multiplier-badge" id="dispFtemp">× 0.95</span>
+              </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="dispClimateQual" class="qual-badge lvl-4">ดี (เพียงพอ)</span>
-              <span class="multiplier-badge" id="dispFclimate">× 0.92</span>
-            </div>
-          </div>
 
-          <!-- F_ndvi -->
-          <div class="multiplier-item">
-            <div>
-              <span style="color: var(--text-secondary);"><i class="fa-solid fa-satellite" style="color:#7c3aed;"></i> ดัชนีดาวเทียม (F_NDVI)</span>
-              <span class="info-tooltip" data-tooltip="ดัชนีพืชพรรณจากดาวเทียม Sentinel-2 สะท้อนความหนาแน่นทรงพุ่มและความเขียว"><i class="fa-solid fa-circle-info"></i></span>
+            <!-- F_climate -->
+            <div class="multiplier-item">
+              <div>
+                <span style="color: var(--text-secondary);"><i class="fa-solid fa-cloud-rain" style="color:#0284c7;"></i> ภาวะน้ำ (F_climate)</span>
+                <span class="info-tooltip" data-tooltip="ดัชนีความเพียงพอของน้ำตาม FAO-33 คำนวณจากสมดุลฝนและจำนวนวันแล้ง CDD"><i class="fa-solid fa-circle-info"></i></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span id="dispClimateQual" class="qual-badge lvl-4">ดี (เพียงพอ)</span>
+                <span class="multiplier-badge" id="dispFclimate">× 0.92</span>
+              </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="dispNdviQual" class="qual-badge lvl-5">ดีมาก (ทรงพุ่มแน่น)</span>
-              <span class="multiplier-badge" id="dispFndvi">× 0.96</span>
-            </div>
-          </div>
 
-          <!-- F_stress -->
-          <div class="multiplier-item">
-            <div>
-              <span style="color: var(--text-secondary);"><i class="fa-solid fa-shield-virus" style="color:#e11d48;"></i> ผลกระทบมรสุมถาวร (F_stress)</span>
-              <span class="info-tooltip" data-tooltip="ความเสียหายทางชีวภาพสะสมจากภัยธรรมชาติที่เกิดขึ้น ข้าวที่เสียในระยะสร้างรวงจะลีบถาวร ไม่สามารถฟื้นฟูได้"><i class="fa-solid fa-circle-info"></i></span>
+            <!-- F_ndvi -->
+            <div class="multiplier-item">
+              <div>
+                <span style="color: var(--text-secondary);"><i class="fa-solid fa-satellite" style="color:#7c3aed;"></i> ดัชนีดาวเทียม (F_NDVI)</span>
+                <span class="info-tooltip" data-tooltip="ดัชนีพืชพรรณจากดาวเทียม Sentinel-2 สะท้อนความหนาแน่นทรงพุ่มและความเขียว"><i class="fa-solid fa-circle-info"></i></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span id="dispNdviQual" class="qual-badge lvl-5">ดีมาก (ทรงพุ่มแน่น)</span>
+                <span class="multiplier-badge" id="dispFndvi">× 0.96</span>
+              </div>
             </div>
-            <span class="multiplier-badge" id="dispFstress" style="color:#b45309;">× 1.00</span>
+
+            <!-- F_stress -->
+            <div class="multiplier-item">
+              <div>
+                <span style="color: var(--text-secondary);"><i class="fa-solid fa-shield-virus" style="color:#e11d48;"></i> ผลกระทบมรสุมถาวร (F_stress)</span>
+                <span class="info-tooltip" data-tooltip="ความเสียหายทางชีวภาพสะสมจากภัยธรรมชาติที่เกิดขึ้น ข้าวที่เสียในระยะสร้างรวงจะลีบถาวร ไม่สามารถฟื้นฟูได้"><i class="fa-solid fa-circle-info"></i></span>
+              </div>
+              <span class="multiplier-badge" id="dispFstress" style="color:#b45309;">× 1.00</span>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- ข้อมูลแปลงและดินจริงจาก Spatial Join (77 จังหวัด) -->
-      <section class="panel-section">
-        <div class="panel-heading">
+      <!-- ข้อมูลแปลงและดินจริงจาก Spatial Join 77 จังหวัด (ย่อ/พับได้) -->
+      <section class="panel-section collapsible" id="secSoil">
+        <div class="panel-heading" title="คลิกเพื่อย่อ/ขยายส่วนนี้">
           <div class="panel-heading-left">
             <i class="fa-solid fa-map-location-dot"></i>
             <span>ข้อมูลพื้นที่ & ดินจริง (77 จังหวัด)</span>
           </div>
+          <div class="panel-heading-right">
+            <i class="fa-solid fa-chevron-down section-toggle-chevron"></i>
+          </div>
         </div>
         
-        <div class="info-row">
-          <span class="info-label">ขนาดแปลงนา:</span>
-          <span class="info-value" id="dispAreaThai">9 ไร่ 3 งาน 52 ตร.วา</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">พื้นที่คำนวณ (Turf.js):</span>
-          <span class="info-value" id="dispAreaSqM">15,806 ตร.ม.</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">ที่ตั้งแปลง:</span>
-          <span class="info-value" id="dispLocation" style="color: #15803d; font-weight:600;">ขอนแก่น / เมืองขอนแก่น</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">กลุ่มชุดดิน (LDD):</span>
-          <span class="info-value" id="dispSoilGroup">กลุ่มที่ 17</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">ระดับความเหมาะสม:</span>
-          <span class="info-value" id="dispSuitability" style="color: #15803d;">เหมาะสมปานกลาง (S2)</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">ความเป็นกรด-ด่าง (pH):</span>
-          <span class="info-value" id="dispSoilPh">5.5 - 6.5</span>
-        </div>
+        <div class="section-content">
+          <div class="info-row">
+            <span class="info-label">ขนาดแปลงนา:</span>
+            <span class="info-value" id="dispAreaThai">9 ไร่ 3 งาน 52 ตร.วา</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">พื้นที่คำนวณ (Turf.js):</span>
+            <span class="info-value" id="dispAreaSqM">15,806 ตร.ม.</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">ที่ตั้งแปลง:</span>
+            <span class="info-value" id="dispLocation" style="color: #15803d; font-weight:600;">ขอนแก่น / บ้านทุ่ม</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">กลุ่มชุดดิน (LDD):</span>
+            <span class="info-value" id="dispSoilGroup">กลุ่มที่ 17</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">ระดับความเหมาะสม:</span>
+            <span class="info-value" id="dispSuitability" style="color: #15803d;">เหมาะสมปานกลาง (S2)</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">ความเป็นกรด-ด่าง (pH):</span>
+            <span class="info-value" id="dispSoilPh">5.5 - 6.5</span>
+          </div>
 
-        <!-- แจ้งเตือนกรณีวาดในเขตเมือง (Land-Use check) -->
-        <div id="dispLandUseAlert" style="display: none; background: #fff1f2; border: 1px solid #fecaca; color: #b91c1c; padding: 7px 10px; border-radius: 6px; font-size: 11px; margin-top: 8px;"></div>
+          <!-- แจ้งเตือนกรณีวาดในเขตเมือง (Land-Use check) สไตล์สุภาพเป็นมิตร -->
+          <div id="dispLandUseAlert" style="display: none; background: #fffbeb; border: 1px solid #fef3c7; color: #b45309; padding: 8px 12px; border-radius: 6px; font-size: 11px; margin-top: 8px; line-height: 1.45;"></div>
+        </div>
       </section>
 
-      <!-- สภาพอากาศ & ดัชนีความเสี่ยง ETCCDI -->
-      <section class="panel-section">
-        <div class="panel-heading">
+      <!-- สภาพอากาศ & ดัชนีความเสี่ยง ETCCDI (ย่อ/พับได้) -->
+      <section class="panel-section collapsible" id="secWeatherChart">
+        <div class="panel-heading" title="คลิกเพื่อย่อ/ขยายส่วนนี้">
           <div class="panel-heading-left">
             <i class="fa-solid fa-cloud-sun-rain"></i>
             <span>สภาพอากาศ & ดัชนีความเสี่ยง</span>
           </div>
-          <span class="info-tooltip" data-tooltip="ดัชนีสภาพภูมิอากาศตามเกณฑ์ ETCCDI: CDD = จำนวนวันแล้งติดต่อกัน, CWD = จำนวนวันฝนตกติดต่อกัน"><i class="fa-solid fa-circle-info"></i></span>
+          <div class="panel-heading-right">
+            <span class="info-tooltip" data-tooltip="ดัชนีสภาพภูมิอากาศตามเกณฑ์ ETCCDI: CDD = จำนวนวันแล้งติดต่อกัน, CWD = จำนวนวันฝนตกติดต่อกัน"><i class="fa-solid fa-circle-info"></i></span>
+            <i class="fa-solid fa-chevron-down section-toggle-chevron"></i>
+          </div>
         </div>
         
-        <div class="metric-card-grid" style="margin-bottom: 6px;">
-          <div class="metric-card">
-            <div class="metric-title">ฝนรายวัน / อุณหภูมิ</div>
-            <div class="metric-value" style="font-size: 15px; color: #0284c7;" id="dispCurRain">12 มม./วัน</div>
-            <div class="metric-sub" id="dispCurTemp">29.5 °C</div>
+        <div class="section-content">
+          <div class="metric-card-grid" style="margin-bottom: 6px;">
+            <div class="metric-card">
+              <div class="metric-title">ฝนรายวัน / อุณหภูมิ</div>
+              <div class="metric-value" style="font-size: 15px; color: #0284c7;" id="dispCurRain">12 มม./วัน</div>
+              <div class="metric-sub" id="dispCurTemp">29.5 °C</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">ดัชนีแล้ง/ฝน (CDD/CWD)</div>
+              <div class="metric-value" style="font-size: 15px; color: #b45309;" id="dispCdd">0 วัน</div>
+              <div class="metric-sub">ฝนตกสะสม (CWD): <span id="dispCwd">1 วัน</span></div>
+            </div>
           </div>
-          <div class="metric-card">
-            <div class="metric-title">ดัชนีแล้ง/ฝน (CDD/CWD)</div>
-            <div class="metric-value" style="font-size: 15px; color: #b45309;" id="dispCdd">0 วัน</div>
-            <div class="metric-sub">ฝนตกสะสม (CWD): <span id="dispCwd">1 วัน</span></div>
-          </div>
-        </div>
 
-        <div class="chart-container">
-          <canvas id="weatherChart"></canvas>
+          <div class="chart-container">
+            <canvas id="weatherChart"></canvas>
+          </div>
         </div>
       </section>
 
-      <!-- กราฟการสะสมชีวมวล (เปรียบเทียบ 2 เส้น) -->
-      <section class="panel-section">
-        <div class="panel-heading">
+      <!-- กราฟการสะสมชีวมวล เปรียบเทียบ 2 เส้น (ย่อ/พับได้) -->
+      <section class="panel-section collapsible" id="secGrowthChart">
+        <div class="panel-heading" title="คลิกเพื่อย่อ/ขยายส่วนนี้">
           <div class="panel-heading-left">
             <i class="fa-solid fa-chart-line"></i>
             <span>การสะสมชีวมวล (เปรียบเทียบก่อน-หลัง)</span>
           </div>
+          <div class="panel-heading-right">
+            <i class="fa-solid fa-chevron-down section-toggle-chevron"></i>
+          </div>
         </div>
-        <div class="chart-container">
-          <canvas id="growthChart"></canvas>
+        <div class="section-content">
+          <div class="chart-container">
+            <canvas id="growthChart"></canvas>
+          </div>
         </div>
       </section>
 
     </aside>
 
   </main>
+
+  <!-- 3. หน้าต่างวิเคราะห์ผลกระทบมรสุมและภัยธรรมชาติแบบลอย เลื่อนได้ (Draggable Floating Window) -->
+  <div id="modalDisasterReport" class="floating-disaster-modal" style="display: none;">
+    <div class="modal-header" id="disasterModalHeader">
+      <div class="modal-title">
+        <i class="fa-solid fa-grip-vertical" style="color: #94a3b8; cursor: grab; margin-right: 4px;"></i>
+        <i class="fa-solid fa-cloud-bolt" style="color: var(--rice-gold);"></i>
+        <span>รายงานวิเคราะห์ผลกระทบมรสุม & ความเสียหาย</span>
+      </div>
+      <button class="modal-close-btn" id="btnCloseDisasterReport" title="ปิดหน้าต่าง">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- สรุปผลเปรียบเทียบ Before vs After -->
+      <div class="disaster-compare-cards">
+        <div class="disaster-card baseline">
+          <div class="d-card-label">ผลผลิตศักยภาพ (ไร้มรสุม)</div>
+          <div class="d-card-val" id="dispModalBaseYield">356 กก./ไร่</div>
+          <div class="d-card-sub" id="dispModalBaseTotal">3.51 ตัน</div>
+        </div>
+        <div class="disaster-arrow">
+          <i class="fa-solid fa-arrow-right"></i>
+        </div>
+        <div class="disaster-card damaged">
+          <div class="d-card-label">ผลผลิตจริงหลังเจอมรสุม</div>
+          <div class="d-card-val" id="dispModalActualYield">278 กก./ไร่</div>
+          <div class="d-card-sub" id="dispModalActualTotal">2.74 ตัน</div>
+        </div>
+      </div>
+
+      <!-- สัดส่วนความเสียหายสุทธิ -->
+      <div class="disaster-diff-banner" id="dispModalLossBanner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>สูญเสียผลผลิต: <strong>-78 กก./ไร่ (-21.9%)</strong></span>
+      </div>
+
+      <!-- ไทม์ไลน์และระดับความรุนแรง 1-5 -->
+      <div style="font-weight: 600; font-size: 11.5px; color: var(--text-primary); margin: 12px 0 6px 0;">
+        <i class="fa-solid fa-timeline"></i> รายการเหตุการณ์และระดับความรุนแรง (1 - 5)
+      </div>
+      <div id="dispModalDisasterTimeline" class="disaster-event-timeline-list">
+        <!-- รายการจะถูกแทรกแบบ Dynamic ผ่าน JS -->
+      </div>
+    </div>
+  </div>
 
   <!-- External JavaScript Libraries via CDN -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -530,6 +630,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <!-- App Modules -->
+  <script src="js/tooltip.js"></script>
   <script src="js/provinces.js"></script>
   <script src="js/area_calc.js"></script>
   <script src="js/time_engine.js"></script>

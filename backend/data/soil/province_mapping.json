@@ -1,0 +1,1321 @@
+{
+  "regions": {
+    "N": "ภาคเหนือ",
+    "NE": "ภาคตะวันออกเฉียงเหนือ",
+    "C": "ภาคกลาง",
+    "E": "ภาคตะวันออก",
+    "S": "ภาคใต้"
+  },
+  "total_provinces": 77,
+  "provinces": {
+    "kpt": {
+      "code": "kpt",
+      "name_th": "กำแพงเพชร",
+      "name_en": "kamphaeng_phet",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_kpt.rar",
+      "folder": "north/kamphaeng_phet",
+      "shp_name": "soilgroup_kpt.shp",
+      "status": "extracted",
+      "bounds": [
+        99.016,
+        15.8594,
+        100.0499,
+        16.9114
+      ]
+    },
+    "cmi": {
+      "code": "cmi",
+      "name_th": "เชียงใหม่",
+      "name_en": "chiang_mai",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_cmi.rar",
+      "folder": "north/chiang_mai",
+      "shp_name": "soilgroup_cmi.shp",
+      "status": "extracted",
+      "bounds": [
+        98.0485,
+        17.241,
+        99.6085,
+        20.1471
+      ]
+    },
+    "cri": {
+      "code": "cri",
+      "name_th": "เชียงราย",
+      "name_en": "chiang_rai",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_cri.rar",
+      "folder": "north/chiang_rai",
+      "shp_name": "soilgroup_cri.shp",
+      "status": "extracted",
+      "bounds": [
+        99.2573,
+        18.9999,
+        100.5807,
+        20.4603
+      ]
+    },
+    "tak": {
+      "code": "tak",
+      "name_th": "ตาก",
+      "name_en": "tak",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_tak.rar",
+      "folder": "north/tak",
+      "shp_name": "soilgroup_tak.shp",
+      "status": "extracted",
+      "bounds": [
+        97.7593,
+        15.1769,
+        99.4712,
+        17.8704
+      ]
+    },
+    "nan": {
+      "code": "nan",
+      "name_th": "น่าน",
+      "name_en": "nan",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_nan.rar",
+      "folder": "north/nan",
+      "shp_name": "soilgroup_nan.shp",
+      "status": "extracted",
+      "bounds": [
+        100.3303,
+        18.014,
+        101.3653,
+        19.6287
+      ]
+    },
+    "nsn": {
+      "code": "nsn",
+      "name_th": "นครสวรรค์",
+      "name_en": "nakhon_sawan",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_nsn.rar",
+      "folder": "north/nakhon_sawan",
+      "shp_name": "soilgroup_nsn.shp",
+      "status": "extracted",
+      "bounds": [
+        99.0858,
+        15.0571,
+        100.8381,
+        16.1863
+      ]
+    },
+    "pyo": {
+      "code": "pyo",
+      "name_th": "พะเยา",
+      "name_en": "phayao",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_pyo.rar",
+      "folder": "north/phayao",
+      "shp_name": "soilgroup_pyo.shp",
+      "status": "extracted",
+      "bounds": [
+        99.6802,
+        18.8089,
+        100.6348,
+        19.734
+      ]
+    },
+    "pct": {
+      "code": "pct",
+      "name_th": "พิจิตร",
+      "name_en": "phichit",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_pct.rar",
+      "folder": "north/phichit",
+      "shp_name": "soilgroup_pct.shp",
+      "status": "extracted",
+      "bounds": [
+        99.9812,
+        15.9271,
+        100.8056,
+        16.6434
+      ]
+    },
+    "plk": {
+      "code": "plk",
+      "name_th": "พิษณุโลก",
+      "name_en": "phitsanulok",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_plk.rar",
+      "folder": "north/phitsanulok",
+      "shp_name": "soilgroup_plk.shp",
+      "status": "extracted",
+      "bounds": [
+        99.8516,
+        16.3252,
+        101.1159,
+        17.7417
+      ]
+    },
+    "pbn": {
+      "code": "pbn",
+      "name_th": "เพชรบูรณ์",
+      "name_en": "phetchabun",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_pbn.rar",
+      "folder": "north/phetchabun",
+      "shp_name": "soilgroup_pbn.shp",
+      "status": "extracted",
+      "bounds": [
+        100.6295,
+        15.323,
+        101.7984,
+        17.173
+      ]
+    },
+    "msn": {
+      "code": "msn",
+      "name_th": "แม่ฮ่องสอน",
+      "name_en": "mae_hong_son",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_msn.rar",
+      "folder": "north/mae_hong_son",
+      "shp_name": "soilgroup_msn.shp",
+      "status": "extracted",
+      "bounds": [
+        97.3525,
+        17.6309,
+        98.6501,
+        19.8164
+      ]
+    },
+    "pre": {
+      "code": "pre",
+      "name_th": "แพร่",
+      "name_en": "phrae",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_pre.rar",
+      "folder": "north/phrae",
+      "shp_name": "soilgroup_pre.shp",
+      "status": "extracted",
+      "bounds": [
+        99.3672,
+        17.6857,
+        100.5548,
+        18.8315
+      ]
+    },
+    "lpg": {
+      "code": "lpg",
+      "name_th": "ลำปาง",
+      "name_en": "lampang",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_lpg.rar",
+      "folder": "north/lampang",
+      "shp_name": "soilgroup_lpg.shp",
+      "status": "extracted",
+      "bounds": [
+        98.8802,
+        17.2068,
+        100.1301,
+        19.4152
+      ]
+    },
+    "lpn": {
+      "code": "lpn",
+      "name_th": "ลำพูน",
+      "name_en": "lamphun",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_lpn.rar",
+      "folder": "north/lamphun",
+      "shp_name": "soilgroup_lpn.shp",
+      "status": "extracted",
+      "bounds": [
+        98.6723,
+        17.4238,
+        99.3207,
+        18.7098
+      ]
+    },
+    "sti": {
+      "code": "sti",
+      "name_th": "สุโขทัย",
+      "name_en": "sukhothai",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_sti.rar",
+      "folder": "north/sukhothai",
+      "shp_name": "soilgroup_sti.shp",
+      "status": "extracted",
+      "bounds": [
+        99.3111,
+        16.6842,
+        100.1171,
+        17.8194
+      ]
+    },
+    "utt": {
+      "code": "utt",
+      "name_th": "อุตรดิตถ์",
+      "name_en": "uttaradit",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_utt.rar",
+      "folder": "north/uttaradit",
+      "shp_name": "soilgroup_utt.shp",
+      "status": "extracted",
+      "bounds": [
+        99.8914,
+        17.1379,
+        101.1947,
+        18.3803
+      ]
+    },
+    "uti": {
+      "code": "uti",
+      "name_th": "อุทัยธานี",
+      "name_en": "uthai_thani",
+      "region": "north",
+      "region_th": "ภาคเหนือ",
+      "rar_file": "sg_uti.rar",
+      "folder": "north/uthai_thani",
+      "shp_name": "soilgroup_uti.shp",
+      "status": "extracted",
+      "bounds": [
+        98.9844,
+        14.9385,
+        100.109,
+        15.7954
+      ]
+    },
+    "ksn": {
+      "code": "ksn",
+      "name_th": "กาฬสินธุ์",
+      "name_en": "kalasin",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_ksn.rar",
+      "folder": "northeast/kalasin",
+      "shp_name": "soilgroup_ksn.shp",
+      "status": "extracted",
+      "bounds": [
+        103.0818,
+        16.1893,
+        104.2565,
+        17.0855
+      ]
+    },
+    "mkm": {
+      "code": "mkm",
+      "name_th": "มหาสารคาม",
+      "name_en": "maha_sarakham",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_mkm.rar",
+      "folder": "northeast/maha_sarakham",
+      "shp_name": "soilgroup_mkm.shp",
+      "status": "extracted",
+      "bounds": [
+        102.8283,
+        15.4149,
+        103.5043,
+        16.6365
+      ]
+    },
+    "srn": {
+      "code": "srn",
+      "name_th": "สุรินทร์",
+      "name_en": "surin",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_srn.rar",
+      "folder": "northeast/surin",
+      "shp_name": "soilgroup_srn.shp",
+      "status": "extracted",
+      "bounds": [
+        103.0686,
+        14.3305,
+        104.0949,
+        15.4652
+      ]
+    },
+    "kkn": {
+      "code": "kkn",
+      "name_th": "ขอนแก่น",
+      "name_en": "khon_kaen",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_kkn.rar",
+      "folder": "northeast/khon_kaen",
+      "shp_name": "soilgroup_kkn.shp",
+      "status": "extracted",
+      "bounds": [
+        101.7357,
+        15.648,
+        103.1901,
+        17.0789
+      ]
+    },
+    "mdh": {
+      "code": "mdh",
+      "name_th": "มุกดาหาร",
+      "name_en": "mukdahan",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_mdh.rar",
+      "folder": "northeast/mukdahan",
+      "shp_name": "soilgroup_mdh.shp",
+      "status": "extracted",
+      "bounds": [
+        104.0546,
+        16.2058,
+        104.9977,
+        16.8728
+      ]
+    },
+    "nki": {
+      "code": "nki",
+      "name_th": "หนองคาย",
+      "name_en": "nong_khai",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_nki.rar",
+      "folder": "northeast/nong_khai",
+      "shp_name": "soilgroup_nki.shp",
+      "status": "extracted",
+      "bounds": [
+        102.047,
+        17.6025,
+        103.4228,
+        18.3012
+      ]
+    },
+    "cpm": {
+      "code": "cpm",
+      "name_th": "ชัยภูมิ",
+      "name_en": "chaiyaphum",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_cpm.rar",
+      "folder": "northeast/chaiyaphum",
+      "shp_name": "soilgroup_cpm.shp",
+      "status": "extracted",
+      "bounds": [
+        101.312,
+        15.3323,
+        102.4652,
+        16.7175
+      ]
+    },
+    "yst": {
+      "code": "yst",
+      "name_th": "ยโสธร",
+      "name_en": "yasothon",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_yst.rar",
+      "folder": "northeast/yasothon",
+      "shp_name": "soilgroup_yst.shp",
+      "status": "extracted",
+      "bounds": [
+        103.9847,
+        15.2988,
+        104.8293,
+        16.3359
+      ]
+    },
+    "nbl": {
+      "code": "nbl",
+      "name_th": "หนองบัวลำภู",
+      "name_en": "nong_bua_lamphu",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_nbl.rar",
+      "folder": "northeast/nong_bua_lamphu",
+      "shp_name": "soilgroup_nbl.shp",
+      "status": "extracted",
+      "bounds": [
+        101.974,
+        16.7815,
+        102.6953,
+        17.6721
+      ]
+    },
+    "npn": {
+      "code": "npn",
+      "name_th": "นครพนม",
+      "name_en": "nakhon_phanom",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_npn.rar",
+      "folder": "northeast/nakhon_phanom",
+      "shp_name": "soilgroup_npn.shp",
+      "status": "extracted",
+      "bounds": [
+        103.9533,
+        16.8055,
+        104.8311,
+        18.0052
+      ]
+    },
+    "ret": {
+      "code": "ret",
+      "name_th": "ร้อยเอ็ด",
+      "name_en": "roi_et",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_ret.rar",
+      "folder": "northeast/roi_et",
+      "shp_name": "soilgroup_ret.shp",
+      "status": "extracted",
+      "bounds": [
+        103.2668,
+        15.42,
+        104.3562,
+        16.4714
+      ]
+    },
+    "anc": {
+      "code": "anc",
+      "name_th": "อำนาจเจริญ",
+      "name_en": "amnat_charoen",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_anc.rar",
+      "folder": "northeast/amnat_charoen",
+      "shp_name": "soilgroup_anc.shp",
+      "status": "extracted",
+      "bounds": [
+        104.4133,
+        15.5453,
+        105.0659,
+        16.2803
+      ]
+    },
+    "nma": {
+      "code": "nma",
+      "name_th": "นครราชสีมา",
+      "name_en": "nakhon_ratchasima",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_nma.rar",
+      "folder": "northeast/nakhon_ratchasima",
+      "shp_name": "soilgroup_nma.shp",
+      "status": "extracted",
+      "bounds": [
+        101.1771,
+        14.1329,
+        103.0198,
+        15.7961
+      ]
+    },
+    "lei": {
+      "code": "lei",
+      "name_th": "เลย",
+      "name_en": "loei",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_lei.rar",
+      "folder": "northeast/loei",
+      "shp_name": "soilgroup_lei.shp",
+      "status": "extracted",
+      "bounds": [
+        100.8264,
+        16.7633,
+        102.1742,
+        18.2182
+      ]
+    },
+    "udn": {
+      "code": "udn",
+      "name_th": "อุดรธานี",
+      "name_en": "udon_thani",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_udn.rar",
+      "folder": "northeast/udon_thani",
+      "shp_name": "soilgroup_udn.shp",
+      "status": "extracted",
+      "bounds": [
+        101.9988,
+        16.8273,
+        103.6916,
+        18.0533
+      ]
+    },
+    "bkn": {
+      "code": "bkn",
+      "name_th": "บึงกาฬ",
+      "name_en": "bueng_kan",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_bkn.rar",
+      "folder": "northeast/bueng_kan",
+      "shp_name": "soilgroup_bkn.shp",
+      "status": "extracted",
+      "bounds": [
+        103.2295,
+        17.7887,
+        104.2024,
+        18.4287
+      ]
+    },
+    "ssk": {
+      "code": "ssk",
+      "name_th": "ศรีสะเกษ",
+      "name_en": "si_sa_ket",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_ssk.rar",
+      "folder": "northeast/si_sa_ket",
+      "shp_name": "soilgroup_ssk.shp",
+      "status": "extracted",
+      "bounds": [
+        103.8909,
+        14.346,
+        104.9499,
+        15.5476
+      ]
+    },
+    "ubn": {
+      "code": "ubn",
+      "name_th": "อุบลราชธานี",
+      "name_en": "ubon_ratchathani",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_ubn.rar",
+      "folder": "northeast/ubon_ratchathani",
+      "shp_name": "soilgroup_ubn.shp",
+      "status": "extracted",
+      "bounds": [
+        104.3418,
+        14.2273,
+        105.6592,
+        16.0802
+      ]
+    },
+    "brm": {
+      "code": "brm",
+      "name_th": "บุรีรัมย์",
+      "name_en": "buri_ram",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_brm.rar",
+      "folder": "northeast/buri_ram",
+      "shp_name": "soilgroup_brm.shp",
+      "status": "extracted",
+      "bounds": [
+        102.4308,
+        14.1318,
+        103.5156,
+        15.7848
+      ]
+    },
+    "snk": {
+      "code": "snk",
+      "name_th": "สกลนคร",
+      "name_en": "sakon_nakhon",
+      "region": "northeast",
+      "region_th": "ภาคตะวันออกเฉียงเหนือ",
+      "rar_file": "sg_snk.rar",
+      "folder": "northeast/sakon_nakhon",
+      "shp_name": "soilgroup_snk.shp",
+      "status": "extracted",
+      "bounds": [
+        103.2393,
+        16.7879,
+        104.4602,
+        18.0653
+      ]
+    },
+    "kri": {
+      "code": "kri",
+      "name_th": "กาญจนบุรี",
+      "name_en": "kanchanaburi",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_kri.rar",
+      "folder": "central/kanchanaburi",
+      "shp_name": "soilgroup_kri.shp",
+      "status": "extracted",
+      "bounds": [
+        98.1873,
+        13.7249,
+        99.8866,
+        15.6593
+      ]
+    },
+    "aya": {
+      "code": "aya",
+      "name_th": "พระนครศรีอยุธยา",
+      "name_en": "phra_nakhon_si_ayutthaya",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_aya.rar",
+      "folder": "central/phra_nakhon_si_ayutthaya",
+      "shp_name": "soilgroup_aya.shp",
+      "status": "extracted",
+      "bounds": [
+        100.2242,
+        14.1123,
+        100.8269,
+        14.6708
+      ]
+    },
+    "sri": {
+      "code": "sri",
+      "name_th": "สระบุรี",
+      "name_en": "saraburi",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_sri.rar",
+      "folder": "central/saraburi",
+      "shp_name": "soilgroup_sri.shp",
+      "status": "extracted",
+      "bounds": [
+        100.5726,
+        14.2457,
+        101.4568,
+        15.0736
+      ]
+    },
+    "bkk": {
+      "code": "bkk",
+      "name_th": "กรุงเทพมหานคร",
+      "name_en": "bangkok",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_bkk.rar",
+      "folder": "central/bangkok",
+      "shp_name": "soilgroup_bkk.shp",
+      "status": "extracted",
+      "bounds": [
+        100.3261,
+        13.4922,
+        100.9397,
+        13.9528
+      ]
+    },
+    "rbr": {
+      "code": "rbr",
+      "name_th": "ราชบุรี",
+      "name_en": "ratchaburi",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_rbr.rar",
+      "folder": "central/ratchaburi",
+      "shp_name": "soilgroup_rbr.shp",
+      "status": "extracted",
+      "bounds": [
+        99.1635,
+        13.1487,
+        100.0694,
+        13.9612
+      ]
+    },
+    "sbr": {
+      "code": "sbr",
+      "name_th": "สิงห์บุรี",
+      "name_en": "sing_buri",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_sbr.rar",
+      "folder": "central/sing_buri",
+      "shp_name": "soilgroup_sbr.shp",
+      "status": "extracted",
+      "bounds": [
+        100.1802,
+        14.7204,
+        100.4909,
+        15.119
+      ]
+    },
+    "cnt": {
+      "code": "cnt",
+      "name_th": "ชัยนาท",
+      "name_en": "chai_nat",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_cnt.rar",
+      "folder": "central/chai_nat",
+      "shp_name": "soilgroup_cnt.shp",
+      "status": "extracted",
+      "bounds": [
+        99.7193,
+        14.9027,
+        100.3535,
+        15.4161
+      ]
+    },
+    "lri": {
+      "code": "lri",
+      "name_th": "ลพบุรี",
+      "name_en": "lop_buri",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_lri.rar",
+      "folder": "central/lop_buri",
+      "shp_name": "soilgroup_lri.shp",
+      "status": "extracted",
+      "bounds": [
+        100.4183,
+        14.6476,
+        101.4084,
+        15.7497
+      ]
+    },
+    "spb": {
+      "code": "spb",
+      "name_th": "สุพรรณบุรี",
+      "name_en": "suphan_buri",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_spb.rar",
+      "folder": "central/suphan_buri",
+      "shp_name": "soilgroup_spb.shp",
+      "status": "extracted",
+      "bounds": [
+        99.2806,
+        14.0622,
+        100.2851,
+        15.0784
+      ]
+    },
+    "nyk": {
+      "code": "nyk",
+      "name_th": "นครนายก",
+      "name_en": "nakhon_nayok",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_nyk.rar",
+      "folder": "central/nakhon_nayok",
+      "shp_name": "soilgroup_nyk.shp",
+      "status": "extracted",
+      "bounds": [
+        100.9117,
+        13.961,
+        101.5077,
+        14.5104
+      ]
+    },
+    "smp": {
+      "code": "smp",
+      "name_th": "สมุทรปราการ",
+      "name_en": "samut_prakan",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_smp.rar",
+      "folder": "central/samut_prakan",
+      "shp_name": "soilgroup_smp.shp",
+      "status": "extracted",
+      "bounds": [
+        100.444,
+        13.4823,
+        100.9632,
+        13.7168
+      ]
+    },
+    "atg": {
+      "code": "atg",
+      "name_th": "อ่างทอง",
+      "name_en": "ang_thong",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_atg.rar",
+      "folder": "central/ang_thong",
+      "shp_name": "soilgroup_atg.shp",
+      "status": "extracted",
+      "bounds": [
+        100.1904,
+        14.4404,
+        100.5166,
+        14.8008
+      ]
+    },
+    "npt": {
+      "code": "npt",
+      "name_th": "นครปฐม",
+      "name_en": "nakhon_pathom",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_npt.rar",
+      "folder": "central/nakhon_pathom",
+      "shp_name": "soilgroup_npt.shp",
+      "status": "extracted",
+      "bounds": [
+        99.8173,
+        13.6495,
+        100.3401,
+        14.1782
+      ]
+    },
+    "skm": {
+      "code": "skm",
+      "name_th": "สมุทรสงคราม",
+      "name_en": "samut_songkhram",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_skm.rar",
+      "folder": "central/samut_songkhram",
+      "shp_name": "soilgroup_skm.shp",
+      "status": "extracted",
+      "bounds": [
+        99.8518,
+        13.2418,
+        100.08,
+        13.5159
+      ]
+    },
+    "pkn": {
+      "code": "pkn",
+      "name_th": "ประจวบคีรีขันธ์",
+      "name_en": "prachuap_khiri_khan",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_pkn.rar",
+      "folder": "central/prachuap_khiri_khan",
+      "shp_name": "soilgroup_pkn.shp",
+      "status": "extracted",
+      "bounds": [
+        99.147,
+        10.9559,
+        100.0216,
+        12.644
+      ]
+    },
+    "ntb": {
+      "code": "ntb",
+      "name_th": "นนทบุรี",
+      "name_en": "nonthaburi",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_ntb.rar",
+      "folder": "central/nonthaburi",
+      "shp_name": "soilgroup_ntb.shp",
+      "status": "extracted",
+      "bounds": [
+        100.2611,
+        13.79,
+        100.5688,
+        14.1387
+      ]
+    },
+    "skn": {
+      "code": "skn",
+      "name_th": "สมุทรสาคร",
+      "name_en": "samut_sakhon",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_skn.rar",
+      "folder": "central/samut_sakhon",
+      "shp_name": "soilgroup_skn.shp",
+      "status": "extracted",
+      "bounds": [
+        100.0268,
+        13.4244,
+        100.4211,
+        13.7218
+      ]
+    },
+    "pbi": {
+      "code": "pbi",
+      "name_th": "เพชรบุรี",
+      "name_en": "phetchaburi",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_pbi.rar",
+      "folder": "central/phetchaburi",
+      "shp_name": "soilgroup_pbi.shp",
+      "status": "extracted",
+      "bounds": [
+        99.0993,
+        12.562,
+        100.1035,
+        13.3424
+      ]
+    },
+    "ptm": {
+      "code": "ptm",
+      "name_th": "ปทุมธานี",
+      "name_en": "pathum_thani",
+      "region": "central",
+      "region_th": "ภาคกลาง",
+      "rar_file": "sg_ptm.rar",
+      "folder": "central/pathum_thani",
+      "shp_name": "soilgroup_ptm.shp",
+      "status": "extracted",
+      "bounds": [
+        100.3311,
+        13.9183,
+        100.9517,
+        14.275
+      ]
+    },
+    "cti": {
+      "code": "cti",
+      "name_th": "จันทบุรี",
+      "name_en": "chanthaburi",
+      "region": "east",
+      "region_th": "ภาคตะวันออก",
+      "rar_file": "sg_cti.rar",
+      "folder": "east/chanthaburi",
+      "shp_name": "soilgroup_cti.shp",
+      "status": "extracted",
+      "bounds": [
+        101.6768,
+        12.2921,
+        102.5439,
+        13.3302
+      ]
+    },
+    "trt": {
+      "code": "trt",
+      "name_th": "ตราด",
+      "name_en": "trat",
+      "region": "east",
+      "region_th": "ภาคตะวันออก",
+      "rar_file": "sg_trt.rar",
+      "folder": "east/trat",
+      "shp_name": "soilgroup_trt.shp",
+      "status": "extracted",
+      "bounds": [
+        102.2373,
+        11.5658,
+        102.9311,
+        12.7513
+      ]
+    },
+    "sko": {
+      "code": "sko",
+      "name_th": "สระแก้ว",
+      "name_en": "sa_kaeo",
+      "region": "east",
+      "region_th": "ภาคตะวันออก",
+      "rar_file": "sg_sko.rar",
+      "folder": "east/sa_kaeo",
+      "shp_name": "soilgroup_sko.shp",
+      "status": "extracted",
+      "bounds": [
+        101.8704,
+        13.2384,
+        102.9416,
+        14.185
+      ]
+    },
+    "cco": {
+      "code": "cco",
+      "name_th": "ฉะเชิงเทรา",
+      "name_en": "chachoengsao",
+      "region": "east",
+      "region_th": "ภาคตะวันออก",
+      "rar_file": "sg_cco.rar",
+      "folder": "east/chachoengsao",
+      "shp_name": "soilgroup_cco.shp",
+      "status": "extracted",
+      "bounds": [
+        100.8466,
+        13.1864,
+        101.9979,
+        13.9666
+      ]
+    },
+    "pri": {
+      "code": "pri",
+      "name_th": "ปราจีนบุรี",
+      "name_en": "prachin_buri",
+      "region": "east",
+      "region_th": "ภาคตะวันออก",
+      "rar_file": "sg_pri.rar",
+      "folder": "east/prachin_buri",
+      "shp_name": "soilgroup_pri.shp",
+      "status": "extracted",
+      "bounds": [
+        101.1335,
+        13.5899,
+        102.1109,
+        14.4554
+      ]
+    },
+    "ryg": {
+      "code": "ryg",
+      "name_th": "ระยอง",
+      "name_en": "rayong",
+      "region": "east",
+      "region_th": "ภาคตะวันออก",
+      "rar_file": "sg_ryg.rar",
+      "folder": "east/rayong",
+      "shp_name": "soilgroup_ryg.shp",
+      "status": "extracted",
+      "bounds": [
+        100.9832,
+        12.5169,
+        101.8343,
+        13.1616
+      ]
+    },
+    "cbi": {
+      "code": "cbi",
+      "name_th": "ชลบุรี",
+      "name_en": "chon_buri",
+      "region": "east",
+      "region_th": "ภาคตะวันออก",
+      "rar_file": "sg_cbi.rar",
+      "folder": "east/chon_buri",
+      "shp_name": "soilgroup_cbi.shp",
+      "status": "extracted",
+      "bounds": [
+        100.6441,
+        12.5103,
+        101.7232,
+        13.584
+      ]
+    },
+    "cpn": {
+      "code": "cpn",
+      "name_th": "ชุมพร",
+      "name_en": "chumphon",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_cpn.rar",
+      "folder": "south/chumphon",
+      "shp_name": "soilgroup_cpn.shp",
+      "status": "extracted",
+      "bounds": [
+        98.6266,
+        9.6007,
+        99.5191,
+        11.033
+      ]
+    },
+    "yla": {
+      "code": "yla",
+      "name_th": "ยะลา",
+      "name_en": "yala",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_yla.rar",
+      "folder": "south/yala",
+      "shp_name": "soilgroup_yla.shp",
+      "status": "extracted",
+      "bounds": [
+        100.8325,
+        5.6139,
+        101.6096,
+        6.6822
+      ]
+    },
+    "trg": {
+      "code": "trg",
+      "name_th": "ตรัง",
+      "name_en": "trang",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_trg.rar",
+      "folder": "south/trang",
+      "shp_name": "soilgroup_trg.shp",
+      "status": "extracted",
+      "bounds": [
+        99.0524,
+        6.9727,
+        99.9611,
+        8.0124
+      ]
+    },
+    "nrt": {
+      "code": "nrt",
+      "name_th": "นครศรีธรรมราช",
+      "name_en": "nakhon_si_thammarat",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_nrt.rar",
+      "folder": "south/nakhon_si_thammarat",
+      "shp_name": "soilgroup_nrt.shp",
+      "status": "extracted",
+      "bounds": [
+        99.2339,
+        7.8383,
+        100.3415,
+        9.3257
+      ]
+    },
+    "rng": {
+      "code": "rng",
+      "name_th": "ระนอง",
+      "name_en": "ranong",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_rng.rar",
+      "folder": "south/ranong",
+      "shp_name": "soilgroup_rng.shp",
+      "status": "extracted",
+      "bounds": [
+        98.3263,
+        9.3047,
+        98.9649,
+        10.7886
+      ]
+    },
+    "plg": {
+      "code": "plg",
+      "name_th": "พัทลุง",
+      "name_en": "phatthalung",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_plg.rar",
+      "folder": "south/phatthalung",
+      "shp_name": "soilgroup_plg.shp",
+      "status": "extracted",
+      "bounds": [
+        99.7311,
+        7.0909,
+        100.4297,
+        7.8962
+      ]
+    },
+    "nwt": {
+      "code": "nwt",
+      "name_th": "นราธิวาส",
+      "name_en": "narathiwat",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_nwt.rar",
+      "folder": "south/narathiwat",
+      "shp_name": "soilgroup_nwt.shp",
+      "status": "extracted",
+      "bounds": [
+        101.3691,
+        5.7348,
+        102.0956,
+        6.6329
+      ]
+    },
+    "stn": {
+      "code": "stn",
+      "name_th": "สตูล",
+      "name_en": "satun",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_stn.rar",
+      "folder": "south/satun",
+      "shp_name": "soilgroup_stn.shp",
+      "status": "extracted",
+      "bounds": [
+        99.1536,
+        6.424,
+        100.2212,
+        7.1974
+      ]
+    },
+    "pkt": {
+      "code": "pkt",
+      "name_th": "ภูเก็ต",
+      "name_en": "phuket",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_pkt.rar",
+      "folder": "south/phuket",
+      "shp_name": "soilgroup_pkt.shp",
+      "status": "extracted",
+      "bounds": [
+        98.259,
+        7.4784,
+        98.4828,
+        8.2006
+      ]
+    },
+    "ptn": {
+      "code": "ptn",
+      "name_th": "ปัตตานี",
+      "name_en": "pattani",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_ptn.rar",
+      "folder": "south/pattani",
+      "shp_name": "soilgroup_ptn.shp",
+      "status": "extracted",
+      "bounds": [
+        101.0181,
+        6.5523,
+        101.7268,
+        6.9501
+      ]
+    },
+    "sni": {
+      "code": "sni",
+      "name_th": "สุราษฎร์ธานี",
+      "name_en": "surat_thani",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_sni.rar",
+      "folder": "south/surat_thani",
+      "shp_name": "soilgroup_sni.shp",
+      "status": "extracted",
+      "bounds": [
+        98.4438,
+        8.3003,
+        100.0925,
+        10.1255
+      ]
+    },
+    "ska": {
+      "code": "ska",
+      "name_th": "สงขลา",
+      "name_en": "songkhla",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_ska.rar",
+      "folder": "south/songkhla",
+      "shp_name": "soilgroup_ska.shp",
+      "status": "extracted",
+      "bounds": [
+        100.0527,
+        6.2915,
+        101.1142,
+        7.9354
+      ]
+    },
+    "pna": {
+      "code": "pna",
+      "name_th": "พังงา",
+      "name_en": "phangnga",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_pna.rar",
+      "folder": "south/phangnga",
+      "shp_name": "soilgroup_pna.shp",
+      "status": "extracted",
+      "bounds": [
+        97.6338,
+        7.886,
+        98.7064,
+        9.4805
+      ]
+    },
+    "kbi": {
+      "code": "kbi",
+      "name_th": "กระบี่",
+      "name_en": "krabi",
+      "region": "south",
+      "region_th": "ภาคใต้",
+      "rar_file": "sg_kbi.rar",
+      "folder": "south/krabi",
+      "shp_name": "soilgroup_kbi.shp",
+      "status": "extracted",
+      "bounds": [
+        98.6125,
+        7.4011,
+        99.4165,
+        8.6747
+      ]
+    }
+  }
+}

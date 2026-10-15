@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>โปรแกรมจำลองพื้นที่เพาะปลูกเสมือนจริงเชิงแผนที่ เพื่อการวิเคราะห์ผลผลิตข้าว (Sandbox Simulator)</title>
+  
+  <!-- Google Fonts: Prompt & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Leaflet CSS & Leaflet.draw CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+  
+  <!-- App Stylesheet (Thai Modern Warm Minimal) -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 1. Header สไตล์ไทยร่วมสมัย -->
+  <header class="app-header">
+    <div class="brand-wrapper">
+      <div class="brand-icon">
+        <i class="fa-solid fa-wheat-awn"></i>
+      </div>
+      <div>
+        <div class="brand-title">โปรแกรมจำลองพื้นที่เพาะปลูกเสมือนจริงเชิงแผนที่แบบโต้ตอบ</div>
+        <div class="brand-subtitle">Interactive Map-Based Sandbox Simulator for Rice Yield Analytics (มข. CS2569)</div>
+      </div>
+    </div>
+    <div class="header-status-badge" id="backendStatusBadge">
+      <span class="status-dot"></span> ตรวจสอบการเชื่อมต่อ Backend...
+    </div>
+  </header>
+
+  <!-- 2. Main 3-Columns Layout -->
+  <main class="app-container">
+
+    <!-- 2.1 แผงซ้าย: กำหนดตัวแปรและจำลองสภาพอากาศสุดวิสัย (Left Panel) -->
+    <aside class="panel" id="panelLeft">
+      
+      <!-- ข้อมูลนำเข้าหลัก -->
+      <section class="panel-section">
+        <h2 class="panel-heading"><i class="fa-solid fa-seedling"></i> ข้อมูลนำเข้า (Inputs)</h2>
+        
+        <div class="form-group">
+          <label class="form-label" for="riceVariety">พันธุ์ข้าวอ้างอิง</label>
+          <select id="riceVariety" class="form-select">
+            <option value="kdml105" selected>ขาวดอกมะลิ 105 (นาปี 120 วัน)</option>
+            <option value="rd6">กข6 (เหนียวหอม 130 วัน)</option>
+            <option value="rd41">กข41 (นาปรัง 105 วัน)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="plantDate">วันเริ่มปลูก (Planting Date)</label>
+          <input type="date" id="plantDate" class="form-input" value="2026-06-15">
+        </div>
+      </section>
+
+      <!-- แผงจำลองสภาพอากาศสุดวิสัย (Weather Stress Sandbox) -->
+      <section class="panel-section">
+        <h2 class="panel-heading"><i class="fa-solid fa-cloud-bolt"></i> จำลองสภาพอากาศสุดวิสัย (What-If)</h2>
+        <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 8px;">
+          กดเลือกเพื่อแทรกแซงสภาพอากาศระหว่างการเจริญเติบโต:
+        </div>
+
+        <div class="weather-sandbox-grid">
+          <button id="btnScenarioRain" class="scenario-btn">
+            <i class="fa-solid fa-cloud-showers-heavy" style="color: #00b4d8;"></i>
+            <span>ฝนตกชุ่มฉ่ำ</span>
+          </button>
+          <button id="btnScenarioFlood" class="scenario-btn">
+            <i class="fa-solid fa-water" style="color: #3182ce;"></i>
+            <span>น้ำท่วมขัง</span>
+          </button>
+          <button id="btnScenarioDrought" class="scenario-btn">
+            <i class="fa-solid fa-sun" style="color: #e53e3e;"></i>
+            <span>ฝนแล้งทิ้งช่วง</span>
+          </button>
+          <button id="btnScenarioHeat" class="scenario-btn">
+            <i class="fa-solid fa-temperature-arrow-up" style="color: #ed8936;"></i>
+            <span>คลื่นความร้อน</span>
+          </button>
+        </div>
+
+        <div id="dispWeatherDesc" style="font-size: 12px; margin-top: 10px; font-weight: 500; color: #68d391;">
+          🌤️ สภาพอากาศปกติตามฤดูกาล
+        </div>
+      </section>
+
+      <!-- ตัวแปรชีวภาพ (Biophysical Factors) ปรับจูนสมจริง -->
+      <section class="panel-section">
+        <h2 class="panel-heading"><i class="fa-solid fa-dna"></i> ตัวแปรชีวภาพ (สมการที่ 3)</h2>
+
+        <div class="form-group">
+          <div class="form-label">
+            <span>จำนวนกอต่อ ตร.ม. (H)</span>
+            <span class="form-val-display" id="dispHills">16</span>
+          </div>
+          <input type="range" id="inputHills" class="form-range" min="10" max="30" value="16" step="1">
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">
+            <span>จำนวนรวงต่อกอ (P)</span>
+            <span class="form-val-display" id="dispPanicles">8</span>
+          </div>
+          <input type="range" id="inputPanicles" class="form-range" min="4" max="20" value="8" step="1">
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">
+            <span>เมล็ดดีต่อรวง (G)</span>
+            <span class="form-val-display" id="dispGrains">95</span>
+          </div>
+          <input type="range" id="inputGrains" class="form-range" min="60" max="180" value="95" step="5">
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">
+            <span>น้ำหนัก 1,000 เมล็ด (W)</span>
+            <span class="form-val-display" id="dispWeight">25.5 กรัม</span>
+          </div>
+          <input type="range" id="inputWeight" class="form-range" min="20" max="32" value="25.5" step="0.5">
+        </div>
+      </section>
+
+      <!-- ควบคุมความเร็วจำลอง -->
+      <section class="panel-section">
+        <h2 class="panel-heading"><i class="fa-solid fa-gauge-high"></i> ความเร็วการเร่งเวลา</h2>
+        <div class="form-group">
+          <select id="simSpeedSelect" class="form-select">
+            <option value="1">1x (ปกติ)</option>
+            <option value="2" selected>2x (แนะนำ)</option>
+            <option value="5">5x (เร็วปานกลาง)</option>
+            <option value="10">10x (เร็วมาก)</option>
+          </select>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- 2.2 แผงกลาง: แผนที่จริง Leaflet + Custom Toolbar + ไทม์ไลน์ Scrubbing (Center Map) -->
+    <div class="map-view-container">
+      
+      <!-- Custom Floating Map Toolbar (โมเดิร์น สวยงาม สไตล์ไทย) -->
+      <div class="custom-map-toolbar">
+        <button id="toolDrawPoly" class="map-tool-btn" title="วาดแปลงนาอิสระ">
+          <i class="fa-solid fa-draw-polygon" style="color: #d4af37;"></i> วาดแปลงอิสระ
+        </button>
+        <button id="toolDrawRect" class="map-tool-btn" title="วาดแปลงสี่เหลี่ยม">
+          <i class="fa-regular fa-square" style="color: #68d391;"></i> สี่เหลี่ยม
+        </button>
+        <button id="toolClear" class="map-tool-btn" title="ล้างแปลงนา">
+          <i class="fa-solid fa-trash-can" style="color: #e53e3e;"></i> ลบแปลง
+        </button>
+        <div class="toolbar-divider"></div>
+        <button id="toolToggleTile" class="map-tool-btn" title="สลับภาพถ่ายดาวเทียม / แผนที่ถนน">
+          <i class="fa-solid fa-satellite" style="color: #00b4d8;"></i> ดาวเทียม
+        </button>
+        <div class="toolbar-divider"></div>
+        <button id="toolZoomIn" class="map-tool-btn" style="padding: 6px 10px;" title="ขยายแผนที่">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+        <button id="toolZoomOut" class="map-tool-btn" style="padding: 6px 10px;" title="ย่อแผนที่">
+          <i class="fa-solid fa-minus"></i>
+        </button>
+      </div>
+
+      <!-- แผนที่ Leaflet -->
+      <div id="map"></div>
+
+      <!-- แถบไทม์ไลน์แบบ Scrubbing ลากกรอเวลาไปหน้า-ย้อนหลังได้ (Seekable Timeline Overlay) -->
+      <div class="timeline-overlay">
+        <div class="timeline-header-row">
+          <div class="timeline-info-badge">
+            <span class="stage-tag" id="dispStageName">1. ระยะกล้า (Seedling)</span>
+            <span style="color: var(--text-muted); font-size: 12px;" id="dispSimDate">15 มิ.ย. 2569</span>
+          </div>
+          <div style="font-size: 13px; font-weight: 600; color: var(--rice-gold);">
+            <span id="dispDap">วันที่ 1 / 120</span> (<span id="dispPercent">1%</span>)
+          </div>
+        </div>
+
+        <div class="timeline-controls-row">
+          <button id="btnPlay" class="btn-ctrl" title="เริ่มเร่งเวลา"><i class="fa-solid fa-play"></i></button>
+          <button id="btnPause" class="btn-ctrl" title="หยุดชั่วคราว"><i class="fa-solid fa-pause"></i></button>
+          <button id="btnReset" class="btn-ctrl" title="รีเซ็ตกลับวันแรก"><i class="fa-solid fa-rotate-left"></i></button>
+
+          <!-- แถบ Scrubber Slider ลากไปหน้า-ย้อนหลังได้อย่างอิสระ -->
+          <input type="range" id="timelineScrubber" min="1" max="120" value="1" class="scrubber-slider" title="ลากเพื่อกรอเวลา">
+        </div>
+
+        <div class="stages-indicator-bar">
+          <span class="stage-item-label active">1. กล้า</span>
+          <span class="stage-item-label">2. แตกกอ</span>
+          <span class="stage-item-label">3. ตั้งท้อง</span>
+          <span class="stage-item-label">4. ออกรวง</span>
+          <span class="stage-item-label">5. สุกแก่ (เก็บเกี่ยว)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2.3 แผงขวา: ผลการประมาณผลผลิตและสิ่งแวดล้อม (Right Analytics Panel) -->
+    <aside class="panel panel-right" id="panelRight">
+      
+      <!-- การ์ดผลผลิตหลัก -->
+      <section class="panel-section">
+        <h2 class="panel-heading"><i class="fa-solid fa-chart-pie"></i> ประมาณการผลผลิต (สมการ 3 ถึง 5)</h2>
+
+        <div class="metric-card-grid">
+          <div class="metric-card gold-highlight">
+            <div class="metric-title">ผลผลิตรวมที่คาดหมาย</div>
+            <div class="metric-value gold" id="dispTotalYield">3.51 ตัน</div>
+            <div class="metric-sub" id="dispPotYield">ศักยภาพ: 4.85 ตัน</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-title">ผลผลิตเฉลี่ยต่อไร่</div>
+            <div class="metric-value green" id="dispYieldPerRai">355 กก./ไร่</div>
+            <div class="metric-sub" id="dispOaeBenchmark" style="color: #68d391;">0% เทียบ สศก. (356 กก./ไร่)</div>
+          </div>
+        </div>
+
+        <!-- แจกแจงตัวคูณตามแบบจำลองสูตรผสมผสาน -->
+        <div class="multipliers-list">
+          <div class="multiplier-item">
+            <span style="color: var(--text-secondary);"><i class="fa-solid fa-mountain" style="color:#b7791f;"></i> สภาพดิน (F_soil)</span>
+            <span class="multiplier-badge" id="dispFsoil">× 0.85</span>
+          </div>
+          <div class="multiplier-item">
+            <span style="color: var(--text-secondary);"><i class="fa-solid fa-temperature-half" style="color:#ed8936;"></i> อุณหภูมิ (F_temp)</span>
+            <span class="multiplier-badge" id="dispFtemp">× 0.95</span>
+          </div>
+          <div class="multiplier-item">
+            <span style="color: var(--text-secondary);"><i class="fa-solid fa-cloud-rain" style="color:#00b4d8;"></i> ภาวะขาดน้ำ (F_climate)</span>
+            <span class="multiplier-badge" id="dispFclimate">× 0.92</span>
+          </div>
+          <div class="multiplier-item">
+            <span style="color: var(--text-secondary);"><i class="fa-solid fa-satellite" style="color:#9f7aea;"></i> ดัชนี NDVI (F_NDVI)</span>
+            <span class="multiplier-badge" id="dispFndvi">× 0.96</span>
+          </div>
+          <div class="multiplier-item">
+            <span style="color: var(--text-secondary);"><i class="fa-solid fa-shield-virus" style="color:#e53e3e;"></i> สภาพสุดวิสัย (F_stress)</span>
+            <span class="multiplier-badge" id="dispFstress" style="color:#fefcbf;">× 1.00</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ข้อมูลแปลงและดินจริงจาก Spatial Join -->
+      <section class="panel-section">
+        <h2 class="panel-heading"><i class="fa-solid fa-map-location-dot"></i> ข้อมูลพื้นที่ & ดินจริง (77 จังหวัด)</h2>
+        
+        <div class="info-row">
+          <span class="info-label">ขนาดแปลงนา:</span>
+          <span class="info-value" id="dispAreaThai">9 ไร่ 3 งาน 52 ตร.วา</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">พื้นที่คำนวณ (Turf.js):</span>
+          <span class="info-value" id="dispAreaSqM">15,806 ตร.ม.</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">ที่ตั้งแปลง:</span>
+          <span class="info-value" id="dispLocation">นครพนม / เมืองนครพนม</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">กลุ่มชุดดิน (LDD):</span>
+          <span class="info-value" id="dispSoilGroup">กลุ่มที่ 17</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">ระดับความเหมาะสม:</span>
+          <span class="info-value" id="dispSuitability" style="color: #68d391;">เหมาะสมปานกลาง (S2)</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">ความเป็นกรด-ด่าง (pH):</span>
+          <span class="info-value" id="dispSoilPh">5.5 - 6.5</span>
+        </div>
+      </section>
+
+      <!-- สภาพอากาศ & ดัชนีความเสี่ยง ETCCDI -->
+      <section class="panel-section">
+        <h2 class="panel-heading"><i class="fa-solid fa-cloud-sun-rain"></i> สภาพอากาศ & ดัชนีความเสี่ยง</h2>
+        
+        <div class="metric-card-grid" style="margin-bottom: 8px;">
+          <div class="metric-card">
+            <div class="metric-title">ฝนรายวัน / อุณหภูมิ</div>
+            <div class="metric-value" style="font-size: 15px; color: #00b4d8;" id="dispCurRain">12 มม./วัน</div>
+            <div class="metric-sub" id="dispCurTemp">29.5 °C</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">ดัชนีแล้ง/ฝน (CDD/CWD)</div>
+            <div class="metric-value" style="font-size: 15px; color: #f6e05e;" id="dispCdd">0 วัน</div>
+            <div class="metric-sub">ฝนตกสะสม (CWD): <span id="dispCwd">1 วัน</span></div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="weatherChart"></canvas>
+        </div>
+      </section>
+
+      <!-- กราฟการสะสมชีวมวล -->
+      <section class="panel-section">
+        <h2 class="panel-heading"><i class="fa-solid fa-chart-line"></i> การสะสมชีวมวลและผลผลิต</h2>
+        <div class="chart-container">
+          <canvas id="growthChart"></canvas>
+        </div>
+      </section>
+
+    </aside>
+
+  </main>
+
+  <!-- External JavaScript Libraries via CDN -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- App Modules -->
+  <script src="js/area_calc.js"></script>
+  <script src="js/time_engine.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment Variables
+.env
+.env.local
+
+# IDE & OS Files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Backup and Archive files (ป้องกันไฟล์ .rar ขนาดใหญ่ขึ้น GitHub)
+*.rar
+*.zip
+*.tar.gz
+*.7z
+
+# GIS Shapefiles & Raw Geodatasets (ขนาดรวม 6.28 GB)
+# ป้องกัน GitHub ปฏิเสธไฟล์เกิน 100 MB และขนาด Repo บวมเกิน Limit
+# ข้อมูล Shapefile 77 จังหวัดทั้งหมดจะยังคงอยู่บนเครื่อง Local ตามปกติสำหรับการรันระบบ
+backend/data/soil/north/
+backend/data/soil/northeast/
+backend/data/soil/central/
+backend/data/soil/east/
+backend/data/soil/south/
+backend/data/soil/_tmp_extract/
+*.shp
+*.dbf
+*.shx
+*.prj
+*.cpg
+*.sbn
+*.sbx
+
+# อนุญาตให้ Push ไฟล์ Metadata JSON ที่จำเป็นต่อระบบ
+!backend/data/soil/province_mapping.json
+!backend/data/soil_suitability.json

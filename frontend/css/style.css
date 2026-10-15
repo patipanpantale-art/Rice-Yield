@@ -1,34 +1,41 @@
 :root {
-  /* โทนสีไทยร่วมสมัย (Thai Modern Agritech - Warm Minimal) */
-  --bg-primary: #12161f;
-  --bg-secondary: #1a202c;
-  --bg-card: rgba(26, 32, 44, 0.88);
-  --bg-card-hover: rgba(35, 45, 63, 0.95);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-focus: rgba(212, 175, 55, 0.5);
+  /* โทนสว่าง มินิมอล อบอุ่น สไตล์เกษตรอัจฉริยะ (Bright & Cute Minimal Agritech) */
+  --bg-primary: #f8fafc;        /* พื้นหลังหน้าจอหลัก ขาวนวลสะอาดตา */
+  --bg-secondary: #f1f5f9;      /* พื้นหลังส่วนรอง */
+  --bg-card: #ffffff;           /* การ์ดสีขาวบริสุทธิ์ */
+  --bg-card-subtle: #f8fafc;
+  --bg-card-hover: #f1f5f9;
+  
+  --border-subtle: #e2e8f0;     /* เส้นขอบบางเฉียบ คมชัด สะอาด */
+  --border-focus: #16a34a;      /* ไฮไลต์เขียวธรรมชาติ */
 
-  /* สีเนื้อหาและฟอนต์ */
-  --text-primary: #f7fafc;
-  --text-secondary: #cbd5e0;
-  --text-muted: #a0aec0;
-  --text-dim: #718096;
+  /* สีเนื้อหาและฟอนต์ธรรมชาติ */
+  --text-primary: #0f172a;      /* ตัวหนังสือหลัก Slate 900 อ่านง่ายสบายตา */
+  --text-secondary: #334155;    /* Slate 700 */
+  --text-muted: #64748b;        /* Slate 500 */
+  --text-dim: #94a3b8;          /* Slate 400 */
 
-  /* สีอัตลักษณ์การเกษตรไทย */
-  --rice-green: #38a169;        /* เขียวใบข้าว */
-  --rice-green-light: #68d391;
-  --rice-gold: #d4af37;         /* ทองรวงข้าวสุก */
-  --rice-gold-glow: rgba(212, 175, 55, 0.25);
-  --soil-warm: #b7791f;         /* ดินร่วนปนทราย */
-  --water-blue: #3182ce;        /* ฟ้ามรสุม/น้ำ */
-  --water-cyan: #00b4d8;
-  --stress-red: #e53e3e;        /* เตือนภัยแล้ง/ร้อนจัด */
+  /* สีอัตลักษณ์การเกษตรไทย (สดใส อบอุ่น เป็นกันเอง) */
+  --rice-green: #16a34a;        /* เขียวต้นข้าวสดใส */
+  --rice-green-light: #22c55e;
+  --rice-green-subtle: #f0fdf4; /* เขียวพาสเทลอ่อน */
+  --rice-gold: #d97706;         /* ทองรวงข้าวสุก */
+  --rice-gold-light: #f59e0b;
+  --rice-gold-subtle: #fefce8;  /* เหลืองพาสเทล */
+  --soil-warm: #92400e;         /* ดินร่วนอบอุ่น */
+  --water-blue: #0284c7;        /* ฟ้ามรสุม/ชลประทาน */
+  --water-subtle: #f0f9ff;
+  --stress-red: #e11d48;        /* ชมพูแดงเตือนภัย */
+  --stress-subtle: #fff1f2;
 
-  --panel-width: 380px;
-  --header-height: 62px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.35);
+  --panel-width: 370px;
+  --header-height: 58px;
+  --radius-sm: 6px;             /* ลดความมนลง เน้นความ Minimal คมสวย */
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 2px 10px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
 }
 
 * {
@@ -45,71 +52,73 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 1. Header สไตล์ไทยร่วมสมัย */
+/* 1. Header สไตล์โมเดิร์นมินิมอล อบอุ่น สดใส */
 .app-header {
   height: var(--header-height);
-  background: rgba(18, 22, 31, 0.96);
+  background: #ffffff;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 20px;
   z-index: 1000;
-  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-sm);
 }
 
 .brand-wrapper {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .brand-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, #276749, #d4af37);
+  background: linear-gradient(135deg, #16a34a, #d97706);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   color: #fff;
-  box-shadow: 0 0 16px var(--rice-gold-glow);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
 }
 
 .brand-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  color: #fff;
-  letter-spacing: 0.2px;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
 }
 
 .brand-subtitle {
   font-size: 11px;
   color: var(--text-muted);
-  font-weight: 300;
+  font-weight: 400;
 }
 
 .header-status-badge {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(212, 175, 55, 0.1);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  padding: 6px 16px;
-  border-radius: 30px;
-  font-size: 12px;
-  color: #f6e05e;
+  background: var(--rice-green-subtle);
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  padding: 5px 14px;
+  border-radius: var(--radius-md);
+  font-size: 11.5px;
+  color: #15803d;
+  font-weight: 500;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background-color: var(--rice-gold);
-  box-shadow: 0 0 8px var(--rice-gold);
+  background-color: var(--rice-green);
+  box-shadow: 0 0 6px rgba(22, 163, 74, 0.6);
   animation: pulseDot 2s infinite;
 }
 
@@ -119,7 +128,7 @@ body {
   100% { transform: scale(0.9); opacity: 0.7; }
 }
 
-/* 2. Main Container (3 Panels) */
+/* 2. Main Layout (3 Columns) */
 .app-container {
   display: flex;
   flex: 1;
@@ -130,382 +139,632 @@ body {
 
 .panel {
   width: var(--panel-width);
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
+  background: #ffffff;
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   z-index: 500;
+  flex-shrink: 0;
 }
 
 .panel-right {
   border-right: none;
   border-left: 1px solid var(--border-subtle);
-  width: 410px;
+  width: 390px;
 }
 
 .panel::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
 .panel::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 .panel-section {
-  padding: 16px 20px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .panel-heading {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  letter-spacing: 0.8px;
-  margin-bottom: 14px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+}
+
+.panel-heading-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .panel-heading i {
-  color: var(--rice-gold);
+  color: var(--rice-green);
 }
 
-/* Form Styles */
+/* Forms & Inputs */
 .form-group {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .form-label {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  align-items: center;
+  font-size: 11.5px;
   color: var(--text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
+  font-weight: 500;
 }
 
 .form-val-display {
-  color: var(--rice-gold);
+  color: var(--rice-green);
   font-weight: 600;
+  font-size: 12px;
 }
 
 .form-input, .form-select {
   width: 100%;
-  padding: 9px 12px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--border-subtle);
+  padding: 7px 11px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius-sm);
-  color: #fff;
-  font-size: 13px;
+  color: var(--text-primary);
+  font-size: 12.5px;
   outline: none;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
 
 .form-input:focus, .form-select:focus {
-  border-color: var(--rice-gold);
-  box-shadow: 0 0 0 2px var(--rice-gold-glow);
+  border-color: var(--rice-green);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
 }
 
 .form-range {
   width: 100%;
-  accent-color: var(--rice-gold);
+  accent-color: var(--rice-green);
   cursor: pointer;
+  height: 5px;
 }
 
-/* 3. Center Map View */
+/* 3. Center Map View Container */
 .map-view-container {
   flex: 1;
+  min-width: 0;              /* สำคัญมาก! ป้องกัน Flex ขยายดันแผงขวาทะลุจอ */
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  background: #f1f5f9;
 }
 
 #map {
   flex: 1;
   width: 100%;
-  background: #151a23;
+  background: #e2e8f0;
 }
 
-/* Custom Floating Map Toolbar (แทนที่ Leaflet.draw เดิม) */
-.custom-map-toolbar {
+/* 4. Paddy Tabs Bar (แถบรายการแปลงนา - สไตล์ Minimal Pill แบนเรียบ) */
+.paddy-tabs-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 6px 14px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-subtle);
+  align-items: center;
+  flex-shrink: 0;
+  max-width: 100%;
+  scrollbar-width: thin;
+  z-index: 400;
+}
+
+.paddy-tabs-bar::-webkit-scrollbar {
+  height: 3px;
+}
+.paddy-tabs-bar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.paddy-tab {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.paddy-tab:hover {
+  background: #e2e8f0;
+  color: var(--text-primary);
+}
+
+.paddy-tab.active {
+  background: var(--rice-green-subtle);
+  border-color: rgba(22, 163, 74, 0.4);
+  color: #15803d;
+  font-weight: 600;
+}
+
+.paddy-tab-del {
+  font-size: 10px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: all 0.15s;
+}
+.paddy-tab-del:hover {
+  color: #e11d48;
+  background: #ffe4e6;
+}
+
+/* 5. Retractable Map Toolbar Drawer (ลิ้นชักแถบเครื่องมือวาดแปลง แบบพับเก็บได้) */
+.map-toolbar-drawer {
   position: absolute;
-  top: 18px;
+  top: 48px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(18, 22, 31, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 30px;
-  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 450;
+  pointer-events: auto;
+}
+
+.toolbar-drawer-handle {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  z-index: 450;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.toolbar-drawer-handle:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.custom-map-toolbar {
+  margin-top: 5px;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top center;
+}
+
+.custom-map-toolbar.collapsed {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.95);
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .map-tool-btn {
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: var(--text-secondary);
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  font-weight: 500;
 }
 
 .map-tool-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .map-tool-btn.active {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(56, 161, 105, 0.25));
-  border: 1px solid var(--rice-gold);
-  color: #fefcbf;
-  font-weight: 500;
+  background: var(--rice-green-subtle);
+  border-color: rgba(22, 163, 74, 0.4);
+  color: #15803d;
+  font-weight: 600;
 }
 
 .toolbar-divider {
   width: 1px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.15);
+  height: 16px;
+  background: var(--border-subtle);
+  margin: 0 2px;
 }
 
-/* Weather Scenario Sandbox Buttons (จำลองมรสุม/ภัยแล้ง) */
-.weather-sandbox-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.scenario-btn {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  color: var(--text-secondary);
-  font-size: 12px;
-  transition: all 0.25s ease;
-  text-align: left;
-}
-
-.scenario-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-
-.scenario-btn.active-rain {
-  border-color: var(--water-cyan);
-  background: rgba(0, 180, 216, 0.15);
-  color: #90e0ef;
-}
-
-.scenario-btn.active-flood {
-  border-color: #3182ce;
-  background: rgba(49, 130, 206, 0.25);
-  color: #bee3f8;
-  animation: pulseFlood 1.5s infinite;
-}
-
-.scenario-btn.active-drought {
-  border-color: var(--stress-red);
-  background: rgba(229, 62, 62, 0.2);
-  color: #feb2b2;
-}
-
-.scenario-btn.active-heat {
-  border-color: #ed8936;
-  background: rgba(237, 137, 54, 0.2);
-  color: #feebc8;
-}
-
-@keyframes pulseFlood {
-  0% { box-shadow: 0 0 4px rgba(49, 130, 206, 0.4); }
-  50% { box-shadow: 0 0 12px rgba(49, 130, 206, 0.8); }
-  100% { box-shadow: 0 0 4px rgba(49, 130, 206, 0.4); }
-}
-
-/* 4. Seekable Timeline Overlay */
+/* 6. Seekable Timeline Overlay */
 .timeline-overlay {
   position: absolute;
-  bottom: 24px;
-  left: 24px;
-  right: 24px;
-  background: rgba(18, 22, 31, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(20px);
-  z-index: 400;
-  padding: 16px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+  bottom: 16px;
+  left: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  z-index: 450;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(8px);
 }
 
 .timeline-header-row {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .timeline-info-badge {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 13px;
+  gap: 8px;
 }
 
 .stage-tag {
-  background: linear-gradient(135deg, rgba(56, 161, 105, 0.25), rgba(212, 175, 55, 0.2));
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  color: #fefcbf;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-weight: 500;
-  font-size: 12px;
+  background: var(--rice-green-subtle);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .timeline-controls-row {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 10px;
 }
 
 .btn-ctrl {
-  background: rgba(255, 255, 255, 0.08);
+  background: #ffffff;
   border: 1px solid var(--border-subtle);
-  color: #fff;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  color: var(--text-secondary);
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: 11px;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-ctrl:hover {
-  background: var(--rice-gold);
-  color: #1a202c;
-  transform: scale(1.05);
+  background: var(--rice-green-subtle);
+  color: var(--rice-green);
+  border-color: var(--rice-green);
 }
 
 .scrubber-slider {
   flex: 1;
-  height: 6px;
-  accent-color: var(--rice-gold);
+  accent-color: var(--rice-green);
   cursor: pointer;
+  height: 6px;
 }
 
 .stages-indicator-bar {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  margin-top: 6px;
+  font-size: 10px;
   color: var(--text-dim);
-  padding: 0 4px;
 }
 
 .stage-item-label.active {
-  color: var(--rice-gold);
+  color: var(--rice-green);
   font-weight: 600;
 }
 
-/* 5. Right Analytics Panel Cards */
+/* 7. Weather Scenario Sandbox Buttons */
+.weather-sandbox-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.scenario-btn {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 11px;
+  transition: all 0.15s ease;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+}
+
+.scenario-btn:hover {
+  background: var(--bg-secondary);
+  border-color: #cbd5e1;
+}
+
+.scenario-btn.active-rain {
+  background: var(--water-subtle);
+  border-color: #0284c7;
+  color: #0284c7;
+  font-weight: 600;
+}
+
+.scenario-btn.active-flood {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.scenario-btn.active-drought {
+  background: #fff7ed;
+  border-color: #ea580c;
+  color: #c2410c;
+  font-weight: 600;
+}
+
+.scenario-btn.active-heat {
+  background: #fef2f2;
+  border-color: #dc2626;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+/* 8. Comparison Engine (Process ปัจจุบัน vs Process ก่อนหน้า) */
 .metric-card-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 12px;
 }
 
 .metric-card {
-  background: rgba(0, 0, 0, 0.35);
+  background: #ffffff;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 14px;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  box-shadow: var(--shadow-sm);
   position: relative;
-  overflow: hidden;
 }
 
 .metric-card.gold-highlight {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(56, 161, 105, 0.06));
-  border-color: rgba(212, 175, 55, 0.4);
+  border-color: rgba(217, 119, 6, 0.35);
+  background: var(--rice-gold-subtle);
 }
 
 .metric-title {
   font-size: 11px;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .metric-value {
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
+  line-height: 1.2;
 }
 
 .metric-value.gold {
-  color: #ecc94b;
+  color: #b45309;
 }
 
 .metric-value.green {
-  color: #68d391;
+  color: #15803d;
 }
 
 .metric-sub {
-  font-size: 11px;
-  color: var(--text-dim);
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* Pill เปรียบเทียบผลลัพธ์ Before vs After (Ghosted previous process) */
+.comparison-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
   margin-top: 4px;
 }
 
-/* Multiplier Pills */
+.comparison-diff-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.comparison-diff-badge.drop {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.comparison-diff-badge.gain {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Multiplier Items */
 .multipliers-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .multiplier-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.03);
+  padding: 6px 10px;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 11.5px;
 }
 
 .multiplier-badge {
-  background: rgba(212, 175, 55, 0.18);
-  color: #f6e05e;
-  padding: 2px 10px;
-  border-radius: 6px;
+  background: #f1f5f9;
+  color: var(--text-primary);
+  padding: 2px 7px;
+  border-radius: 4px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
 }
 
+/* 5-Level Qualitative Badges (สดใส เรียบง่าย) */
+.qual-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.qual-badge.lvl-5 { /* ดีมาก */
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.qual-badge.lvl-4 { /* ดี */
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #dcfce7;
+}
+
+.qual-badge.lvl-3 { /* ปานกลาง */
+  background: #fefce8;
+  color: #ca8a04;
+  border: 1px solid #fef08a;
+}
+
+.qual-badge.lvl-2 { /* พอใช้ */
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.qual-badge.lvl-1 { /* แย่มาก */
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* 9. Smart Tooltips Component (แก้ปัญหาขอบจอ และ z-index ทับแผนที่) */
+.info-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  margin-left: 5px;
+  cursor: pointer;
+  font-size: 11.5px;
+  transition: color 0.15s;
+  vertical-align: middle;
+}
+
+.info-tooltip:hover {
+  color: var(--rice-green);
+}
+
+.info-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 7px 11px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.45;
+  white-space: normal;
+  width: max-content;
+  max-width: 220px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 100000;           /* สูงกว่าแผนที่และเลเยอร์ทั้งหมด */
+}
+
+/* จัดทิศทาง Tooltip ไม่ให้หลุดขอบจอ */
+.panel:not(.panel-right) .info-tooltip::after {
+  left: 0;
+  transform: translateY(4px);
+}
+.panel:not(.panel-right) .info-tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.panel-right .info-tooltip::after {
+  right: 0;
+  left: auto;
+  transform: translateY(4px);
+}
+.panel-right .info-tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* 10. Information Row */
 .info-row {
   display: flex;
   justify-content: space-between;
-  padding: 7px 0;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #e2e8f0;
+  font-size: 11.5px;
 }
 
 .info-label {
@@ -517,201 +776,66 @@ body {
   font-weight: 500;
 }
 
+/* Chart Container */
 .chart-container {
-  height: 140px;
+  height: 130px;
   width: 100%;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
-/* Rice Visual Canvas Layer on Leaflet */
-.rice-crop-overlay {
-  pointer-events: none;
-  z-index: 400;
-}
-
-/* Tooltips Component */
-.info-tooltip {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--rice-gold);
-  margin-left: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: transform 0.15s, color 0.15s;
-  vertical-align: middle;
-}
-
-.info-tooltip:hover {
-  color: #ffd700;
-  transform: scale(1.15);
-}
-
-.info-tooltip::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  background: rgba(18, 22, 31, 0.97);
-  color: #f7fafc;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1.5;
-  white-space: normal;
-  width: max-content;
-  max-width: 250px;
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s, transform 0.2s;
-  z-index: 99999;
-}
-
-.info-tooltip:hover::after {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* 5-Level Qualitative Badges */
-.qual-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.qual-badge.lvl-5 { /* ดีมาก */
-  background: rgba(56, 161, 105, 0.22);
-  color: #68d391;
-  border: 1px solid rgba(56, 161, 105, 0.4);
-}
-
-.qual-badge.lvl-4 { /* ดี */
-  background: rgba(72, 187, 120, 0.18);
-  color: #9ae6b4;
-  border: 1px solid rgba(72, 187, 120, 0.3);
-}
-
-.qual-badge.lvl-3 { /* ปานกลาง */
-  background: rgba(212, 175, 55, 0.18);
-  color: #f6e05e;
-  border: 1px solid rgba(212, 175, 55, 0.35);
-}
-
-.qual-badge.lvl-2 { /* พอใช้ */
-  background: rgba(237, 137, 54, 0.18);
-  color: #fbd38d;
-  border: 1px solid rgba(237, 137, 54, 0.35);
-}
-
-.qual-badge.lvl-1 { /* แย่มาก */
-  background: rgba(229, 62, 62, 0.22);
-  color: #feb2b2;
-  border: 1px solid rgba(229, 62, 62, 0.4);
-}
-
-/* Multi-Paddy Tabs */
-.paddy-tabs-bar {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 6px 12px;
-  background: rgba(18, 22, 31, 0.7);
-  border-bottom: 1px solid var(--border-subtle);
-  align-items: center;
-}
-
-.paddy-tab {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.paddy-tab:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-.paddy-tab.active {
-  background: rgba(212, 175, 55, 0.2);
-  border-color: var(--rice-gold);
-  color: #f6e05e;
-  font-weight: 600;
-}
-
-/* Year Advisory Banner */
+/* Advisory & Guide Box */
 .advisory-card {
-  background: rgba(212, 175, 55, 0.08);
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  background: var(--rice-gold-subtle);
+  border: 1px solid rgba(217, 119, 6, 0.25);
   border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  margin-top: 8px;
+  padding: 9px 11px;
+  margin-top: 6px;
   font-size: 11px;
   line-height: 1.5;
 }
 
 .advisory-title {
   font-weight: 600;
-  color: #f6e05e;
+  color: #b45309;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: 5px;
+  margin-bottom: 3px;
 }
 
 .advisory-btn {
-  margin-top: 6px;
-  background: rgba(212, 175, 55, 0.2);
-  border: 1px solid var(--rice-gold);
-  color: #f7fafc;
-  padding: 4px 10px;
+  margin-top: 5px;
+  background: #ffffff;
+  border: 1px solid #d97706;
+  color: #b45309;
+  padding: 3px 9px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 10.5px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
+  font-weight: 500;
 }
 
 .advisory-btn:hover {
-  background: var(--rice-gold);
-  color: #12161f;
-  font-weight: 600;
+  background: #d97706;
+  color: #ffffff;
 }
 
-/* Guide Box (Thai Rice Biological Guide) */
 .guide-box {
-  background: rgba(255, 255, 255, 0.03);
+  background: #f8fafc;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  margin-top: 10px;
+  padding: 7px 10px;
+  margin-top: 8px;
   font-size: 11px;
 }
 
 .guide-header {
-  font-weight: 500;
-  color: var(--rice-gold);
+  font-weight: 600;
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -719,9 +843,9 @@ body {
 }
 
 .guide-content {
-  margin-top: 8px;
-  line-height: 1.55;
-  color: var(--text-secondary);
+  margin-top: 6px;
+  line-height: 1.5;
+  color: var(--text-muted);
   display: none;
 }
 
@@ -736,32 +860,27 @@ body {
 
 .map-delete-mode .leaflet-interactive {
   cursor: pointer !important;
-  stroke: #e53e3e !important;
+  stroke: #e11d48 !important;
   stroke-dasharray: 6, 6;
-  animation: pulseDelete 1s infinite alternate;
-}
-
-@keyframes pulseDelete {
-  from { stroke-width: 2px; }
-  to { stroke-width: 4px; }
 }
 
 /* Disaster Window Form */
 .disaster-window-box {
-  background: rgba(0, 0, 0, 0.25);
+  background: #f8fafc;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 10px;
-  margin-top: 10px;
+  padding: 8px 10px;
+  margin-top: 8px;
 }
 
 .disaster-timeline-badge {
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(229, 62, 62, 0.2);
-  color: #feb2b2;
-  border: 1px solid rgba(229, 62, 62, 0.3);
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
   margin-top: 4px;
   display: inline-block;
+  font-weight: 500;
 }

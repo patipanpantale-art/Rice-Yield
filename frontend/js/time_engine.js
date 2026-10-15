@@ -1,6 +1,6 @@
 /**
- * กลไกเร่งเวลาและจำลองสภาพอากาศสุดวิสัย (Time & Weather Stress Sandbox Engine)
- * รองรับการกรอเวลาไปหน้า-ย้อนหลัง (Scrubbing) และการสะสมดัชนี CDD / CWD
+ * กลไกเร่งเวลา, สภาพอากาศอิงตามปีจริง และจำลองผลกระทบภัยพิบัติตามระยะการเจริญเติบโต (Stage-Specific Disaster Engine)
+ * อิงหลักวิชาการ FAO-33 (Yield Response to Water) และชีววิทยาข้าว กรมการข้าว
  */
 class TimeEngine {
   constructor() {
@@ -12,23 +12,36 @@ class TimeEngine {
     this.intervalId = null;
     this.listeners = [];
 
-    // สถานะสภาพอากาศที่ถูกสั่งจำลอง (Manual Overrides)
-    // 'auto' = ตามธรรมชาติ, 'rain' = บังคับฝนตก, 'flood' = น้ำท่วมขัง, 'drought' = ฝนแล้ง, 'heat' = ร้อนจัด
-    this.forcedWeather = "auto";
+    // ปีสภาพอากาศจำลอง: "2024" (ลานีญา), "2023" (เอลนีโญ), "2022" (ฝนชุก), "baseline" (เฉลี่ย 30 ปี)
+    this.selectedYear = "2024";
+
+    // สถานะสภาพอากาศที่ผู้ใช้สั่งแทรกแซงแบบพลวัต
+    this.forcedWeather = "auto"; // 'auto', 'rain', 'flood', 'drought', 'heat'
+
+    // บันทึกประวัติภัยพิบัติในแต่ละวัน (Disaster History Map)
+    // Key: day (1-120), Value: 'flood' | 'drought' | 'heat' | 'rain'
+    this.disasterDays = {};
+
+    // ความเสียหายถาวรสะสมแยกตามระยะสรีรวิทยา (Stage-Specific Permanent Damage)
+    this.damageByStage = {
+      tillering: 0, // กระทบการแตกกอ (รวงต่อกอลดลงถาวร)
+      flowering: 0, // วิกฤตที่สุด! กระทบการติดเกสร (เมล็ดลีบถาวร ไม่สามารถฟื้นฟูได้)
+      ripening: 0   // กระทบน้ำหนักเมล็ดช่วงสุกแก่
+    };
 
     // ตัวแปรสะสมทางอุตุนิยมวิทยา
     this.cdd = 0; // Consecutive Dry Days
     this.cwd = 0; // Consecutive Wet Days
-    this.currentRain = 12; // ปริมาณฝนประจำวัน (มม.)
-    this.currentTemp = 29.5; // อุณหภูมิประจำวัน (°C)
+    this.currentRain = 12; // มม./วัน
+    this.currentTemp = 29.5; // °C
 
-    // 5 ระยะการเจริญเติบโตสรีรวิทยาข้าว
+    // 5 ระยะการเจริญเติบโตทางสรีรวิทยาของข้าว
     this.stages = [
-      { id: 1, name: "ระยะกล้า (Seedling)", minRatio: 0, maxRatio: 0.17 },
-      { id: 2, name: "ระยะแตกกอ (Tillering)", minRatio: 0.17, maxRatio: 0.42 },
-      { id: 3, name: "ระยะตั้งท้อง (Booting)", minRatio: 0.42, maxRatio: 0.67 },
-      { id: 4, name: "ระยะออกรวง (Heading)", minRatio: 0.67, maxRatio: 0.83 },
-      { id: 5, name: "ระยะสุกแก่ (Maturity)", minRatio: 0.83, maxRatio: 1.0 }
+      { id: 1, name: "ระยะกล้า (Seedling)", minRatio: 0, maxRatio: 0.17, desc: "ข้าวยังเล็ก ต้องการน้ำหล่อเลี้ยงพอเหมาะ" },
+      { id: 2, name: "ระยะแตกกอ (Tillering)", minRatio: 0.17, maxRatio: 0.42, desc: "สร้างหน่อและรวง หากขาดน้ำ/ท่วมกอจะลีบถาวร" },
+      { id: 3, name: "ระยะตั้งท้อง (Booting)", minRatio: 0.42, maxRatio: 0.67, desc: "ระยะวิกฤต! ละอองเกสรอ่อนไหวต่อน้ำและอุณหภูมิที่สุด" },
+      { id: 4, name: "ระยะออกรวง (Heading)", minRatio: 0.67, maxRatio: 0.83, desc: "ผสมเกสร หากอากาศร้อนจัด >35°C เมล็ดจะลีบถาวร" },
+      { id: 5, name: "ระยะสุกแก่ (Maturity)", minRatio: 0.83, maxRatio: 1.0, desc: "สะสมแป้งในเมล็ด เตรียมระบายน้ำเพื่อเก็บเกี่ยว" }
     ];
   }
 
@@ -42,6 +55,12 @@ class TimeEngine {
 
   setPlantDate(dateString) {
     this.plantDate = new Date(dateString);
+    this.notifyUpdate();
+  }
+
+  setYear(year) {
+    this.selectedYear = year;
+    this.calculateWeatherForCurrentDay();
     this.notifyUpdate();
   }
 
@@ -84,12 +103,11 @@ class TimeEngine {
     this.cdd = 0;
     this.cwd = 0;
     this.forcedWeather = "auto";
+    this.disasterDays = {};
+    this.damageByStage = { tillering: 0, flowering: 0, ripening: 0 };
     this.notifyUpdate();
   }
 
-  /**
-   * กรองหรือเลื่อนเวลาไปยังวันใดก็ได้ (Scrubbing / Seeking)
-   */
   seekToDay(day) {
     const targetDay = Math.max(1, Math.min(day, this.totalDays));
     this.currentDay = targetDay;
@@ -99,33 +117,45 @@ class TimeEngine {
 
   stepDay(step) {
     this.currentDay = Math.max(1, Math.min(this.currentDay + step, this.totalDays));
+
+    // หากเปิดโหมดมรสุมค้างไว้ขณะเล่น ให้บันทึกภัยพิบัติของวันนี้
+    if (this.forcedWeather !== "auto") {
+      this.disasterDays[this.currentDay] = this.forcedWeather;
+    }
+
     this.calculateWeatherForCurrentDay();
+    this.accumulateStageDamage();
     this.notifyUpdate();
   }
 
   /**
-   * จำลองสภาพอากาศตามธรรมชาติและเงื่อนไขสะสม CDD / CWD
+   * กำหนดช่วงเวลาเกิดภัยพิบัติล่วงหน้า (Disaster Window) เช่น วันที่ 30-70
+   */
+  scheduleDisasterWindow(type, startDay, endDay) {
+    for (let d = startDay; d <= endDay; d++) {
+      if (d >= 1 && d <= this.totalDays) {
+        if (type === "none") {
+          delete this.disasterDays[d];
+        } else {
+          this.disasterDays[d] = type;
+        }
+      }
+    }
+    this.calculateWeatherForCurrentDay();
+    this.recomputeAllDamage();
+    this.notifyUpdate();
+  }
+
+  /**
+   * คำนวณสภาพอากาศประจำวัน อิงตามปีที่เลือกและภัยพิบัติที่บันทึกไว้
    */
   calculateWeatherForCurrentDay() {
     const d = this.currentDay;
+    const recordedDisaster = this.disasterDays[d] || this.forcedWeather;
 
-    // 1. ตรวจสอบการแทรกแซงจากผู้ใช้ (Forced Scenario)
-    if (this.forcedWeather === "rain") {
-      this.currentRain = 35 + Math.round(Math.random() * 20);
-      this.currentTemp = 27 + Math.random() * 2;
-      this.cwd += 1;
-      this.cdd = 0;
-      // หากเปิดฝนตกชุ่มติดต่อกันเกิน 7 วัน จะเกิดสภาวะ "น้ำท่วมขัง" อัตโนมัติ!
-      if (this.cwd >= 8) {
-        this.activeEventState = "flood";
-      } else {
-        this.activeEventState = "rain";
-      }
-      return;
-    }
-
-    if (this.forcedWeather === "flood") {
-      this.currentRain = 75 + Math.round(Math.random() * 30);
+    // 1. ตรวจสอบภัยพิบัติที่ส่งผลในวันนี้
+    if (recordedDisaster === "flood") {
+      this.currentRain = 85;
       this.currentTemp = 26;
       this.cwd += 1;
       this.cdd = 0;
@@ -133,46 +163,93 @@ class TimeEngine {
       return;
     }
 
-    if (this.forcedWeather === "drought") {
+    if (recordedDisaster === "rain") {
+      this.currentRain = 40;
+      this.currentTemp = 27.5;
+      this.cwd += 1;
+      this.cdd = 0;
+      this.activeEventState = (this.cwd >= 8) ? "flood" : "rain";
+      return;
+    }
+
+    if (recordedDisaster === "drought") {
       this.currentRain = 0;
-      this.currentTemp = 34 + Math.random() * 2;
+      this.currentTemp = 34.5;
       this.cdd += 1;
       this.cwd = 0;
       this.activeEventState = "drought";
       return;
     }
 
-    if (this.forcedWeather === "heat") {
+    if (recordedDisaster === "heat") {
       this.currentRain = 0;
-      this.currentTemp = 37.5 + Math.random() * 2;
+      this.currentTemp = 38.0;
       this.cdd += 1;
       this.cwd = 0;
       this.activeEventState = "heat";
       return;
     }
 
-    // 2. โหมดอัตโนมัติตามธรรมชาติของฤดูกาลนาปีไทย (Default Auto Mode)
+    // 2. สภาพอากาศตามโปรไฟล์ปีที่เลือก (Yearly Meteorological Curves)
     this.activeEventState = "normal";
 
-    if (d <= 25) {
-      // ต้นฤดู (มิ.ย.): ฝนตกสลับแดด
-      const isRain = (d % 3 === 0);
-      this.currentRain = isRain ? (10 + (d % 5) * 4) : 0;
-      this.currentTemp = isRain ? 29 : 32;
-    } else if (d <= 65) {
-      // กลางฤดู (ก.ค. - ส.ค.): ฝนตกสม่ำเสมอ แตกกอสมบูรณ์
-      const isRain = (d % 2 === 0 || d % 5 === 0);
-      this.currentRain = isRain ? (18 + (d % 4) * 6) : 2;
-      this.currentTemp = 29.5;
-    } else if (d <= 90) {
-      // มรสุมเข้า (ส.ค. - ก.ย.): ฝนตกชุก อาจมีช่วงน้ำเอิ่ง
-      const isRain = (d % 4 !== 0);
-      this.currentRain = isRain ? (30 + (d % 7) * 8) : 0;
-      this.currentTemp = 28;
+    if (this.selectedYear === "2024") {
+      // ปี 2024 (ลานีญา): ฝนมาเร็ว พ.ค.-มิ.ย. ปลายฤดู ส.ค.-ก.ย. ฝนตกหนักเสี่ยงท่วม
+      if (d <= 30) {
+        this.currentRain = (d % 2 === 0) ? 22 : 4;
+        this.currentTemp = 29;
+      } else if (d <= 75) {
+        this.currentRain = (d % 3 === 0) ? 28 : 8;
+        this.currentTemp = 28.5;
+      } else if (d <= 100) {
+        this.currentRain = (d % 2 === 0 || d % 5 === 0) ? 45 : 12; // เสี่ยงน้ำท่วมช่วงออกรวง
+        this.currentTemp = 27.5;
+        if (d >= 80 && d <= 88) this.activeEventState = "flood";
+      } else {
+        this.currentRain = 0;
+        this.currentTemp = 26.5;
+      }
+    } else if (this.selectedYear === "2023") {
+      // ปี 2023 (เอลนีโญ): ฝนทิ้งช่วงแล้งจัด มิ.ย.-ก.ค. (DAP 20-55) อุณหภูมิร้อนจัด
+      if (d <= 20) {
+        this.currentRain = (d % 4 === 0) ? 10 : 0;
+        this.currentTemp = 33;
+      } else if (d <= 60) {
+        // แล้งทิ้งช่วงรุนแรง ข้าวขาดน้ำ
+        this.currentRain = 0;
+        this.currentTemp = 36.5;
+        this.activeEventState = (d >= 35) ? "drought" : "heat";
+      } else if (d <= 95) {
+        this.currentRain = (d % 3 === 0) ? 20 : 0;
+        this.currentTemp = 31;
+      } else {
+        this.currentRain = 0;
+        this.currentTemp = 28;
+      }
+    } else if (this.selectedYear === "2022") {
+      // ปี 2022 (ลานีญา ฝนชุก): ฝนตกต่อเนื่องตลอดฤดู น้ำเต็มแปลง
+      if (d <= 80) {
+        this.currentRain = (d % 2 === 0) ? 30 : 15;
+        this.currentTemp = 28;
+      } else {
+        this.currentRain = (d % 5 === 0) ? 12 : 2;
+        this.currentTemp = 27;
+      }
     } else {
-      // ปลายฤดูสุกแก่ (ต.ค. - พ.ย.): ปลายฝนต้นหนาว ฝนหยุด ข้าวสุกทอง
-      this.currentRain = (d % 10 === 0) ? 5 : 0;
-      this.currentTemp = 27.5;
+      // ค่าเฉลี่ย 30 ปี (Baseline TMD Normal)
+      if (d <= 30) {
+        this.currentRain = (d % 3 === 0) ? 14 : 0;
+        this.currentTemp = 31;
+      } else if (d <= 75) {
+        this.currentRain = (d % 2 === 0) ? 20 : 5;
+        this.currentTemp = 29.5;
+      } else if (d <= 100) {
+        this.currentRain = (d % 3 === 0) ? 26 : 0;
+        this.currentTemp = 28.5;
+      } else {
+        this.currentRain = 0;
+        this.currentTemp = 27.5;
+      }
     }
 
     if (this.currentRain >= 1.0) {
@@ -184,15 +261,50 @@ class TimeEngine {
     }
   }
 
-  setWeatherScenario(scenarioType) {
-    if (this.forcedWeather === scenarioType) {
-      // หากกดปุ่มเดิมซ้ำ ให้ยกเลิกกลับสู่โหมดอัตโนมัติ
-      this.forcedWeather = "auto";
-    } else {
-      this.forcedWeather = scenarioType;
+  /**
+   * คำนวณความเสียหายถาวรตามระยะการเจริญเติบโตสรีรวิทยา (FAO-33 Yield Response)
+   * ข้าวที่เสียหายในระยะออกดอก/ตั้งท้อง จะสูญเสียผลผลิตถาวร ไม่สามารถฟื้นฟูกลับมาได้
+   */
+  accumulateStageDamage() {
+    const d = this.currentDay;
+    const stage = this.getCurrentStage().id;
+    const event = this.activeEventState;
+
+    if (event === "flood" || event === "drought" || event === "heat") {
+      if (stage === 2) {
+        // ระยะแตกกอ: รวงต่อกอ P ลดลงถาวร (สะสมวันละ 0.8%)
+        this.damageByStage.tillering = Math.min(0.35, this.damageByStage.tillering + 0.008);
+      } else if (stage === 3 || stage === 4) {
+        // ระยะตั้งท้อง/ออกดอก (วิกฤตที่สุด!): ละอองเกสรเป็นหมัน เมล็ดลีบถาวร (สะสมวันละ 1.8%)
+        this.damageByStage.flowering = Math.min(0.60, this.damageByStage.flowering + 0.018);
+      } else if (stage === 5) {
+        // ระยะสุกแก่: น้ำท่วมทำให้เมล็ดเน่า/ร่วง
+        this.damageByStage.ripening = Math.min(0.20, this.damageByStage.ripening + 0.006);
+      }
     }
-    this.calculateWeatherForCurrentDay();
-    this.notifyUpdate();
+  }
+
+  recomputeAllDamage() {
+    this.damageByStage = { tillering: 0, flowering: 0, ripening: 0 };
+    for (let d = 1; d <= this.currentDay; d++) {
+      const event = this.disasterDays[d];
+      if (event === "flood" || event === "drought" || event === "heat") {
+        const ratio = d / this.totalDays;
+        let stageId = 1;
+        if (ratio > 0.83) stageId = 5;
+        else if (ratio > 0.67) stageId = 4;
+        else if (ratio > 0.42) stageId = 3;
+        else if (ratio > 0.17) stageId = 2;
+
+        if (stageId === 2) {
+          this.damageByStage.tillering = Math.min(0.35, this.damageByStage.tillering + 0.008);
+        } else if (stageId === 3 || stageId === 4) {
+          this.damageByStage.flowering = Math.min(0.60, this.damageByStage.flowering + 0.018);
+        } else if (stageId === 5) {
+          this.damageByStage.ripening = Math.min(0.20, this.damageByStage.ripening + 0.006);
+        }
+      }
+    }
   }
 
   getCurrentStage() {
@@ -221,46 +333,41 @@ class TimeEngine {
   }
 
   /**
-   * คำนวณตัวคูณผลกระทบจากสภาพอากาศและภัยพิบัติต่อแบบจำลองสูตรผสมผสาน
+   * คำนวณตัวคูณสภาพอากาศและตัวคูณความเสียหายถาวร (สมการ 3 ถึง 7)
    */
   getWeatherMultipliers() {
-    let f_temp = 0.95;
-    let f_climate = 0.92;
-    let f_stress = 1.0; // ตัวคูณลดทอนจากภัยสุดวิสัย
+    let f_temp = 0.98;
+    let f_climate = 0.95;
 
-    // 1. ผลของอุณหภูมิ (อิง Islam & Hasan 2021)
+    // 1. ผลของอุณหภูมิเฉลี่ย
     if (this.currentTemp > 35) {
-      // อากาศร้อนจัด เกสรลีบ
-      f_temp = Math.max(0.65, 0.95 - (this.currentTemp - 35) * 0.08);
+      f_temp = Math.max(0.60, 0.95 - (this.currentTemp - 35) * 0.09);
     } else if (this.currentTemp < 22) {
-      // อากาศหนาวเกินไป
-      f_temp = 0.85;
-    } else {
-      f_temp = 0.98;
+      f_temp = 0.82;
     }
 
-    // 2. ผลของภาวะขาดน้ำ (FAO-33)
+    // 2. ผลของภาวะน้ำ
     if (this.activeEventState === "drought" || this.cdd >= 7) {
-      f_climate = Math.max(0.40, 0.92 - (this.cdd * 0.04));
-    } else if (this.currentRain > 15) {
-      f_climate = 1.0; // น้ำเต็มอิ่ม
+      f_climate = Math.max(0.35, 0.92 - (this.cdd * 0.04));
+    } else if (this.currentRain > 25) {
+      f_climate = 1.0;
     }
 
-    // 3. ผลของน้ำท่วมขัง (CWD เกินพิกัด)
-    if (this.activeEventState === "flood" || this.cwd >= 8) {
-      const stage = this.getCurrentStage().id;
-      // ถ้าน้ำท่วมในระยะตั้งท้องหรือออกรวง ข้าวจะเสียหายหนักมาก
-      if (stage === 3 || stage === 4) {
-        f_stress = 0.65;
-      } else {
-        f_stress = 0.80;
-      }
-    }
+    // 3. ความเสียหายสะสมทางชีววิทยา (Permanent Yield Response Factor)
+    // ผลกระทบรวมที่ข้าวเสียหายไปแล้ว ไม่สามารถฟื้นฟูกลับมาได้
+    const totalPermanentLoss = this.damageByStage.tillering + this.damageByStage.flowering + this.damageByStage.ripening;
+    const f_stress = Math.max(0.25, 1.0 - totalPermanentLoss);
 
     return {
       f_temp: Math.round(f_temp * 100) / 100,
       f_climate: Math.round(f_climate * 100) / 100,
-      f_stress: Math.round(f_stress * 100) / 100
+      f_stress: Math.round(f_stress * 100) / 100,
+      damageReport: {
+        tilleringLoss: Math.round(this.damageByStage.tillering * 100),
+        floweringLoss: Math.round(this.damageByStage.flowering * 100),
+        ripeningLoss: Math.round(this.damageByStage.ripening * 100),
+        totalLossPercent: Math.round(totalPermanentLoss * 100)
+      }
     };
   }
 
@@ -280,6 +387,7 @@ class TimeEngine {
       simulatedDate: this.getSimulatedDate(),
       biomassRatio: this.getBiomassRatio(),
       isPlaying: this.isPlaying,
+      selectedYear: this.selectedYear,
       forcedWeather: this.forcedWeather,
       activeEventState: this.activeEventState || "normal",
       rain: this.currentRain,

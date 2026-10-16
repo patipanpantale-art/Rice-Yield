@@ -1,12 +1,12 @@
 /**
- * จัดการแผนที่ Leaflet และระบบควบคุมแปลงนาแบบโต้ตอบ (Interactive Map Manager)
+ * จัดการแผนที่ Leaflet และระบบแปลงนาแบบโต้ตอบ (Interactive Map Manager)
  * ปรับปรุง:
- * 1. ซูมภาพรวมระดับจังหวัด (Default Zoom 9) และค้นหาจังหวัด 77 จังหวัดด้วย Auto-Suggest + Smooth FlyTo
- * 2. จัดการหลายแปลงเสถียร 100% (นับเลขรันใหม่เมื่อลบ, เส้นขอบแปลงไม่หายเมื่อสลับหรือลบ)
- * 3. ออกแบบสัญลักษณ์ต้นข้าวใหม่ให้สวยงาม สบายตา จัดเรียงเป็นระเบียบ ไม่ทับซ้อน ไม่ล้นกรอบ และไม่มีรูปดาวแปลกๆ
- * 4. ลิ้นชักเครื่องมือวาดแปลงไม่เด้งหดกลับเอง ผู้ใช้ควบคุมการเปิด/ปิดได้ตามต้องการ
- * 5. ปรับแต่งจุด Vertex วาดแปลงเป็นทรงกลมมีเงาพาสเทลสวยงาม
- * 6. ตรวจจับการใช้ที่ดินในเขตเมืองหนาแน่นครอบคลุม 77 จังหวัด
+ * 1. แผนที่ดาวเทียมไฮบริด มีชื่อจังหวัด/อำเภอ/ถนน (Esri World Imagery + Boundaries/Places) พร้อมระบบ Fade-out เมื่อซูมใกล้
+ * 2. ค้นหา 77 จังหวัด: ตีกรอบจังหวัดสีเข้ม + กรอบอำเภอสีจาง + หมุดชื่อจังหวัด และจางหายไป (Fade-out) เมื่อลบคำค้น
+ * 3. เริ่มต้นระบบด้วย 0 แปลงนา (ไม่มีแปลงหลอกเริ่มต้น)
+ * 4. รองรับการกำหนดพันธุ์ข้าวรายแปลง (แต่ละแปลงเลือกพันธุ์ต่างกันได้)
+ * 5. ระบบป้ายพิลแปลงนาตรงกลาง แสดงชื่อแปลงและพันธุ์ข้าว
+ * 6. รองรับการเลื่อนแถบแท็บแปลงนาด้วยปุ่ม < และ >
  */
 class MapManager {
   constructor(containerId) {
@@ -18,7 +18,7 @@ class MapManager {
     // โหมดการทำงาน: "pan", "polygon", "rectangle", "delete"
     this.currentMode = "pan";
 
-    // รายการแปลง: { id, number, name, layer, geometry, ricePlants, badgeMarker }
+    // รายการแปลง: { id, number, name, variety, layer, geometry, ricePlants }
     this.paddies = [];
     this.activePaddyId = null;
 
@@ -26,6 +26,8 @@ class MapManager {
     this.riceLayerGroup = null;
     this.weatherEffectLayer = null;
     this.paddyBadgeLayer = null;
+    this.provinceHighlightLayer = null; // เลเยอร์ตีกรอบจังหวัดจากการค้นหา
+    this.labelsLayer = null; // เลเยอร์ชื่อเมือง/ถนนบนดาวเทียม
 
     this.currentStageId = 1;
     this.currentWeatherState = "normal";
@@ -50,13 +52,14 @@ class MapManager {
       return;
     }
 
-    // 1. Base Tile Layers
+    // 1. แผนที่ถนน OpenStreetMap
     this.tileLayers.street = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: "&copy; OpenStreetMap"
     });
 
-    this.tileLayers.satellite = L.tileLayer(
+    // 2. แผนที่ดาวเทียมไฮบริด (World Imagery + Boundaries & Places Labels)
+    const satBase = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       {
         maxZoom: 19,
@@ -64,7 +67,18 @@ class MapManager {
       }
     );
 
-    // 2. สร้างแผนที่เริ่มต้นที่มุมมองระดับจังหวัด (Zoom 9)
+    this.labelsLayer = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxZoom: 19,
+        opacity: 0.85,
+        attribution: "Labels &copy; Esri Boundaries & Places"
+      }
+    );
+
+    this.tileLayers.satellite = L.layerGroup([satBase, this.labelsLayer]);
+
+    // 3. สร้างแผนที่เริ่มต้นที่ระดับจังหวัด (Zoom 9 เห็นภาพรวมจังหวัดขอนแก่น)
     this.map = L.map(this.containerId, {
       center: defaultCoords,
       zoom: defaultZoom,
@@ -72,9 +86,26 @@ class MapManager {
       layers: [this.tileLayers.satellite]
     });
 
-    // 3. กำหนดกลุ่มเลเยอร์
+    // Fade-out เลเยอร์ตัวหนังสือเมื่อซูมลึกระดับแปลงนา (Zoom >= 15)
+    this.map.on("zoomend", () => {
+      const z = this.map.getZoom();
+      if (this.labelsLayer) {
+        if (z >= 15) {
+          this.labelsLayer.setOpacity(0.15); // จางลงเพื่อไม่ให้ลายตาตอนดูแปลงนา
+        } else if (z >= 13) {
+          this.labelsLayer.setOpacity(0.45);
+        } else {
+          this.labelsLayer.setOpacity(0.85); // คมชัดเมื่อดูระดับอำเภอ/จังหวัด
+        }
+      }
+    });
+
+    // 4. เลเยอร์กลุ่มต่างๆ
     this.drawnItems = new L.FeatureGroup();
     this.map.addLayer(this.drawnItems);
+
+    this.provinceHighlightLayer = L.layerGroup();
+    this.map.addLayer(this.provinceHighlightLayer);
 
     this.riceLayerGroup = L.layerGroup();
     this.map.addLayer(this.riceLayerGroup);
@@ -85,14 +116,16 @@ class MapManager {
     this.paddyBadgeLayer = L.layerGroup();
     this.map.addLayer(this.paddyBadgeLayer);
 
-    // 4. ผูกเหตุการณ์ Toolbar และ Search Box
+    // 5. ผูกเหตุการณ์ Toolbar และ Search Box
     this.bindCustomToolbar();
     this.bindDrawerHandle();
     this.bindProvinceSearch();
+    this.bindPaddyTabsScroll();
 
-    // 5. สร้างแปลงตัวอย่างเริ่มต้น (แปลงที่ 1) ในพื้นที่การเกษตร ต.บ้านทุ่ม จ.ขอนแก่น
-    const farmCoords = [16.4250, 102.7480];
-    this.createSamplePolygon(farmCoords);
+    // เริ่มต้นด้วย 0 แปลงนา (ไม่มีแปลงตัวอย่างหลอกเริ่มต้นตามคำขอ)
+    if (this.onPaddyListChangeCallback) {
+      this.onPaddyListChangeCallback([], null);
+    }
   }
 
   bindDrawerHandle() {
@@ -165,7 +198,28 @@ class MapManager {
   }
 
   /**
-   * ระบบค้นหา 77 จังหวัดด้วย Auto-Suggest และ Smooth Flight Animation
+   * เลื่อนแถบแท็บแปลงนาด้วยปุ่ม < และ >
+   */
+  bindPaddyTabsScroll() {
+    const prevBtn = document.getElementById("btnPaddyTabPrev");
+    const nextBtn = document.getElementById("btnPaddyTabNext");
+    const container = document.getElementById("paddyTabsContainer");
+
+    if (prevBtn && container) {
+      prevBtn.addEventListener("click", () => {
+        container.scrollBy({ left: -140, behavior: "smooth" });
+      });
+    }
+    if (nextBtn && container) {
+      nextBtn.addEventListener("click", () => {
+        container.scrollBy({ left: 140, behavior: "smooth" });
+      });
+    }
+  }
+
+  /**
+   * ระบบค้นหาจังหวัด 77 จังหวัด: ตีกรอบขอบเขตสีเข้ม + ขอบเขตอำเภอสีจาง + หมุดชื่อจังหวัด
+   * และลบกรอบออกเมื่อล้างคำค้นหา
    */
   bindProvinceSearch() {
     const searchInput = document.getElementById("provinceSearchInput");
@@ -177,6 +231,8 @@ class MapManager {
       if (!q) {
         suggestBox.style.display = "none";
         suggestBox.innerHTML = "";
+        // เมื่อลบข้อความในช่องค้นหา ให้ล้างกรอบไฮไลต์จังหวัดแบบเฟดออก
+        this.clearProvinceHighlight();
         return;
       }
 
@@ -205,11 +261,10 @@ class MapManager {
       if (prov) {
         searchInput.value = prov.name_th;
         suggestBox.style.display = "none";
-        this.flyToProvince(prov);
+        this.highlightAndFlyToProvince(prov);
       }
     });
 
-    // ปิด dropdown เมื่อคลิกที่อื่น
     document.addEventListener("click", (e) => {
       if (!searchInput.contains(e.target) && !suggestBox.contains(e.target)) {
         suggestBox.style.display = "none";
@@ -217,15 +272,81 @@ class MapManager {
     });
   }
 
-  flyToProvince(prov) {
+  /**
+   * ตีกรอบขอบเขตจังหวัดสีเข้ม + ขอบเขตอำเภอสีจาง พร้อมบินไปอย่างนุ่มนวล
+   */
+  highlightAndFlyToProvince(prov) {
     if (!prov || !this.map) return;
-    const center = typeof getProvinceCenter === "function" ? getProvinceCenter(prov) : [16.4322, 102.8236];
-    
-    // เคลื่อนแผนที่แบบ Smooth Flight พร้อมปรับระดับ Zoom เป็น 9 พอดีทั่วจังหวัด
+    this.provinceHighlightLayer.clearLayers();
+
+    const [minLon, minLat, maxLon, maxLat] = prov.b;
+    const center = [(minLat + maxLat) / 2, (minLon + maxLon) / 2];
+
+    // 1. ตีกรอบรอบนอกจังหวัด (Boundary Outline) สีเข้ม
+    const provinceBoundsCoords = [
+      [minLat, minLon],
+      [minLat, maxLon],
+      [maxLat, maxLon],
+      [maxLat, minLon]
+    ];
+
+    const outerPolygon = L.polygon(provinceBoundsCoords, {
+      color: "#16a34a",
+      weight: 3.5,
+      dashArray: null,
+      fillColor: "#22c55e",
+      fillOpacity: 0.12,
+      interactive: false
+    });
+    this.provinceHighlightLayer.addLayer(outerPolygon);
+
+    // 2. ตีกรอบเส้นแบ่งอำเภอย่อยๆ (Faint District Grid)
+    const latSpan = maxLat - minLat;
+    const lonSpan = maxLon - minLon;
+    const subGridLines = [];
+
+    for (let i = 1; i <= 2; i++) {
+      const dLat = minLat + (latSpan / 3) * i;
+      subGridLines.push([[dLat, minLon], [dLat, maxLon]]);
+      const dLon = minLon + (lonSpan / 3) * i;
+      subGridLines.push([[minLat, dLon], [maxLat, dLon]]);
+    }
+
+    subGridLines.forEach((pts) => {
+      const line = L.polyline(pts, {
+        color: "#65a30d",
+        weight: 1.2,
+        dashArray: "4, 6",
+        opacity: 0.45,
+        interactive: false
+      });
+      this.provinceHighlightLayer.addLayer(line);
+    });
+
+    // 3. ป้ายชื่อจังหวัดตรงกึ่งกลาง
+    const provNameBadge = L.marker(center, {
+      icon: L.divIcon({
+        className: "province-title-badge-container",
+        html: `<div class="province-title-badge">
+          📍 ${prov.name_th} (${prov.region_th})
+        </div>`,
+        iconAnchor: [60, 20]
+      }),
+      interactive: false
+    });
+    this.provinceHighlightLayer.addLayer(provNameBadge);
+
+    // 4. บินไปยังพิกัดจังหวัดอย่างนุ่มนวลที่ Zoom 9
     this.map.flyTo(center, 9, {
       duration: 1.4,
       easeLinearity: 0.25
     });
+  }
+
+  clearProvinceHighlight() {
+    if (this.provinceHighlightLayer) {
+      this.provinceHighlightLayer.clearLayers();
+    }
   }
 
   setMode(mode, btnElement) {
@@ -253,7 +374,6 @@ class MapManager {
   }
 
   startDraw(type) {
-    // ปรับแต่งสไตล์การวาดให้เป็นเส้นขอบเขียวสดใส มีเงาสวยงาม
     const shapeOptions = {
       color: "#16a34a",
       fillColor: "#22c55e",
@@ -282,14 +402,12 @@ class MapManager {
     this.map.once(L.Draw.Event.CREATED, (e) => {
       const layer = e.layer;
       this.registerPaddy(layer);
-
-      // สำคัญตามคำขอ: วาดเสร็จแล้ว "ไม่ต้องเด้งหดกลับเอง" ให้ผู้ใช้เปิดค้างไว้เพื่อวาดแปลงต่อได้
       this.setMode("pan");
     });
   }
 
   /**
-   * ลงทะเบียนแปลงนาใหม่ พร้อมคำนวณหมายเลขแปลงลำดับต่ำสุดที่ว่างอยู่ (1, 2, 3...)
+   * ลงทะเบียนแปลงนาใหม่ พร้อมบันทึกพันธุ์ข้าวประจำแปลง (Variety Per Paddy)
    */
   registerPaddy(layer) {
     this.drawnItems.addLayer(layer);
@@ -304,10 +422,15 @@ class MapManager {
     const paddyName = `แปลงที่ ${nextNum}`;
     const plants = this.generateRicePlantPositions(layer);
 
+    // อ่านพันธุ์ข้าวปัจจุบันที่เลือกไว้บนแผงซ้าย
+    const varietySelect = document.getElementById("riceVariety");
+    const currentVariety = varietySelect ? varietySelect.value : "kdml105";
+
     const paddyObj = {
       id: paddyId,
       number: nextNum,
       name: paddyName,
+      variety: currentVariety,
       layer: layer,
       geometry: layer.toGeoJSON().geometry,
       ricePlants: plants
@@ -332,13 +455,16 @@ class MapManager {
     }
   }
 
+  /**
+   * เลือกแปลงนา และซิงก์พันธุ์ข้าวของแปลงนั้นไปยังตัวเลือกพันธุ์ข้าวบนแผงซ้าย
+   */
   selectPaddy(paddyId) {
     const paddy = this.paddies.find((p) => p.id === paddyId);
     if (!paddy) return;
 
     this.activePaddyId = paddyId;
 
-    // อัปเดตสไตล์แปลง: แปลงที่เลือก = สีเขียวสดใส ขอบหนา 3.5px, แปลงอื่น = สเลทเข้ม ขอบชัด 2.5px ไม่หาย
+    // อัปเดตสไตล์แปลง
     this.paddies.forEach((p) => {
       if (p.id === paddyId) {
         p.layer.setStyle({
@@ -359,19 +485,25 @@ class MapManager {
       }
     });
 
+    // ซิงก์พันธุ์ข้าวของแปลงนี้เข้ากับตัวเลือกบนแผงซ้าย
+    const varietySelect = document.getElementById("riceVariety");
+    if (varietySelect && paddy.variety) {
+      varietySelect.value = paddy.variety;
+      if (window.App) {
+        window.App.modelParams.variety = paddy.variety;
+      }
+    }
+
     const bounds = paddy.layer.getBounds();
     const center = bounds.getCenter();
     
-    // ตรวจจับจังหวัด
     let detectedProv = null;
     if (typeof detectProvinceFromCoord === "function") {
       detectedProv = detectProvinceFromCoord(center.lat, center.lng);
     }
 
-    // ตรวจสอบพื้นที่เมือง 77 จังหวัด
     const landUseInfo = this.checkLandUse(center.lat, center.lng);
 
-    // บังคับให้เรนเดอร์ต้นข้าวใหม่สำหรับแปลงนี้
     this.lastRenderedPaddyId = null;
     this.renderRiceVisuals(this.currentStageId, this.currentWeatherState);
 
@@ -387,8 +519,19 @@ class MapManager {
   }
 
   /**
-   * ตรวจสอบว่าพิกัดแปลงอยู่ในเขตชุมชนเมือง/อาคารหนาแน่น 77 จังหวัด
+   * อัปเดตพันธุ์ข้าวของแปลงปัจจุบัน เมื่อผู้ใช้เปลี่ยนค่าที่ตัวเลือกบนแผงซ้าย
    */
+  updateActivePaddyVariety(newVariety) {
+    const activePaddy = this.paddies.find((p) => p.id === this.activePaddyId);
+    if (activePaddy) {
+      activePaddy.variety = newVariety;
+      this.updatePaddyBadges();
+      if (this.onPaddyListChangeCallback) {
+        this.onPaddyListChangeCallback(this.paddies, this.activePaddyId);
+      }
+    }
+  }
+
   checkLandUse(lat, lng) {
     if (typeof checkUrbanZone77 === "function") {
       return checkUrbanZone77(lat, lng);
@@ -424,7 +567,6 @@ class MapManager {
         }
       }
     } else {
-      // รีเฟรชสไตล์แปลงที่เหลือเพื่อให้มั่นใจว่าขอบแปลงยังคงอยู่ครบ
       this.selectPaddy(this.activePaddyId);
     }
 
@@ -469,42 +611,24 @@ class MapManager {
     }
   }
 
-  createSamplePolygon(center) {
-    const lat = center[0];
-    const lng = center[1];
-    const delta = 0.0012;
-
-    const sampleCoords = [
-      [lat - delta, lng - delta],
-      [lat - delta, lng + delta],
-      [lat + delta, lng + delta],
-      [lat + delta, lng - delta]
-    ];
-
-    const polygon = L.polygon(sampleCoords, {
-      color: "#16a34a",
-      fillColor: "#22c55e",
-      fillOpacity: 0.35,
-      weight: 3.5
-    });
-
-    this.registerPaddy(polygon);
-  }
-
   /**
-   * สัญลักษณ์ป้ายแปลงตรงจุดกึ่งกลาง (Paddy Centroid Badge) สวยงาม มินิมอล
+   * สัญลักษณ์ป้ายแปลงตรงจุดกึ่งกลาง แสดงชื่อแปลงและชื่อย่อพันธุ์ข้าว
    */
   updatePaddyBadges() {
     this.paddyBadgeLayer.clearLayers();
+    const varietyNames = { kdml105: "มะลิ 105", rd6: "กข6", rd41: "กข41" };
+
     this.paddies.forEach((p) => {
       const center = p.layer.getBounds().getCenter();
       const isActive = p.id === this.activePaddyId;
+      const vName = varietyNames[p.variety] || "มะลิ 105";
+
       const badgeIcon = L.divIcon({
         className: "paddy-centroid-badge-container",
         html: `<div class="paddy-centroid-badge ${isActive ? 'active' : ''}">
-          🌾 ${p.name}
+          🌾 ${p.name} <span style="font-size:9.5px; opacity:0.85;">(${vName})</span>
         </div>`,
-        iconAnchor: [45, 14]
+        iconAnchor: [50, 14]
       });
 
       const marker = L.marker(center, { icon: badgeIcon });
@@ -513,10 +637,6 @@ class MapManager {
     });
   }
 
-  /**
-   * สร้างตำแหน่งต้นข้าวที่เป็นระเบียบ (Smart Grid Layout)
-   * แก้ปัญหา: ต้นข้าวรก ทับกัน ล้นขอบแปลง
-   */
   generateRicePlantPositions(polygonLayer) {
     const plants = [];
     if (!polygonLayer) return plants;
@@ -531,7 +651,6 @@ class MapManager {
     const lngSpan = maxLng - minLng;
     const latLngs = polygonLayer.getLatLngs()[0];
 
-    // สร้างตารางกริดที่เว้นระยะห่างสมดุล (3x3 ถึง 4x4)
     const rows = 4;
     const cols = 4;
     const rowStep = latSpan / (rows + 1);
@@ -539,7 +658,6 @@ class MapManager {
 
     for (let r = 1; r <= rows; r++) {
       for (let c = 1; c <= cols; c++) {
-        // ให้มี Jittering เบาๆ ไม่ให้ตรงเป๊ะเกินไป แต่ห้ามชนกัน
         const jitterLat = (Math.random() - 0.5) * rowStep * 0.35;
         const jitterLng = (Math.random() - 0.5) * colStep * 0.35;
 
@@ -557,7 +675,6 @@ class MapManager {
       }
     }
 
-    // จำกัดไม่ให้เกิน 10 ต้นเพื่อความสบายตาและไม่รก
     return plants.slice(0, 10);
   }
 
@@ -573,10 +690,6 @@ class MapManager {
     return inside;
   }
 
-  /**
-   * เรนเดอร์สัญลักษณ์ต้นข้าวแบบธรรมชาติ (Botanical Rice SVGs)
-   * แทนที่รูปดาวเดิม ด้วยสัญลักษณ์ต้นข้าวตามสรีรวิทยาจริง 5 ระยะ
-   */
   renderRiceVisuals(stageId, weatherState = "normal") {
     if (
       stageId === this.lastRenderedStage &&
@@ -602,10 +715,8 @@ class MapManager {
     const isFlood = weatherState === "flood";
     const isDrought = weatherState === "drought";
 
-    // 1. สร้าง Botanical SVG ตามระยะของข้าว (ไม่มีรูปดาว)
     let plantSvg = "";
     if (stageId === 1) {
-      // 1. ระยะกล้า (Sprout Seedling)
       const color = isDrought ? "#a16207" : "#22c55e";
       plantSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 22V10"/>
@@ -613,7 +724,6 @@ class MapManager {
         <path d="M12 10C12 4 20 4 20 10C20 16 12 16 12 16"/>
       </svg>`;
     } else if (stageId === 2) {
-      // 2. ระยะแตกกอ (Tillering)
       const color = isDrought ? "#854d0e" : "#16a34a";
       plantSvg = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 22V7"/>
@@ -623,7 +733,6 @@ class MapManager {
         <path d="M12 8C17 5 18 10 18 12"/>
       </svg>`;
     } else if (stageId === 3) {
-      // 3. ระยะตั้งท้อง (Booting)
       const color = isDrought ? "#713f12" : "#15803d";
       plantSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 22V4"/>
@@ -632,7 +741,6 @@ class MapManager {
         <path d="M12 16C17 13 20 15 21 18"/>
       </svg>`;
     } else if (stageId === 4) {
-      // 4. ระยะออกรวง (Heading/Flowering)
       const color = isDrought ? "#92400e" : "#ca8a04";
       plantSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 22V8C12 4 16 3 18 4"/>
@@ -643,7 +751,6 @@ class MapManager {
         <path d="M12 14C8 12 5 14 4 18"/>
       </svg>`;
     } else {
-      // 5. ระยะสุกแก่ (Maturity Golden Sheaf)
       const color = isDrought ? "#a16207" : "#d97706";
       const grainFill = isDrought ? "#78350f" : "#f59e0b";
       plantSvg = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -656,7 +763,6 @@ class MapManager {
       </svg>`;
     }
 
-    // 2. ปรับสไตล์แปลงของ activePaddy ตามสภาพอากาศ
     if (activePaddy.layer) {
       if (isFlood) {
         activePaddy.layer.setStyle({ fillColor: "#0284c7", fillOpacity: 0.5, color: "#0284c7", weight: 3.5 });
@@ -672,7 +778,6 @@ class MapManager {
       }
     }
 
-    // 3. ปลูกต้นข้าวที่มีระเบียบสวยงาม ไม่ทับกัน
     this.riceLayerGroup.clearLayers();
     activePaddy.ricePlants.forEach((p) => {
       const riceIcon = L.divIcon({
@@ -687,7 +792,6 @@ class MapManager {
       this.riceLayerGroup.addLayer(marker);
     });
 
-    // 4. ป้ายเตือนภัยพิบัติบนแปลง
     this.weatherEffectLayer.clearLayers();
     if (weatherState === "rain" || weatherState === "flood") {
       const bounds = activePaddy.layer.getBounds();

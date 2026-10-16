@@ -702,14 +702,14 @@ class MapManager {
    * เลือกแปลงนา และซิงก์พันธุ์ข้าวของแปลงนั้นไปยังตัวเลือกพันธุ์ข้าวบนแผงซ้าย
    */
   selectPaddy(paddyId) {
-    const paddy = this.paddies.find((p) => p.id === paddyId);
+    const paddy = this.paddies.find((p) => String(p.id) === String(paddyId));
     if (!paddy) return;
 
-    this.activePaddyId = paddyId;
+    this.activePaddyId = paddy.id;
 
     // อัปเดตสไตล์แปลงให้เด่นชัด คมชัด ไม่กลืนกับแผนที่ดาวเทียม
     this.paddies.forEach((p) => {
-      if (p.id === paddyId) {
+      if (String(p.id) === String(paddyId)) {
         p.layer.setStyle({
           color: "#22c55e",
           weight: 4.5,
@@ -784,7 +784,7 @@ class MapManager {
   }
 
   updateActivePaddyVariety(newVariety) {
-    const activePaddy = this.paddies.find((p) => p.id === this.activePaddyId);
+    const activePaddy = this.paddies.find((p) => String(p.id) === String(this.activePaddyId));
     if (activePaddy) {
       activePaddy.variety = newVariety;
       const varietySpecs = {
@@ -823,7 +823,7 @@ class MapManager {
   }
 
   deletePaddy(paddyId) {
-    const idx = this.paddies.findIndex((p) => p.id === paddyId);
+    const idx = this.paddies.findIndex((p) => String(p.id) === String(paddyId));
     if (idx === -1) return;
 
     const paddy = this.paddies[idx];
@@ -833,7 +833,7 @@ class MapManager {
     }
     this.paddies.splice(idx, 1);
 
-    if (this.activePaddyId === paddyId) {
+    if (String(this.activePaddyId) === String(paddyId)) {
       this.riceLayerGroup.clearLayers();
       this.weatherEffectLayer.clearLayers();
       this.lastRenderedPaddyId = null;
@@ -913,8 +913,9 @@ class MapManager {
 
     this.paddies.forEach((p) => {
       const center = p.layer.getBounds().getCenter();
-      const isActive = p.id === this.activePaddyId;
-      const vName = varietyNames[p.variety] || "มะลิ 105";
+      const isActive = String(p.id) === String(this.activePaddyId);
+      const vKey = (p.params && p.params.variety) || p.variety || "kdml105";
+      const vName = varietyNames[vKey] || "มะลิ 105";
 
       const badgeIcon = L.divIcon({
         className: "paddy-centroid-badge-container",
@@ -1012,12 +1013,12 @@ class MapManager {
       return;
     }
 
-    const activePaddy = this.paddies.find((p) => p.id === this.activePaddyId);
+    const activePaddy = this.paddies.find((p) => String(p.id) === String(this.activePaddyId));
     if (!activePaddy) return;
 
     if (this.lastRenderedStage === stageId && 
         this.lastRenderedWeather === weatherState && 
-        this.lastRenderedPaddyId === this.activePaddyId) {
+        String(this.lastRenderedPaddyId) === String(this.activePaddyId)) {
       return;
     }
 

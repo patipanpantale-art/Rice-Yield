@@ -1,6 +1,6 @@
 /* ==========================================================================
    Rice Yield Sandbox Simulator - Light & Cute Minimal Agritech Design System
-   โทนสว่าง อบอุ่น สบายตา มินิมอล สะอาดตา ปรับปรุงครบทุกจุด UX
+   โทนสว่าง อบอุ่น สบายตา มินิมอล มีกิมมิกเกษตรกรรมน่ารัก ครบทุกฟังก์ชัน
    ========================================================================== */
 
 :root {
@@ -8,6 +8,7 @@
   --bg-primary: #f8fafc;         /* Slate-50: พื้นหลังหลักสะอาดตา นวล ไม่แสบตา */
   --bg-secondary: #f1f5f9;       /* Slate-100: พื้นหลังองค์ประกอบย่อย */
   --bg-panel: #ffffff;           /* Pure white สำหรับ Card / Panels */
+  --bg-warm-tint: #fefce8;       /* สีครีมอ่อนรวงข้าว */
   
   --rice-green: #16a34a;         /* Emerald Green พืชพันธุ์สมบูรณ์ */
   --rice-green-hover: #15803d;
@@ -21,6 +22,7 @@
   --text-muted: #94a3b8;         /* Slate-400 */
   
   --border-subtle: #e2e8f0;      /* Slate-200: เส้นขอบบางเฉียบ */
+  --border-warm: #fde68a;        /* ขอบสีทองอ่อน */
   --border-focus: #16a34a;
   
   /* Shadow Elevation */
@@ -173,12 +175,12 @@ body {
   border-bottom: 1px solid var(--border-subtle);
 }
 
-/* Collapsible Section Headers (ย่อ/ขยายได้เพื่อโฟกัสเวลาขึ้นจอ) */
+/* Collapsible Section Headers */
 .panel-section.collapsible .panel-heading {
   cursor: pointer;
   user-select: none;
   margin-bottom: 0;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
   transition: color 0.15s ease;
 }
 
@@ -271,10 +273,50 @@ body {
 }
 
 .form-range {
+  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
-  accent-color: var(--rice-green);
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #dcfce7, #fef3c7);
+  outline: none;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(22, 163, 74, 0.25);
   cursor: pointer;
-  height: 5px;
+}
+
+.form-range:hover {
+  background: linear-gradient(90deg, #bbf7d0, #fde68a);
+  border-color: rgba(22, 163, 74, 0.45);
+}
+
+.form-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #16a34a;
+  border: 2.5px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.4);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.form-range::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  background: #15803d;
+  box-shadow: 0 0 10px rgba(22, 163, 74, 0.6);
+}
+
+.form-range::-moz-range-thumb {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #16a34a;
+  border: 2.5px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.4);
 }
 
 /* Advisory Card */
@@ -310,6 +352,7 @@ body {
   gap: 5px;
   transition: all 0.15s ease;
   font-weight: 500;
+  font-family: inherit;
 }
 
 .advisory-btn:hover {
@@ -340,6 +383,7 @@ body {
   cursor: pointer;
   transition: all 0.15s ease;
   font-weight: 500;
+  font-family: inherit;
 }
 
 .scenario-btn:hover {
@@ -347,7 +391,7 @@ body {
   border-color: #cbd5e1;
 }
 
-.scenario-btn.active {
+.scenario-btn.active, .scenario-btn.active-rain, .scenario-btn.active-flood, .scenario-btn.active-drought, .scenario-btn.active-heat {
   background: var(--rice-green-subtle);
   border-color: var(--rice-green);
   color: #15803d;
@@ -357,16 +401,30 @@ body {
 /* Disaster Window Box */
 .disaster-window-box {
   background: #fffbeb;
-  border: 1px solid #fef3c7;
+  border: 1px solid var(--border-warm);
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
+  padding: 10px;
   margin-top: 6px;
+}
+
+.disaster-severity-slider-wrap {
+  margin: 8px 0;
+}
+
+.disaster-severity-desc {
+  font-size: 10.5px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+  line-height: 1.4;
+  background: #ffffff;
+  border: 1px solid #fde68a;
 }
 
 .disaster-timeline-badge {
   font-size: 10.5px;
   color: #b45309;
-  margin-top: 4px;
+  margin-top: 6px;
   line-height: 1.4;
 }
 
@@ -388,7 +446,7 @@ body {
 /* 4. Thailand Scope Welcome Banner */
 .thailand-scope-banner {
   position: absolute;
-  top: 10px;
+  top: 54px;
   left: 14px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(22, 163, 74, 0.35);
@@ -403,6 +461,7 @@ body {
   backdrop-filter: blur(6px);
   z-index: 440;
   transition: all 0.2s ease;
+  user-select: none;
 }
 
 .banner-close-btn {
@@ -506,16 +565,63 @@ body {
   text-align: center;
 }
 
-/* 6. Multi-Paddy Tabs Bar */
-.paddy-tabs-bar {
+.province-title-badge-container {
+  background: transparent;
+  border: none;
+}
+
+.province-title-badge {
+  background: #16a34a;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  border: 1.5px solid #ffffff;
+}
+
+/* 6. Multi-Paddy Tabs Wrapper with Pagination Buttons (< & >) */
+.paddy-tabs-wrapper {
   position: absolute;
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
+  gap: 4px;
+  z-index: 440;
+}
+
+.paddy-tab-arrow-btn {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s;
+}
+
+.paddy-tab-arrow-btn:hover {
+  background: #ffffff;
+  color: var(--rice-green);
+  border-color: var(--rice-green);
+}
+
+.paddy-tabs-bar {
+  display: flex;
+  align-items: center;
   gap: 6px;
-  max-width: 55%;
+  max-width: 320px;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
@@ -525,16 +631,17 @@ body {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(6px);
-  z-index: 440;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 .paddy-tabs-bar::-webkit-scrollbar {
-  height: 3px;
+  display: none;
 }
-.paddy-tabs-bar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 2px;
+
+.paddy-tab-empty-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 3px 6px;
 }
 
 .paddy-tab {
@@ -729,7 +836,7 @@ body {
   box-shadow: 0 2px 8px rgba(22, 163, 74, 0.4);
 }
 
-/* 9. Seekable Timeline Overlay (Minimizable) */
+/* 9. Seekable Timeline Overlay (Minimizable + Gantt) */
 .timeline-overlay {
   position: absolute;
   bottom: 16px;
@@ -826,9 +933,49 @@ body {
 
 .scrubber-slider {
   flex: 1;
-  accent-color: var(--rice-green);
+  -webkit-appearance: none;
+  appearance: none;
+  height: 9px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #dcfce7, #fef3c7, #fef08a);
+  outline: none;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(22, 163, 74, 0.25);
   cursor: pointer;
-  height: 6px;
+}
+
+.scrubber-slider:hover {
+  background: linear-gradient(90deg, #bbf7d0, #fde68a, #fde047);
+  border-color: rgba(22, 163, 74, 0.45);
+}
+
+.scrubber-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #16a34a;
+  border: 2.5px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 7px rgba(22, 163, 74, 0.45);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.scrubber-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  background: #15803d;
+  box-shadow: 0 0 12px rgba(22, 163, 74, 0.65);
+}
+
+.scrubber-slider::-moz-range-thumb {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #16a34a;
+  border: 2.5px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 7px rgba(22, 163, 74, 0.45);
 }
 
 .stages-indicator-bar {
@@ -850,12 +997,104 @@ body {
   font-weight: 600;
 }
 
-/* 10. Right Panel: Metrics & Analytics */
+/* Multi-Variety Gantt Container */
+.multi-variety-gantt-container {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gantt-track-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+}
+
+.gantt-track-label {
+  width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.gantt-track-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.gantt-track-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.2s ease;
+}
+
+.gantt-track-status {
+  width: 60px;
+  text-align: right;
+  font-weight: 600;
+  color: #15803d;
+}
+
+/* 10. Right Panel: Cute Empty State & Portfolio */
+.cute-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 16px;
+  text-align: center;
+  background: var(--bg-warm-tint);
+  border: 1px dashed var(--border-warm);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+
+.empty-state-animation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.empty-seedling { animation: bounceGrow 2s infinite ease-in-out; }
+.empty-tillering { animation: bounceGrow 2s infinite ease-in-out 0.4s; }
+.empty-mature { animation: bounceGrow 2s infinite ease-in-out 0.8s; }
+.empty-arrow { font-size: 12px; color: #ca8a04; }
+
+@keyframes bounceGrow {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.15); }
+}
+
+.empty-state-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 4px;
+}
+
+.empty-state-sub {
+  font-size: 11px;
+  color: #b45309;
+  line-height: 1.45;
+  max-width: 280px;
+}
+
 .metric-card-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .metric-card {
@@ -880,7 +1119,7 @@ body {
 }
 
 .metric-value {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.5px;
 }
@@ -892,6 +1131,55 @@ body {
   font-size: 10.5px;
   color: var(--text-muted);
   margin-top: 2px;
+}
+
+/* Per-Paddy Breakdown List */
+.paddy-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.paddy-breakdown-card {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  transition: all 0.15s;
+}
+
+.paddy-breakdown-card.active {
+  border-color: var(--rice-green);
+  background: #f0fdf4;
+}
+
+.paddy-breakdown-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.paddy-breakdown-variety {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.paddy-breakdown-metrics {
+  text-align: right;
+}
+
+.paddy-breakdown-tons {
+  font-weight: 700;
+  color: #15803d;
+}
+
+.paddy-breakdown-kg {
+  font-size: 10px;
+  color: var(--text-secondary);
 }
 
 /* Scenario Comparison Ghost Pill */
@@ -967,22 +1255,23 @@ body {
 .qual-badge.lvl-2 { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
 .qual-badge.lvl-1 { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
-/* 11. Universal Floating Tooltip System (Attached to document.body, z-index 99999999) */
+/* 11. Universal Floating Tooltip System */
 .global-floating-tooltip {
   position: fixed;
   background: #0f172a;
   color: #f8fafc;
-  padding: 8px 12px;
+  padding: 9px 13px;
   border-radius: var(--radius-sm);
   font-size: 11px;
-  line-height: 1.5;
+  line-height: 1.55;
   box-shadow: var(--shadow-lg);
   z-index: 99999999 !important;
-  max-width: 260px;
+  max-width: 290px;
   white-space: normal;
   pointer-events: none;
   transition: opacity 0.12s ease;
   font-family: var(--font-family);
+  border: 1px solid #334155;
 }
 
 .info-tooltip {
@@ -1017,14 +1306,14 @@ body {
   margin-top: 6px;
 }
 
-/* 12. Floating Draggable Disaster Analytics Modal (Point 11) */
+/* 12. Floating Draggable Disaster Analytics Modal */
 .floating-disaster-modal {
   position: fixed;
   top: 90px;
   left: 50%;
   transform: translateX(-50%);
-  width: 440px;
-  max-width: 90vw;
+  width: 450px;
+  max-width: 92vw;
   background: #ffffff;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -1132,7 +1421,7 @@ body {
 
 .disaster-diff-banner {
   background: #fffbeb;
-  border: 1px solid #fef3c7;
+  border: 1px solid var(--border-warm);
   color: #b45309;
   padding: 8px 12px;
   border-radius: var(--radius-sm);

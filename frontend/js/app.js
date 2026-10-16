@@ -1,14 +1,22 @@
 /**
- * แอปพลิเคชันหลัก (Application Orchestrator) - ธีมสว่างมินิมอล อบอุ่น
- * ระบบเปรียบเทียบผลลัพธ์ Before vs After, ตรวจจับที่ดินนาข้าวจริง 77 จังหวัด,
- * หน้าต่างวิเคราะห์มรสุมแบบเลื่อนได้ (Draggable Modal), และจัดการหลายแปลงแบบกระชับ ไม่ดันจอ
+ * แอปพลิเคชันหลัก (Application Orchestrator) - ธีมสว่างมินิมอล อบอุ่น สไตล์ Agritech
+ * คุณสมบัติ:
+ * 1. รองรับการกำหนดพันธุ์ข้าวรายแปลง (แต่ละแปลงเลือกพันธุ์ต่างกันได้)
+ * 2. คำนวณผลผลิตรวมทั้งฟาร์ม (ตัน, ไร่, กก./ไร่) และแจกแจงรายแปลง (Per-Paddy Breakdown)
+ * 3. สถานะเริ่มต้น 0 แปลงนา พร้อม Cute Waiting Animation (🌱 ➔ 🌿 ➔ 🌾) บนแผงขวา
+ * 4. Gantt Multi-Track แสดงแถบการเติบโตตามอายุของพันธุ์ข้าวแต่ละแปลง
+ * 5. สไลเดอร์ปรับความรุนแรงมรสุม 1-10 พร้อมคำอธิบายภาษาคนเข้าใจง่าย และระบบป้องกันการกดซ้ำ
+ * 6. วันที่เริ่มปลูกแสดงผลรูปแบบไทย ว/ด/ป (เช่น 15/06/2569)
+ * 7. รายงานวิเคราะห์ผลกระทบมรสุมแบบ Realtime ขณะที่เวลาจำลองกำลังเดิน
+ * 8. วิดเจ็ตบนแผนที่ทุกชิ้นยืดหยุ่น ปรับย่อและลากเลื่อนได้อย่างอิสระ (Draggable Map Overlays)
+ * 9. แยกปริมาณฝนประจำวัน (มม./วัน) และฝนสะสมตลอดฤดูในรอบนี้ (เริ่มนับจาก 0 มม.)
  */
 const App = {
   mapManager: null,
   currentGeometry: null,
-  currentArea: { sqMeters: 15806, totalRaiFloat: 9.878, formattedThai: "9 ไร่ 3 งาน 52 ตร.วา" },
+  currentArea: { sqMeters: 0, totalRaiFloat: 0, formattedThai: "ยังไม่มีแปลงนา" },
 
-  // ตัวแปรชีวภาพปรับเทียบกับพันธุ์ข้าวไทย (สศก.)
+  // ตัวแปรชีวภาพปรับเทียบกับพันธุ์ข้าวไทย (สศก./กรมการข้าว)
   modelParams: {
     variety: "kdml105",
     durationDays: 120,
@@ -32,8 +40,8 @@ const App = {
   soilInfo: {
     found: true,
     province: "ขอนแก่น",
-    district: "บ้านทุ่ม",
-    subdistrict: "บ้านทุ่ม",
+    district: "เมืองขอนแก่น",
+    subdistrict: "ในเมือง",
     soil_group: "17",
     suitability_name: "เหมาะสมปานกลาง (S2)",
     topsoil_texture: "ดินร่วนปนทราย",
@@ -48,24 +56,35 @@ const App = {
   // ระบบเก็บบันทึกเปรียบเทียบผลลัพธ์รอบก่อนหน้า (Scenario Comparison State)
   previousRun: null, // { yieldPerRai, totalYield, curve }
 
+  // คำแนะนำปฏิทินเพาะปลูกตามสถิติสภาพอากาศ 2022 - 2026 และ Baseline 30 ปี
   yearAdvisories: {
+    "2026": {
+      badge: "ปี 2026 (พยากรณ์ล่วงหน้า - ลานีญากำลังอ่อน)",
+      text: "🌤️ พยากรณ์ปี 2026 ลานีญากำลังอ่อน ฝนต้นฤดูสม่ำเสมอ แนะนำเริ่มปลูกช่วง 5 - 20 มิ.ย. เพื่อรับน้ำฝนแตกกอ",
+      recommendedDate: "2026-06-15"
+    },
+    "2025": {
+      badge: "ปี 2025 (สภาวะ ENSO Neutral สมดุล)",
+      text: "⚖️ ปี 2025 สภาพอากาศปกติ ฝนตกตามเกณฑ์เฉลี่ย เหมาะสำหรับปลูกตามรอบฤดูกาลปกติ 10 - 25 มิ.ย.",
+      recommendedDate: "2025-06-15"
+    },
     "2024": {
-      badge: "ปีลานีญา (ฝนมาเร็วและชุก)",
+      badge: "ปี 2024 (ลานีญา - ฝนมาเร็วและชุก)",
       text: "💡 ปี 2024 ฝนเริ่มมาเร็วตั้งแต่กลางเดือน พ.ค. หากเริ่มปลูกช่วง 25 พ.ค. - 10 มิ.ย. ข้าวจะได้น้ำสม่ำเสมอช่วงแตกกอ ควรระวังน้ำท่วมขังช่วง ส.ค.-ก.ย.",
       recommendedDate: "2024-06-01"
     },
     "2023": {
-      badge: "ปีเอลนีโญ (แล้งทิ้งช่วงกลางฤดู)",
+      badge: "ปี 2023 (เอลนีโญ - แล้งทิ้งช่วงกลางฤดู)",
       text: "⚠️ ปี 2023 เกิดสภาวะเอลนีโญ ฝนทิ้งช่วงแล้งจัดในเดือน มิ.ย.-ก.ค. หากเริ่มปลูกเดือน เม.ย.-พ.ค. ข้าวจะขาดน้ำแห้งตาย แนะนำเลื่อนปลูกเป็นกลางเดือน ก.ค. เพื่อรอฝนรอบสอง",
       recommendedDate: "2023-07-15"
     },
     "2022": {
-      badge: "ปีลานีญาฝนชุก (มรสุมต่อเนื่อง)",
+      badge: "ปี 2022 (ลานีญาฝนชุก - ร่องมรสุมต่อเนื่อง)",
       text: "🌧️ ปี 2022 ร่องมรสุมเข้าต่อเนื่อง แปลงดอนได้ผลผลิตสูง แต่แปลงลุ่มเสี่ยงน้ำท่วมขัง ควรเลือกพันธุ์ข้าวทนน้ำท่วมฉับพลัน",
       recommendedDate: "2022-06-15"
     },
     "baseline": {
-      badge: "ค่าเฉลี่ยภูมิอากาศ 30 ปี (TMD Normal)",
+      badge: "ค่าเฉลี่ยภูมิอากาศ 30 ปี (TMD Normal Baseline)",
       text: "🌤️ สภาพอากาศปกติตามเกณฑ์ 30 ปี กรมอุตุนิยมวิทยา ฝนเริ่มตกปลาย พ.ค. ทิ้งช่วงสั้นๆ ต้น ก.ค. เริ่มปลูกได้ตั้งแต่ 1-15 มิ.ย.",
       recommendedDate: "2026-06-15"
     }
@@ -76,11 +95,11 @@ const App = {
 
     await this.checkBackendStatus();
 
-    // เริ่มต้นแผนที่ Leaflet ที่ซูมระดับจังหวัด (Zoom 9)
+    // 1. เริ่มต้นแผนที่ Leaflet ที่ซูมระดับจังหวัด (Zoom 9 เห็นภาพรวมจังหวัดขอนแก่น)
     this.mapManager = new MapManager("map");
     this.mapManager.init([16.4322, 102.8236], 9);
 
-    // เริ่มต้นกราฟ
+    // 2. เริ่มต้นกราฟ
     AnalyticsCharts.initGrowthChart("growthChart");
     AnalyticsCharts.initWeatherChart("weatherChart");
 
@@ -89,23 +108,27 @@ const App = {
     this.bindMinimizableTimeline();
     this.bindScopeBanner();
     this.bindDisasterModal();
+    this.bindDraggableMapWidgets();
 
-    // ดักจับเมื่อผู้ใช้วาดหรือเลือกแปลงนา
+    // 3. ดักจับเมื่อผู้ใช้วาดหรือเลือกแปลงนา
     this.mapManager.onPolygonChange((geometry, detectedProv, paddy, landUseInfo) => {
       this.handlePolygonUpdate(geometry, detectedProv, paddy, landUseInfo);
     });
 
-    // ดักจับการเปลี่ยนแปลงรายการแปลงนา
+    // 4. ดักจับการเปลี่ยนแปลงรายการแปลงนา
     this.mapManager.onPaddyListChange((paddies, activeId) => {
       this.renderPaddyTabs(paddies, activeId);
+      this.recalculateYield();
     });
 
-    // ดักจับเหตุการณ์จาก TimeEngine
+    // 5. ดักจับเหตุการณ์จาก TimeEngine
     timeEngine.onUpdate((state) => {
       this.handleTimeUpdate(state);
     });
 
     this.updateYearAdvisory("2024");
+    this.updateDateFormatLabel("2026-06-15");
+    this.updatePanelVisibility(0);
     this.recalculateYield();
   },
 
@@ -123,7 +146,7 @@ const App = {
         return;
       }
     } catch (e) {
-      // Backend ออฟไลน์
+      // Backend ออฟไลน์ ใช้โหมดจำลองในตัว
     }
 
     this.backendOnline = false;
@@ -134,8 +157,114 @@ const App = {
     }
   },
 
+  /**
+   * ฟังก์ชันแปลงวันที่สากล YYYY-MM-DD เป็นรูปแบบไทย ว/ด/ป
+   */
+  formatThaiDate(dateStr) {
+    if (!dateStr) return "-";
+    const parts = dateStr.split("-");
+    if (parts.length !== 3) return dateStr;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    const thaiMonths = ["", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+    const beYear = y + 543;
+    const dd = String(d).padStart(2, "0");
+    const mm = String(m).padStart(2, "0");
+    return `${dd}/${mm}/${beYear} (${d} ${thaiMonths[m]} ${beYear})`;
+  },
+
+  updateDateFormatLabel(dateStr) {
+    const elFormatted = document.getElementById("dispFormattedDate");
+    if (elFormatted) {
+      elFormatted.innerText = `📅 รูปแบบ ว/ด/ป: ${this.formatThaiDate(dateStr)}`;
+    }
+  },
+
+  /**
+   * สลับหน้าต่างแผงขวา: หากยังไม่มีแปลงนา จะแสดง Cute Empty/Waiting Animation (Point 12)
+   */
+  updatePanelVisibility(paddyCount) {
+    const emptyState = document.getElementById("rightPanelEmptyState");
+    const content = document.getElementById("rightPanelContent");
+    if (paddyCount === 0) {
+      if (emptyState) emptyState.style.display = "flex";
+      if (content) content.style.display = "none";
+    } else {
+      if (emptyState) emptyState.style.display = "none";
+      if (content) content.style.display = "block";
+    }
+  },
+
+  /**
+   * Helper ทำให้วิดเจ็ตหรือหน้าต่างบนแผนที่สามารถลากเลื่อนได้อย่างอิสระ (Draggable)
+   */
+  makeDraggable(element, handle) {
+    if (!element || !handle) return;
+    handle.style.cursor = "grab";
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+
+    handle.addEventListener("mousedown", (e) => {
+      if (e.target.closest("button") || e.target.closest("input") || e.target.closest("select")) return;
+      isDragging = true;
+      handle.style.cursor = "grabbing";
+      startX = e.clientX;
+      startY = e.clientY;
+
+      const rect = element.getBoundingClientRect();
+      initialLeft = rect.left;
+      initialTop = rect.top;
+
+      element.style.transform = "none";
+      element.style.left = `${initialLeft}px`;
+      element.style.top = `${initialTop}px`;
+      element.style.right = "auto";
+      element.style.bottom = "auto";
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      element.style.left = `${initialLeft + dx}px`;
+      element.style.top = `${initialTop + dy}px`;
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (isDragging) {
+        isDragging = false;
+        handle.style.cursor = "grab";
+      }
+    });
+  },
+
+  /**
+   * ผูกเหตุการณ์ Draggable ให้กับแถบเครื่องมือบนแผนที่ (Point 6)
+   */
+  bindDraggableMapWidgets() {
+    // 1. แถบแท็บแปลงนา
+    const paddyTabsWrapper = document.querySelector(".paddy-tabs-wrapper");
+    if (paddyTabsWrapper) {
+      this.makeDraggable(paddyTabsWrapper, paddyTabsWrapper);
+    }
+
+    // 2. ป้ายขอบเขตระบบ
+    const scopeBanner = document.getElementById("thailandScopeBanner");
+    if (scopeBanner) {
+      this.makeDraggable(scopeBanner, scopeBanner);
+    }
+
+    // 3. ช่องค้นหาจังหวัด
+    const searchBar = document.querySelector(".map-search-bar-container");
+    const searchWrap = document.querySelector(".map-search-input-wrap");
+    if (searchBar && searchWrap) {
+      this.makeDraggable(searchBar, searchWrap);
+    }
+  },
+
   bindEvents() {
-    // 1. พันธุ์ข้าว
+    // 1. พันธุ์ข้าว (Point 9: เลือกพันธุ์ประจำแปลงที่เลือกอยู่ และอัปเดตโมเดล)
     const varietySelect = document.getElementById("riceVariety");
     if (varietySelect) {
       varietySelect.addEventListener("change", (e) => {
@@ -161,11 +290,17 @@ const App = {
         if (elDispG) elDispG.innerText = g;
 
         timeEngine.setVarietyDuration(days);
+
+        // อัปเดตพันธุ์ข้าวของแปลงที่เลือกอยู่บนแผนที่ทันที
+        if (this.mapManager) {
+          this.mapManager.updateActivePaddyVariety(val);
+        }
+
         this.recalculateYield();
       });
     }
 
-    // 2. ปีสภาพอากาศ
+    // 2. ปีสภาพอากาศ (Point 14: 2022 - 2026 และ Baseline 30 ปี)
     const climateYearSelect = document.getElementById("climateYearSelect");
     if (climateYearSelect) {
       climateYearSelect.addEventListener("change", (e) => {
@@ -183,16 +318,21 @@ const App = {
         const adv = this.yearAdvisories[year];
         if (adv && adv.recommendedDate) {
           const dateInput = document.getElementById("plantDate");
-          if (dateInput) dateInput.value = adv.recommendedDate;
+          if (dateInput) {
+            dateInput.value = adv.recommendedDate;
+            this.updateDateFormatLabel(adv.recommendedDate);
+          }
           timeEngine.setPlantDate(adv.recommendedDate);
         }
       });
     }
 
+    // วันเริ่มปลูก (Point 8: แสดงฟอร์แมต ว/ด/ป)
     const dateInput = document.getElementById("plantDate");
     if (dateInput) {
       dateInput.addEventListener("change", (e) => {
         timeEngine.setPlantDate(e.target.value);
+        this.updateDateFormatLabel(e.target.value);
       });
     }
 
@@ -202,13 +342,27 @@ const App = {
     this.bindRangeInput("inputGrains", "dispGrains", (val) => { this.modelParams.G = parseFloat(val); });
     this.bindRangeInput("inputWeight", "dispWeight", (val) => { this.modelParams.W = parseFloat(val); });
 
-    // 4. ปุ่มเร่งเวลา
+    // 4. ปุ่มเร่งเวลา (Point 7: แจ้งเตือนหากผู้ใช้ยังไม่ได้วาดแปลงหรือยังไม่ได้เลือกพันธุ์)
     const btnPlay = document.getElementById("btnPlay");
     const btnPause = document.getElementById("btnPause");
     const btnReset = document.getElementById("btnReset");
     const speedSelect = document.getElementById("simSpeedSelect");
 
-    if (btnPlay) btnPlay.addEventListener("click", () => timeEngine.play());
+    if (btnPlay) {
+      btnPlay.addEventListener("click", () => {
+        if (!this.mapManager || this.mapManager.paddies.length === 0) {
+          alert("กรุณาใช้เครื่องมือ \"วาดแปลง\" บนแผนที่ก่อนเริ่มการจำลองผลผลิตข้าว!");
+          return;
+        }
+        const varietySelect = document.getElementById("riceVariety");
+        if (!varietySelect || !varietySelect.value) {
+          alert("กรุณาเลือกชนิดพันธุ์ข้าวก่อนเริ่มการจำลอง!");
+          return;
+        }
+        timeEngine.play();
+      });
+    }
+
     if (btnPause) btnPause.addEventListener("click", () => timeEngine.pause());
     if (btnReset) {
       btnReset.addEventListener("click", () => {
@@ -226,13 +380,39 @@ const App = {
       });
     }
 
-    // 5. ปุ่มมรสุมฉับพลัน
+    // 5. ปุ่มมรสุมฉับพลัน (Point 7: สลับเปิด/ปิดสถานะฉับพลันแบบ Toggle)
     this.bindScenarioBtn("btnScenarioRain", "rain");
     this.bindScenarioBtn("btnScenarioFlood", "flood");
     this.bindScenarioBtn("btnScenarioDrought", "drought");
     this.bindScenarioBtn("btnScenarioHeat", "heat");
 
-    // 6. ปุ่มกำหนดภัยพิบัติตามช่วงเวลา (Disaster Window)
+    // 6. ตัวเลือกสไลเดอร์ระดับความรุนแรง 1 - 10 (Point 7)
+    const inputSeverity = document.getElementById("inputDisasterSeverity");
+    const dispSeverityVal = document.getElementById("dispSeverityVal");
+    const dispSeverityDesc = document.getElementById("dispDisasterSeverityDesc");
+
+    const severityDescriptions = {
+      1: "🌱 ระดับ 1: ฝนตกปรอยๆ หรือแล้งสั้นๆ ไม่กระทบผลผลิต",
+      2: "🌱 ระดับ 2: ฝนตกเบาบาง ข้าวเจริญเติบโตได้ตามปกติ",
+      3: "💧 ระดับ 3: ฝนปานกลาง น้ำขังเล็กน้อย ไม่กระทบการแตกกอ",
+      4: "💧 ระดับ 4: น้ำท่วมข้อเท้า ข้าวชะงักการเจริญเติบโตเล็กน้อย (~5-10%)",
+      5: "🌊 ระดับ 5: น้ำท่วมปานกลาง ท่วมถึงโคนต้น แตกกอลดลง (~15-25%)",
+      6: "🌊 ระดับ 6: น้ำท่วมกึ่งเอว หากเกิดช่วงตั้งท้องดอกเริ่มฝ่อ (~25-35%)",
+      7: "⚠️ ระดับ 7: มรสุมรุนแรง น้ำท่วมสูงหรือแล้งจัดดินแตก (~40-55%)",
+      8: "⚠️ ระดับ 8: พายุพัดถล่ม น้ำท่วมมิดยอดรวง เสียหายรุนแรง (~55-70%)",
+      9: "🚨 ระดับ 9: อุทกภัย/ภัยแล้งวิกฤต ต้นข้าวเน่าตายส่วนใหญ่ (>75%)",
+      10: "🚨 ระดับ 10: มหันตภัยธรรมชาติขั้นสูงสุด ผลผลิตเสียหายสิ้นเชิง (100%)"
+    };
+
+    if (inputSeverity) {
+      inputSeverity.addEventListener("input", (e) => {
+        const sev = parseInt(e.target.value, 10);
+        if (dispSeverityVal) dispSeverityVal.innerText = `ระดับ ${sev} / 10`;
+        if (dispSeverityDesc) dispSeverityDesc.innerText = severityDescriptions[sev] || `ระดับ ${sev}`;
+      });
+    }
+
+    // 7. ปุ่มกำหนดภัยพิบัติตามช่วงเวลา (Disaster Window - Point 7 ป้องกันการกดซ้ำรัวๆ)
     const btnApplyWindow = document.getElementById("btnApplyDisasterWindow");
     if (btnApplyWindow) {
       btnApplyWindow.addEventListener("click", () => {
@@ -241,7 +421,9 @@ const App = {
         const type = document.getElementById("disasterTypeSelect").value;
         const startDay = parseInt(document.getElementById("disasterStartDay").value, 10) || 30;
         const endDay = parseInt(document.getElementById("disasterEndDay").value, 10) || 75;
-        timeEngine.scheduleDisasterWindow(type, startDay, endDay);
+        const sev = inputSeverity ? parseInt(inputSeverity.value, 10) : 5;
+
+        timeEngine.scheduleDisasterWindow(type, startDay, endDay, sev);
 
         const badge = document.getElementById("dispDisasterWindowBadge");
         if (badge) {
@@ -250,14 +432,14 @@ const App = {
             badge.style.display = "none";
           } else {
             const typeName = type === "flood" ? "น้ำท่วมขัง" : (type === "drought" ? "ฝนแล้งทิ้งช่วง" : "คลื่นความร้อน");
-            badge.innerText = `⚠️ จำลอง ${typeName} ในวันที่ ${startDay} ถึง ${endDay}`;
+            badge.innerText = `⚠️ จำลอง ${typeName} ในวันที่ ${startDay} ถึง ${endDay} (ความรุนแรงระดับ ${sev}/10)`;
             badge.style.display = "inline-block";
           }
         }
       });
     }
 
-    // ปุ่ม Re-Run จำลองใหม่พร้อมเปรียบเทียบ
+    // 8. ปุ่ม Re-Run จำลองใหม่พร้อมเปรียบเทียบ
     const btnReRun = document.getElementById("btnReRunScenario");
     if (btnReRun) {
       btnReRun.addEventListener("click", () => {
@@ -266,17 +448,31 @@ const App = {
         timeEngine.play();
       });
     }
+
+    // 9. ปุ่มเลื่อนแท็บแปลงนาซ้าย-ขวา (< และ > - Point 13)
+    const btnTabPrev = document.getElementById("btnPaddyTabPrev");
+    const btnTabNext = document.getElementById("btnPaddyTabNext");
+    const tabsContainer = document.getElementById("paddyTabsContainer");
+    if (btnTabPrev && tabsContainer) {
+      btnTabPrev.addEventListener("click", () => {
+        tabsContainer.scrollBy({ left: -140, behavior: "smooth" });
+      });
+    }
+    if (btnTabNext && tabsContainer) {
+      btnTabNext.addEventListener("click", () => {
+        tabsContainer.scrollBy({ left: 140, behavior: "smooth" });
+      });
+    }
   },
 
   /**
-   * ทำให้หัวข้อต่างๆ สามารถย่อ/พับ (Collapse) ได้ เพื่อโฟกัสเวลาขึ้นจอโปรเจกเตอร์
+   * ทำให้หัวข้อต่างๆ สามารถย่อ/พับ (Collapse) ได้
    */
   bindCollapsibleSections() {
     document.querySelectorAll(".panel-section.collapsible").forEach((sec) => {
       const heading = sec.querySelector(".panel-heading");
       if (heading) {
         heading.addEventListener("click", (e) => {
-          // หากคลิกที่ tooltip ไม่ต้อง toggle
           if (e.target.closest(".info-tooltip")) return;
           sec.classList.toggle("collapsed");
         });
@@ -311,7 +507,7 @@ const App = {
   },
 
   /**
-   * ผูกเหตุการณ์หน้าต่างวิเคราะห์มรสุมแบบลอย เลื่อนได้ (Draggable Floating Window)
+   * ผูกเหตุการณ์หน้าต่างวิเคราะห์มรสุมแบบลอย เลื่อนได้ (Draggable Modal)
    */
   bindDisasterModal() {
     const btnOpen = document.getElementById("btnOpenDisasterReport");
@@ -332,47 +528,21 @@ const App = {
       });
     }
 
-    // ลากเลื่อนหน้าต่าง (Drag and Drop Modal)
     if (header && modal) {
-      let isDragging = false;
-      let startX, startY, initialLeft, initialTop;
-
-      header.addEventListener("mousedown", (e) => {
-        if (e.target.closest(".modal-close-btn")) return;
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-
-        const rect = modal.getBoundingClientRect();
-        initialLeft = rect.left;
-        initialTop = rect.top;
-
-        modal.style.transform = "none";
-        modal.style.left = `${initialLeft}px`;
-        modal.style.top = `${initialTop}px`;
-      });
-
-      document.addEventListener("mousemove", (e) => {
-        if (!isDragging) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        modal.style.left = `${initialLeft + dx}px`;
-        modal.style.top = `${initialTop + dy}px`;
-      });
-
-      document.addEventListener("mouseup", () => {
-        isDragging = false;
-      });
+      this.makeDraggable(modal, header);
     }
   },
 
   /**
-   * เรนเดอร์ข้อมูลในหน้าต่างวิเคราะห์มรสุม (Draggable Modal)
+   * เรนเดอร์ข้อมูลในหน้าต่างวิเคราะห์มรสุม (Draggable Modal) แบบ Realtime (Point 6)
    */
   renderDisasterReport() {
+    const paddies = (this.mapManager && this.mapManager.paddies) ? this.mapManager.paddies : [];
+    const activePaddy = paddies.find((p) => p.id === this.mapManager.activePaddyId) || paddies[0];
+
     const { H, P, G, W, fertilityFactor } = this.modelParams;
-    const areaSqM = this.currentArea.sqMeters || 15806;
-    const areaRai = this.currentArea.totalRaiFloat || (areaSqM / 1600);
+    const areaSqM = activePaddy && activePaddy.areaResult ? activePaddy.areaResult.sqMeters : (this.currentArea.sqMeters || 1600);
+    const areaRai = areaSqM / 1600;
 
     const grainsPerSqM = H * P * G * fertilityFactor;
     const kgPerSqM = ((grainsPerSqM * W) / 1000) / 1000;
@@ -380,12 +550,12 @@ const App = {
 
     const { f_soil, f_temp, f_climate, f_ndvi, f_stress } = this.multipliers;
 
-    // คำนวณผลผลิตแบบไม่เจอมรสุม (f_stress = 1.0)
+    // ผลผลิตแบบไม่เจอมรสุม (f_stress = 1.0)
     const baseMult = f_soil * f_temp * f_climate * f_ndvi * 1.0;
     const baseTotalTons = (Ypot * baseMult) / 1000;
     const baseYieldPerRai = Math.round((Ypot * baseMult) / areaRai);
 
-    // คำนวณผลผลิตจริงที่เจอมรสุม
+    // ผลผลิตจริงที่เจอมรสุม
     const actualMult = f_soil * f_temp * f_climate * f_ndvi * f_stress;
     const actualTotalTons = (Ypot * actualMult) / 1000;
     const actualYieldPerRai = Math.round((Ypot * actualMult) / areaRai);
@@ -428,7 +598,6 @@ const App = {
           ☀️ ตลอดฤดูกาลเพาะปลูกนี้ไม่มีเหตุการณ์มรสุมหรือภัยธรรมชาติรุนแรง
         </div>`;
       } else {
-        // จัดกลุ่มช่วงวันติดต่อกัน
         const ranges = [];
         let curRange = null;
 
@@ -448,7 +617,6 @@ const App = {
           const typeIcon = r.type === "flood" ? "fa-water" : (r.type === "drought" ? "fa-sun" : "fa-temperature-arrow-up");
           const duration = r.end - r.start + 1;
           
-          // คำนวณระดับความเสียหาย 1 - 5
           let severity = 1;
           let stageDesc = "ระยะต้นกล้า";
           if (r.start >= 40 && r.end <= 80) {
@@ -484,7 +652,7 @@ const App = {
   },
 
   /**
-   * บันทึกค่าผลผลิตของรอบปัจจุบันเป็น "รอบก่อนหน้า" (Previous Run) เพื่อแสดงผลเปรียบเทียบสีจางลง
+   * บันทึกค่าผลผลิตรอบเดิมเพื่อเปรียบเทียบ Before vs After
    */
   snapshotCurrentRunAsPrevious() {
     const elPerRai = document.getElementById("dispYieldPerRai");
@@ -493,7 +661,6 @@ const App = {
     const currentYield = parseInt(elPerRai.innerText, 10) || 355;
     const currentStress = this.multipliers.f_stress;
 
-    // คำนวณเส้นกราฟรอบเดิม
     const curve = [
       10,
       Math.round(35 * (currentStress >= 0.8 ? 1 : currentStress)),
@@ -569,17 +736,23 @@ const App = {
 
     container.innerHTML = "";
     if (!paddies || paddies.length === 0) {
-      container.innerHTML = `<span style="font-size:11px; color:var(--text-muted); padding:4px 8px;">ยังไม่มีแปลงนา (คลิกปุ่มวาดแปลงเพื่อเริ่มต้น)</span>`;
+      container.innerHTML = `<span class="paddy-tab-empty-hint">🌱 ยังไม่มีแปลงนา (คลิกเครื่องมือวาดแปลงเพื่อเริ่มต้น)</span>`;
       return;
     }
+
+    const varietyShortNames = {
+      kdml105: "มะลิ 105",
+      rd6: "กข6",
+      rd41: "กข41"
+    };
 
     paddies.forEach((p) => {
       const tab = document.createElement("button");
       tab.className = `paddy-tab ${p.id === activeId ? 'active' : ''}`;
+      const vTag = varietyShortNames[p.variety] || p.variety || "มะลิ 105";
       
-      tab.innerHTML = `🌾 ${p.name} <span class="paddy-tab-del" title="ลบแปลงนี้">✕</span>`;
+      tab.innerHTML = `🌾 ${p.name} <span style="font-size:10px; opacity:0.85; margin-left:2px;">(${vTag})</span> <span class="paddy-tab-del" title="ลบแปลงนี้">✕</span>`;
       
-      // คลิกที่แท็บเพื่อเลือกแปลง
       tab.addEventListener("click", (e) => {
         if (e.target.classList.contains("paddy-tab-del")) {
           e.stopPropagation();
@@ -624,7 +797,8 @@ const App = {
 
   async handlePolygonUpdate(geometry, detectedProv = null, paddy = null, landUseInfo = null) {
     if (!geometry) {
-      this.currentArea = { sqMeters: 0, totalRaiFloat: 0, formattedThai: "ยังไม่ได้วาดแปลง" };
+      this.currentArea = { sqMeters: 0, totalRaiFloat: 0, formattedThai: "ยังไม่มีแปลงนา" };
+      this.updatePanelVisibility(this.mapManager ? this.mapManager.paddies.length : 0);
       this.recalculateYield();
       return;
     }
@@ -639,7 +813,7 @@ const App = {
     if (elAreaThai) elAreaThai.innerText = areaResult.formattedThai;
     if (elAreaSqM) elAreaSqM.innerText = `${areaResult.sqMeters.toLocaleString()} ตร.ม.`;
 
-    // แจ้งเตือนการใช้ประโยชน์ที่ดิน (Land-Use check สไตล์สุภาพเป็นมิตร)
+    // แจ้งเตือนการใช้ประโยชน์ที่ดิน
     const elLandUseAlert = document.getElementById("dispLandUseAlert");
     if (elLandUseAlert) {
       if (landUseInfo && !landUseInfo.isPaddyArea) {
@@ -747,6 +921,49 @@ const App = {
       }
     });
 
+    // Point 10: Multi-Variety Gantt Chart แทร็กความก้าวหน้ารายแปลง
+    const paddies = (this.mapManager && this.mapManager.paddies) ? this.mapManager.paddies : [];
+    const ganttBox = document.getElementById("multiVarietyGanttContainer");
+    if (ganttBox) {
+      if (paddies.length > 0) {
+        ganttBox.style.display = "block";
+        const varietyNames = {
+          kdml105: "ขาวดอกมะลิ 105",
+          rd6: "กข6",
+          rd41: "กข41"
+        };
+        const varietyDays = {
+          kdml105: 120,
+          rd6: 130,
+          rd41: 105
+        };
+
+        ganttBox.innerHTML = paddies.map((p) => {
+          const v = p.variety || "kdml105";
+          const totalD = varietyDays[v] || 120;
+          const vName = varietyNames[v] || v;
+          const prog = Math.min(100, Math.round((state.currentDay / totalD) * 100));
+          const isReady = state.currentDay >= totalD;
+          const statusText = isReady ? "🌾 สุกแก่เก็บเกี่ยวแล้ว" : `${prog}% (${state.currentDay}/${totalD} วัน)`;
+          const barColor = isReady ? "#ca8a04" : "#16a34a";
+
+          return `
+            <div class="gantt-paddy-track">
+              <div class="gantt-paddy-info">
+                <span class="gantt-paddy-name">🌾 ${p.name}: <strong>${vName}</strong> (${totalD} วัน)</span>
+                <span class="gantt-paddy-status" style="color:${isReady ? '#b45309' : '#15803d'}; font-weight:600;">${statusText}</span>
+              </div>
+              <div class="gantt-paddy-bar-bg">
+                <div class="gantt-paddy-bar-fill" style="width: ${prog}%; background: ${barColor};"></div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      } else {
+        ganttBox.style.display = "none";
+      }
+    }
+
     const wm = state.weatherMultipliers;
     this.multipliers.f_temp = wm.f_temp;
     this.multipliers.f_climate = wm.f_climate;
@@ -757,12 +974,15 @@ const App = {
     }
 
     const elRain = document.getElementById("dispCurRain");
+    const elCumRain = document.getElementById("dispCumulativeRain");
     const elTemp = document.getElementById("dispCurTemp");
     const elCdd = document.getElementById("dispCdd");
     const elCwd = document.getElementById("dispCwd");
     const elWeatherDesc = document.getElementById("dispWeatherDesc");
 
+    // Point 15: แสดงทั้งฝนประจำวัน (มม./วัน) และฝนสะสมตลอดฤดูในรอบนี้ (เริ่มนับจาก 0 มม.)
     if (elRain) elRain.innerText = `${state.rain} มม./วัน`;
+    if (elCumRain) elCumRain.innerText = `สะสมใน Process นี้: ${state.cumulativeProcessRain || 0} มม.`;
     if (elTemp) elTemp.innerText = `${state.temp} °C`;
     if (elCdd) elCdd.innerText = `${state.cdd} วัน`;
     if (elCwd) elCwd.innerText = `${state.cwd} วัน`;
@@ -786,6 +1006,12 @@ const App = {
       }
     }
 
+    // Point 6: อัปเดตหน้าต่างสรุปผลกระทบมรสุมแบบ Realtime ขณะที่เวลาเล่นอยู่
+    const modal = document.getElementById("modalDisasterReport");
+    if (modal && modal.style.display === "block") {
+      this.renderDisasterReport();
+    }
+
     if (!this.rafPending) {
       this.rafPending = true;
       requestAnimationFrame(() => {
@@ -795,50 +1021,125 @@ const App = {
     }
   },
 
+  /**
+   * คำนวณผลผลิตรวมทั้งฟาร์ม (ตัน, กก./ไร่) และแจกแจงรายแปลง (Points 5, 11, 12)
+   */
   recalculateYield(biomassRatio = 1.0) {
-    const { H, P, G, W, fertilityFactor } = this.modelParams;
-    const areaSqM = this.currentArea.sqMeters || 15806;
-    const areaRai = this.currentArea.totalRaiFloat || (areaSqM / 1600);
+    const paddies = (this.mapManager && this.mapManager.paddies) ? this.mapManager.paddies : [];
 
-    if (areaSqM <= 0) return;
+    if (paddies.length === 0) {
+      this.updatePanelVisibility(0);
+      const ganttBox = document.getElementById("multiVarietyGanttContainer");
+      if (ganttBox) ganttBox.style.display = "none";
+      return;
+    }
 
-    // สมการที่ 3: ผลผลิตศักยภาพ (Ypot)
-    const grainsPerSqM = H * P * G * fertilityFactor;
-    const gramsPerSqM = (grainsPerSqM * W) / 1000;
-    const kgPerSqM = gramsPerSqM / 1000;
-    const Ypot = kgPerSqM * areaSqM;
+    this.updatePanelVisibility(paddies.length);
 
-    // สมการที่ 4: ผลผลิตปรับด้วยตัวคูณสิ่งแวดล้อมและมรสุม (Yfinal)
+    const varietySpecs = {
+      kdml105: { name: "ขาวดอกมะลิ 105", duration: 120, H: 16, P: 8, G: 95, W: 25.5 },
+      rd6: { name: "กข6", duration: 130, H: 16, P: 9, G: 100, W: 26.5 },
+      rd41: { name: "กข41", duration: 105, H: 20, P: 10, G: 110, W: 27.5 }
+    };
+
+    const fertilityFactor = this.modelParams.fertilityFactor || 0.82;
     const { f_soil, f_temp, f_climate, f_ndvi, f_stress } = this.multipliers;
     const totalMultiplier = f_soil * f_temp * f_climate * f_ndvi * f_stress;
-    const YfinalFull = Ypot * totalMultiplier;
-
-    const Ycurrent = YfinalFull * biomassRatio;
-    const Yrai = areaRai > 0 ? YfinalFull / areaRai : 0;
-
-    // คำนวณผลผลิตศักยภาพหากสภาพอากาศปกติ (ไร้มรสุม f_stress = 1.0)
     const baseMultNoStress = f_soil * f_temp * f_climate * f_ndvi * 1.0;
-    const YraiNoStress = areaRai > 0 ? (Ypot * baseMultNoStress) / areaRai : 0;
+
+    let totalFarmSqM = 0;
+    let totalFarmRai = 0;
+    let totalFarmTons = 0;
+    let totalFarmPotTons = 0;
+    let totalFarmFinalKg = 0;
+    let totalFarmNoStressKg = 0;
+
+    const breakdownItems = [];
+
+    paddies.forEach((p) => {
+      const vKey = p.variety || "kdml105";
+      const spec = varietySpecs[vKey] || varietySpecs["kdml105"];
+      
+      const sqM = (p.areaResult && p.areaResult.sqMeters) ? p.areaResult.sqMeters : (p.geometry ? AreaCalculator.calculateArea(p.geometry).sqMeters : 1600);
+      const rai = sqM / 1600;
+
+      // สมการที่ 3: ศักยภาพผลผลิตตามพันธุกรรม (Potential Yield - Ypot)
+      const grainsPerSqM = spec.H * spec.P * spec.G * fertilityFactor;
+      const kgPerSqM = ((grainsPerSqM * spec.W) / 1000) / 1000;
+      const paddyYpot = kgPerSqM * sqM;
+      const paddyYpotTons = paddyYpot / 1000;
+
+      // สมการที่ 4: ผลผลิตหลังปรับลดด้วยสิ่งแวดล้อมและมรสุม (Yfinal)
+      const paddyYfinal = paddyYpot * totalMultiplier;
+      const paddyYcurrent = paddyYfinal * biomassRatio;
+      const paddyTons = paddyYcurrent / 1000;
+      const paddyKgPerRai = rai > 0 ? (paddyYfinal / rai) : 0;
+      const paddyNoStressKg = paddyYpot * baseMultNoStress;
+
+      totalFarmSqM += sqM;
+      totalFarmRai += rai;
+      totalFarmTons += paddyTons;
+      totalFarmPotTons += paddyYpotTons;
+      totalFarmFinalKg += paddyYfinal;
+      totalFarmNoStressKg += paddyNoStressKg;
+
+      const isActive = (p.id === this.mapManager.activePaddyId);
+      const formattedArea = p.areaResult ? p.areaResult.formattedThai : `${rai.toFixed(2)} ไร่`;
+
+      breakdownItems.push(`
+        <div class="paddy-breakdown-card ${isActive ? 'active' : ''}" onclick="window.App.mapManager.selectPaddy('${p.id}')">
+          <div class="paddy-breakdown-header">
+            <span class="paddy-breakdown-name">🌾 ${p.name}</span>
+            <span class="paddy-breakdown-variety-tag">${spec.name} (${spec.duration} วัน)</span>
+          </div>
+          <div class="paddy-breakdown-grid">
+            <div>
+              <span class="paddy-breakdown-lbl">ขนาดพื้นที่:</span>
+              <span class="paddy-breakdown-val">${formattedArea} (${rai.toFixed(2)} ไร่)</span>
+            </div>
+            <div>
+              <span class="paddy-breakdown-lbl">ผลผลิตคาดการณ์:</span>
+              <span class="paddy-breakdown-val" style="color:var(--rice-green); font-weight:700;">${paddyTons.toFixed(2)} ตัน (${Math.round(paddyKgPerRai)} กก./ไร่)</span>
+            </div>
+            <div>
+              <span class="paddy-breakdown-lbl">ศักยภาพสูงสุด:</span>
+              <span class="paddy-breakdown-val">${paddyYpotTons.toFixed(2)} ตัน</span>
+            </div>
+            <div>
+              <span class="paddy-breakdown-lbl">สถานะแปลง:</span>
+              <span class="paddy-breakdown-val" style="color:#15803d;">${isActive ? '● กำลังเลือก' : 'ปกติ'}</span>
+            </div>
+          </div>
+        </div>
+      `);
+    });
+
+    const avgKgPerRai = totalFarmRai > 0 ? (totalFarmFinalKg / totalFarmRai) : 0;
+    const avgNoStressKgPerRai = totalFarmRai > 0 ? (totalFarmNoStressKg / totalFarmRai) : 0;
 
     const elTotal = document.getElementById("dispTotalYield");
     const elPerRai = document.getElementById("dispYieldPerRai");
     const elPot = document.getElementById("dispPotYield");
     const elBench = document.getElementById("dispOaeBenchmark");
+    const elBreakdown = document.getElementById("paddyBreakdownList");
 
     if (elTotal) {
-      const tons = (Ycurrent / 1000).toFixed(2);
-      elTotal.innerText = `${tons} ตัน`;
+      elTotal.innerText = `${totalFarmTons.toFixed(2)} ตัน`;
     }
     if (elPerRai) {
-      elPerRai.innerText = `${Math.round(Yrai)} กก./ไร่`;
+      elPerRai.innerText = `${Math.round(avgKgPerRai)} กก./ไร่`;
     }
     if (elPot) {
-      elPot.innerText = `ศักยภาพ: ${(Ypot / 1000).toFixed(2)} ตัน`;
+      elPot.innerText = `ศักยภาพรวม: ${totalFarmPotTons.toFixed(2)} ตัน`;
+    }
+
+    if (elBreakdown) {
+      elBreakdown.innerHTML = breakdownItems.join("");
     }
 
     // เปรียบเทียบกับค่าเฉลี่ย สศก. (356 กก./ไร่)
     const oaeBenchmark = 356;
-    const diffPercent = Math.round(((Yrai - oaeBenchmark) / oaeBenchmark) * 100);
+    const diffPercent = Math.round(((avgKgPerRai - oaeBenchmark) / oaeBenchmark) * 100);
     if (elBench) {
       const sign = diffPercent >= 0 ? "+" : "";
       elBench.innerText = `${sign}${diffPercent}% เทียบ สศก. (${oaeBenchmark} กก./ไร่)`;
@@ -851,21 +1152,21 @@ const App = {
       }
     }
 
-    // แสดง Ghost Pill หากไม่เกิดมรสุม (Point 11)
+    // Ghost Pill หากไม่เกิดมรสุม
     const elDisasterGhost = document.getElementById("dispDisasterGhostPill");
     if (elDisasterGhost) {
       if (f_stress < 0.99) {
         elDisasterGhost.style.display = "inline-flex";
-        elDisasterGhost.innerText = `🌾 หากไม่เกิดมรสุม: ${Math.round(YraiNoStress)} กก./ไร่`;
+        elDisasterGhost.innerText = `🌾 หากไม่เกิดมรสุม: ${Math.round(avgNoStressKgPerRai)} กก./ไร่`;
       } else {
         elDisasterGhost.style.display = "none";
       }
     }
 
-    // อัปเดตการเปรียบเทียบกับรอบก่อนหน้า (Process Comparison Diff)
+    // อัปเดตการเปรียบเทียบกับรอบก่อนหน้า
     const elDiffBadge = document.getElementById("dispCompareDiff");
     if (this.previousRun && elDiffBadge) {
-      const diffPrev = Math.round(Yrai - this.previousRun.yieldPerRai);
+      const diffPrev = Math.round(avgKgPerRai - this.previousRun.yieldPerRai);
       const diffPctPrev = Math.round((diffPrev / this.previousRun.yieldPerRai) * 100);
       const sign = diffPrev >= 0 ? "+" : "";
       elDiffBadge.innerText = `${sign}${diffPrev} กก. (${sign}${diffPctPrev}%)`;

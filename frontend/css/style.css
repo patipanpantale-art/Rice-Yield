@@ -612,32 +612,41 @@ body {
   left: 14px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   z-index: 440;
   max-width: calc(100% - 290px);
+  pointer-events: auto;
 }
 
 .paddy-tab-arrow-btn {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  width: 26px;
-  height: 26px;
+  background: #ffffff;
+  border: 1.5px solid #bbf7d0;
+  color: #15803d;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.15s;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.15s ease;
+  user-select: none;
+  flex-shrink: 0;
+  pointer-events: auto;
 }
 
 .paddy-tab-arrow-btn:hover {
-  background: #ffffff;
-  color: var(--rice-green);
-  border-color: var(--rice-green);
+  background: #ecfdf5;
+  color: #16a34a;
+  border-color: #4ade80;
+  transform: scale(1.08);
+}
+
+.paddy-tab-arrow-btn:active {
+  transform: scale(0.95);
 }
 
 .paddy-tabs-bar {
@@ -648,17 +657,35 @@ body {
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
-  padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid var(--border-subtle);
+  padding: 6px 10px 8px 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid #bbf7d0;
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(6px);
-  scrollbar-width: none;
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #4ade80 #f0fdf4;
 }
 
 .paddy-tabs-bar::-webkit-scrollbar {
-  display: none;
+  height: 6px;
+}
+
+.paddy-tabs-bar::-webkit-scrollbar-track {
+  background: #f0fdf4;
+  border-radius: 6px;
+  margin: 0 6px;
+}
+
+.paddy-tabs-bar::-webkit-scrollbar-thumb {
+  background: #4ade80;
+  border-radius: 6px;
+  border: 1px solid #86efac;
+}
+
+.paddy-tabs-bar::-webkit-scrollbar-thumb:hover {
+  background: #22c55e;
 }
 
 .paddy-tab-empty-hint {
@@ -1362,23 +1389,29 @@ body {
 .qual-badge.lvl-2 { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
 .qual-badge.lvl-1 { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
-/* 11. Universal Floating Tooltip System */
+/* 11. Universal Floating Tooltip System - Bright Theme with Soft Focus Shadow (Point 5) */
 .global-floating-tooltip {
   position: fixed;
-  background: #0f172a;
-  color: #f8fafc;
-  padding: 9px 13px;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  line-height: 1.55;
-  box-shadow: var(--shadow-lg);
+  background: #ffffff;
+  color: #1e293b;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 11.5px;
+  line-height: 1.6;
+  box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.08);
   z-index: 99999999 !important;
-  max-width: 290px;
+  max-width: 310px;
   white-space: normal;
   pointer-events: none;
-  transition: opacity 0.12s ease;
+  transition: opacity 0.15s ease;
   font-family: var(--font-family);
-  border: 1px solid #334155;
+  border: 1.5px solid #bbf7d0;
+  backdrop-filter: blur(8px);
+}
+
+.global-floating-tooltip strong {
+  color: #15803d;
+  font-weight: 600;
 }
 
 .info-tooltip {

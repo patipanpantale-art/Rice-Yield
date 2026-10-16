@@ -113,6 +113,7 @@ const App = {
     this.mapManager.onPolygonChange((geometry, detectedProv, paddy, landUseInfo) => {
       this.handlePolygonUpdate(geometry, detectedProv, paddy, landUseInfo);
       this.updatePanelVisibility(this.mapManager ? this.mapManager.paddies.length : (geometry ? 1 : 0));
+      this.syncMaxFarmDuration();
       this.updateDisasterInputLimits();
       this.renderGanttTracks(timeEngine.getState());
       this.recalculateYield();
@@ -122,6 +123,7 @@ const App = {
     this.mapManager.onPaddyListChange((paddies, activeId) => {
       this.renderPaddyTabs(paddies, activeId);
       this.updatePanelVisibility(paddies ? paddies.length : 0);
+      this.syncMaxFarmDuration();
       this.updateDisasterInputLimits();
       this.renderGanttTracks(timeEngine.getState());
       this.recalculateYield();
@@ -135,6 +137,7 @@ const App = {
     this.updateYearAdvisory("2024");
     this.updateDateFormatLabel("2026-06-15");
     this.updatePanelVisibility(0);
+    this.syncMaxFarmDuration();
     this.updateDisasterInputLimits();
     this.renderResultDisasterSummary();
     this.recalculateYield();
@@ -243,6 +246,31 @@ const App = {
 
   bindDraggableMapWidgets() {
     // ปิดการลากแถบควบคุมบนแผนที่ ล็อกให้อยู่กับที่ถาวร ไม่หายเมื่อคลิกหรือพิมพ์ (Point 1, 3)
+  },
+
+  /**
+   * ซิงก์ระยะเวลาของทั้งฟาร์ม ให้ Progress Bar และ TimeEngine อิงจากพันธุ์ข้าวที่ใช้เวลาเติบโตนานสุด (Point 2)
+   */
+  syncMaxFarmDuration() {
+    const paddies = (this.mapManager && this.mapManager.paddies) ? this.mapManager.paddies : [];
+    const varietyDays = { kdml105: 120, rd6: 130, rd41: 105 };
+    let maxDays = 120;
+    if (paddies.length > 0) {
+      maxDays = Math.max(...paddies.map((p) => varietyDays[p.variety] || 120));
+    } else {
+      const varietySelect = document.getElementById("riceVariety");
+      const currentVariety = varietySelect ? varietySelect.value : "kdml105";
+      maxDays = varietyDays[currentVariety] || 120;
+    }
+
+    if (window.timeEngine) {
+      timeEngine.setVarietyDuration(maxDays);
+    }
+
+    const scrubber = document.getElementById("timelineScrubber");
+    if (scrubber) {
+      scrubber.max = maxDays;
+    }
   },
 
   /**
@@ -426,12 +454,12 @@ const App = {
         if (elG) elG.value = g;
         if (elDispG) elDispG.innerText = g;
 
-        timeEngine.setVarietyDuration(days);
-
         if (this.mapManager) {
           this.mapManager.updateActivePaddyVariety(val);
         }
 
+        // ซิงก์ระยะเวลาของทั้งฟาร์มโดยอิงจากพันธุ์ข้าวที่โตนานสุด (Point 2)
+        this.syncMaxFarmDuration();
         this.updateDisasterInputLimits();
         this.renderGanttTracks(timeEngine.getState());
         this.recalculateYield();
@@ -992,20 +1020,28 @@ const App = {
       }
     }
 
-    if (detectedProv) {
+    if (paddy && (paddy.amphoeProp || paddy.locationStr)) {
+      this.soilInfo.province = (paddy.amphoeProp && paddy.amphoeProp.pro_th) || (detectedProv ? detectedProv.name_th : "ขอนแก่น");
+      const aName = paddy.amphoeProp ? (paddy.amphoeProp.amp_th.startsWith("อ.") ? paddy.amphoeProp.amp_th : `อ.${paddy.amphoeProp.amp_th}`) : (detectedProv ? `อ.เมือง${detectedProv.name_th}` : "อ.เมือง");
+      this.soilInfo.district = aName;
+    } else if (detectedProv) {
       this.soilInfo.province = detectedProv.name_th;
       this.soilInfo.district = `อ.เมือง${detectedProv.name_th}`;
-      if (detectedProv.region === "northeast") {
+    }
+
+    if (detectedProv || paddy) {
+      const region = (detectedProv && detectedProv.region) || "northeast";
+      if (region === "northeast") {
         this.soilInfo.soil_group = "17";
         this.soilInfo.suitability_name = "เหมาะสมปานกลาง (S2)";
         this.soilInfo.topsoil_texture = "ดินร่วนปนทราย";
         this.multipliers.f_soil = 0.85;
-      } else if (detectedProv.region === "central") {
+      } else if (region === "central") {
         this.soilInfo.soil_group = "2";
         this.soilInfo.suitability_name = "เหมาะสมสูง (S1)";
         this.soilInfo.topsoil_texture = "ดินเหนียวที่ราบลุ่ม";
         this.multipliers.f_soil = 0.95;
-      } else if (detectedProv.region === "north") {
+      } else if (region === "north") {
         this.soilInfo.soil_group = "33";
         this.soilInfo.suitability_name = "เหมาะสมปานกลาง (S2)";
         this.soilInfo.topsoil_texture = "ดินร่วนปนตะกอน";
@@ -1160,6 +1196,26 @@ const App = {
       this.updatePanelVisibility(0);
       const ganttBox = document.getElementById("multiVarietyGanttContainer");
       if (ganttBox) ganttBox.style.display = "none";
+
+      // ล้างข้อมูลผลลัพธ์และรายการแปลงทั้งฟาร์มออกทั้งหมด (Point 1)
+      const elTotal = document.getElementById("dispTotalYield");
+      const elPerRai = document.getElementById("dispYieldPerRai");
+      const elPot = document.getElementById("dispPotYield");
+      const elLoss = document.getElementById("dispYieldLossDesc");
+      const elBreakdown = document.getElementById("paddyBreakdownList");
+      const elAreaThai = document.getElementById("dispAreaThai");
+      const elAreaSqM = document.getElementById("dispAreaSqM");
+      const elLocation = document.getElementById("dispLocation");
+
+      if (elTotal) elTotal.innerText = "0.00 ตัน";
+      if (elPerRai) elPerRai.innerText = "0 กก./ไร่";
+      if (elPot) elPot.innerText = "ศักยภาพรวม: 0.00 ตัน";
+      if (elLoss) elLoss.style.display = "none";
+      if (elBreakdown) elBreakdown.innerHTML = "";
+      if (elAreaThai) elAreaThai.innerText = "-";
+      if (elAreaSqM) elAreaSqM.innerText = "-";
+      if (elLocation) elLocation.innerText = "-";
+
       return;
     }
 

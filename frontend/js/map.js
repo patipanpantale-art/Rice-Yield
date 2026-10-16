@@ -104,33 +104,30 @@ class MapManager {
         }
       }
 
-      // Point 1: เมื่อซูมลึกขึ้น (z >= 11) ชื่อจังหวัดจะเปลี่ยนเป็นอำเภอเมือง และเส้นขอบจะจางลง
-      const provTitleEl = document.getElementById("dispActiveProvinceTitle");
-      if (provTitleEl && this.activeProvince) {
+      // ปรับความโปร่งใสของเส้นขอบเขตจังหวัดและอำเภอตามระดับการซูม (Point 3, 4)
+      if (this.currentProvincePolygon) {
         if (z >= 11) {
-          provTitleEl.innerText = `📍 อ.เมือง${this.activeProvince.name_th}`;
-          provTitleEl.style.fontSize = "12px";
-          provTitleEl.style.padding = "4px 12px";
-          provTitleEl.style.opacity = "0.9";
-          if (this.currentProvincePolygon) {
-            this.currentProvincePolygon.setStyle({
-              weight: 1.5,
-              opacity: 0.35,
-              fillOpacity: 0.04
-            });
-          }
+          this.currentProvincePolygon.setStyle({
+            weight: 2.0,
+            opacity: 0.40,
+            fillOpacity: 0.04
+          });
         } else {
-          provTitleEl.innerText = `📍 ${this.activeProvince.name_th}`;
-          provTitleEl.style.fontSize = "15px";
-          provTitleEl.style.padding = "6px 18px";
-          provTitleEl.style.opacity = "1";
-          if (this.currentProvincePolygon) {
-            this.currentProvincePolygon.setStyle({
-              weight: 3.5,
-              opacity: 1,
-              fillOpacity: 0.12
-            });
-          }
+          this.currentProvincePolygon.setStyle({
+            weight: 3.5,
+            opacity: 0.95,
+            fillOpacity: 0.12
+          });
+        }
+      }
+
+      if (this.amphoeGeoJsonLayer) {
+        if (z >= 10) {
+          this.amphoeGeoJsonLayer.setStyle({ opacity: 0.45, weight: 1.2 });
+        } else if (z >= 8) {
+          this.amphoeGeoJsonLayer.setStyle({ opacity: 0.25, weight: 0.9 });
+        } else {
+          this.amphoeGeoJsonLayer.setStyle({ opacity: 0.10, weight: 0.6 });
         }
       }
     });
@@ -138,6 +135,11 @@ class MapManager {
     // 4. เลเยอร์กลุ่มต่างๆ
     this.drawnItems = new L.FeatureGroup();
     this.map.addLayer(this.drawnItems);
+
+    // เลเยอร์เส้นขอบเขตอำเภอทั่วไทย 928 อำเภอ (Point 4)
+    this.amphoeLayer = L.layerGroup();
+    this.map.addLayer(this.amphoeLayer);
+    this.amphoeGeoJsonLayer = null;
 
     this.provinceHighlightLayer = L.layerGroup();
     this.map.addLayer(this.provinceHighlightLayer);
@@ -160,6 +162,24 @@ class MapManager {
       })
       .catch((err) => console.warn("[MapManager] โหลด GeoJSON 77 จังหวัดไม่สำเร็จ:", err));
 
+    // โหลดข้อมูลขอบเขต 928 อำเภอทั่วไทย (Point 4)
+    fetch("data/thailand_amphoes.geojson")
+      .then((res) => res.json())
+      .then((geojson) => {
+        this.amphoesGeoJSON = geojson;
+        // ทำ Bounding Box Pre-filter เพื่อให้ค้นหาตำแหน่งอำเภอได้ไวระดับเสี้ยววินาที
+        if (geojson && geojson.features && window.turf) {
+          geojson.features.forEach((f) => {
+            try {
+              f._bbox = turf.bbox(f);
+            } catch (e) {}
+          });
+        }
+        this.renderAmphoeBoundaries();
+        console.log("[MapManager] โหลดขอบเขต 928 อำเภอเรียบร้อย");
+      })
+      .catch((err) => console.warn("[MapManager] โหลด GeoJSON อำเภอไม่สำเร็จ:", err));
+
     // 6. Point 2: ลงทะเบียน Event CREATED เพียงครั้งเดียว ป้องกันบั๊กสร้างแปลงซ้อนกัน
     this.map.on(L.Draw.Event.CREATED, (e) => {
       const layer = e.layer;
@@ -176,6 +196,51 @@ class MapManager {
     if (this.onPaddyListChangeCallback) {
       this.onPaddyListChangeCallback([], null);
     }
+  }
+
+  /**
+   * วาดเส้นขอบเขตอำเภอทั่วไทย 928 อำเภอ สีเขียวจาง ไม่รกสายตา (Point 4)
+   */
+  renderAmphoeBoundaries() {
+    if (!this.amphoesGeoJSON || !this.amphoeLayer) return;
+    this.amphoeLayer.clearLayers();
+
+    this.amphoeGeoJsonLayer = L.geoJSON(this.amphoesGeoJSON, {
+      style: {
+        color: "#16a34a",
+        weight: 1.0,
+        opacity: 0.35,
+        fillColor: "#22c55e",
+        fillOpacity: 0.015,
+        dashArray: "3, 3"
+      },
+      interactive: false
+    });
+    this.amphoeLayer.addLayer(this.amphoeGeoJsonLayer);
+  }
+
+  /**
+   * ตรวจจับอำเภอจริงจากพิกัด [lat, lng] (Point 4)
+   */
+  findAmphoeFromCoord(lat, lng) {
+    if (!this.amphoesGeoJSON || !this.amphoesGeoJSON.features) return null;
+    const pt = [lng, lat]; // Turf [lon, lat]
+
+    for (const f of this.amphoesGeoJSON.features) {
+      if (f._bbox) {
+        if (lng < f._bbox[0] || lat < f._bbox[1] || lng > f._bbox[2] || lat > f._bbox[3]) {
+          continue;
+        }
+      }
+      if (window.turf && typeof turf.booleanPointInPolygon === "function") {
+        try {
+          if (turf.booleanPointInPolygon(pt, f)) {
+            return f.properties;
+          }
+        } catch (e) {}
+      }
+    }
+    return null;
   }
 
   bindDrawerHandle() {
@@ -251,15 +316,28 @@ class MapManager {
     const prevBtn = document.getElementById("btnPaddyTabPrev");
     const nextBtn = document.getElementById("btnPaddyTabNext");
     const container = document.getElementById("paddyTabsContainer");
+    const wrapper = document.querySelector(".paddy-tabs-wrapper");
+
+    // ป้องกัน Leaflet แย่งจับเหตุการณ์คลิกและลากเมาส์ (Point 1)
+    if (wrapper && window.L && L.DomEvent) {
+      L.DomEvent.disableClickPropagation(wrapper);
+      L.DomEvent.disableScrollPropagation(wrapper);
+    }
 
     if (prevBtn && container) {
-      prevBtn.addEventListener("click", () => {
-        container.scrollBy({ left: -140, behavior: "smooth" });
+      if (window.L && L.DomEvent) L.DomEvent.disableClickPropagation(prevBtn);
+      prevBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        container.scrollLeft -= 140;
       });
     }
     if (nextBtn && container) {
-      nextBtn.addEventListener("click", () => {
-        container.scrollBy({ left: 140, behavior: "smooth" });
+      if (window.L && L.DomEvent) L.DomEvent.disableClickPropagation(nextBtn);
+      nextBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        container.scrollLeft += 140;
       });
     }
   }
@@ -319,7 +397,7 @@ class MapManager {
   }
 
   /**
-   * ตีกรอบขอบเขตจริงของจังหวัด (ไม่ใช่กรอบสี่เหลี่ยม) พร้อมป้ายชื่อใหญ่ตรงกลาง
+   * ตีกรอบขอบเขตจริงของจังหวัด (ไม่ใช่กรอบสี่เหลี่ยม) ตามรูปทรงเรขาคณิต (Point 3)
    */
   highlightAndFlyToProvince(prov) {
     if (!prov || !this.map) return;
@@ -367,19 +445,8 @@ class MapManager {
       this.provinceHighlightLayer.addLayer(this.currentProvincePolygon);
     }
 
-    // 2. ป้ายชื่อจังหวัดตัวใหญ่ตรงกลาง
-    this.activeProvinceBadge = L.marker(center, {
-      icon: L.divIcon({
-        className: "province-title-badge-container",
-        html: `<div class="province-title-badge" id="dispActiveProvinceTitle">
-          📍 ${prov.name_th}
-        </div>`,
-        iconAnchor: [70, 20]
-      }),
-      interactive: false,
-      zIndexOffset: 1200
-    });
-    this.provinceHighlightLayer.addLayer(this.activeProvinceBadge);
+    // Point 3: เอาหมุดชื่อออกเลย ไม่บังตัวหนังสือบนแผนที่ เหลือเพียงกรอบตามเขตจังหวัด
+    this.activeProvinceBadge = null;
 
     // 3. บินไปยังพิกัดจังหวัดอย่างนุ่มนวล
     if (foundFeature) {
@@ -596,11 +663,26 @@ class MapManager {
 
     const bounds = layer.getBounds();
     const center = bounds.getCenter();
+
+    // Point 4: ตรวจสอบอำเภอและจังหวัดจริงจาก GeoJSON ขอบเขต 928 อำเภอทั่วไทย
+    const amphoeProp = this.findAmphoeFromCoord(center.lat, center.lng);
     let detectedProv = null;
-    if (typeof detectProvinceFromCoord === "function") {
-      detectedProv = detectProvinceFromCoord(center.lat, center.lng);
+    let locationStr = "จ.ขอนแก่น อ.เมืองขอนแก่น";
+
+    if (amphoeProp) {
+      const pName = amphoeProp.pro_th.startsWith("จ.") ? amphoeProp.pro_th : `จ.${amphoeProp.pro_th}`;
+      const aName = amphoeProp.amp_th.startsWith("อ.") ? amphoeProp.amp_th : `อ.${amphoeProp.amp_th}`;
+      locationStr = `${pName} ${aName}`;
+
+      if (typeof THAI_PROVINCES !== "undefined") {
+        detectedProv = THAI_PROVINCES.find((p) => p.name_th === amphoeProp.pro_th || amphoeProp.pro_th.includes(p.name_th)) || null;
+      }
+    } else {
+      if (typeof detectProvinceFromCoord === "function") {
+        detectedProv = detectProvinceFromCoord(center.lat, center.lng);
+      }
+      locationStr = detectedProv ? `จ.${detectedProv.name_th} อ.เมือง${detectedProv.name_th}` : "จ.ขอนแก่น อ.เมืองขอนแก่น";
     }
-    const locationStr = detectedProv ? `จ.${detectedProv.name_th} อ.เมือง` : "จ.ขอนแก่น อ.เมือง";
 
     const paddyObj = {
       id: paddyId,
@@ -611,6 +693,7 @@ class MapManager {
       geometry: geom,
       areaResult: areaRes,
       locationStr: locationStr,
+      amphoeProp: amphoeProp,
       detectedProv: detectedProv,
       ricePlants: plants
     };
@@ -672,9 +755,26 @@ class MapManager {
     const bounds = paddy.layer.getBounds();
     const center = bounds.getCenter();
     
-    let detectedProv = null;
-    if (typeof detectProvinceFromCoord === "function") {
+    // ตรวจสอบข้อมูลอำเภอและจังหวัดของแปลง
+    let detectedProv = paddy.detectedProv;
+    let amphoeProp = paddy.amphoeProp;
+    if (!amphoeProp) {
+      amphoeProp = this.findAmphoeFromCoord(center.lat, center.lng);
+      paddy.amphoeProp = amphoeProp;
+      if (amphoeProp) {
+        const pName = amphoeProp.pro_th.startsWith("จ.") ? amphoeProp.pro_th : `จ.${amphoeProp.pro_th}`;
+        const aName = amphoeProp.amp_th.startsWith("อ.") ? amphoeProp.amp_th : `อ.${amphoeProp.amp_th}`;
+        paddy.locationStr = `${pName} ${aName}`;
+        if (typeof THAI_PROVINCES !== "undefined" && !detectedProv) {
+          detectedProv = THAI_PROVINCES.find((p) => p.name_th === amphoeProp.pro_th || amphoeProp.pro_th.includes(p.name_th)) || null;
+          paddy.detectedProv = detectedProv;
+        }
+      }
+    }
+
+    if (!detectedProv && typeof detectProvinceFromCoord === "function") {
       detectedProv = detectProvinceFromCoord(center.lat, center.lng);
+      paddy.detectedProv = detectedProv;
     }
 
     const landUseInfo = this.checkLandUse(center.lat, center.lng);
@@ -723,6 +823,9 @@ class MapManager {
 
     const paddy = this.paddies[idx];
     this.drawnItems.removeLayer(paddy.layer);
+    if (this.map.hasLayer(paddy.layer)) {
+      this.map.removeLayer(paddy.layer);
+    }
     this.paddies.splice(idx, 1);
 
     if (this.activePaddyId === paddyId) {
@@ -752,6 +855,19 @@ class MapManager {
   }
 
   clearAllPaddies() {
+    this.cleanupRectDrawer();
+    this.cleanupPolygonDrawer();
+
+    // 1. นำเลเยอร์แปลงนาทั้งหมดออกจากทั้ง drawnItems และแผนที่ Leaflet (Point 1)
+    this.paddies.forEach((p) => {
+      if (p.layer) {
+        this.drawnItems.removeLayer(p.layer);
+        if (this.map.hasLayer(p.layer)) {
+          this.map.removeLayer(p.layer);
+        }
+      }
+    });
+
     this.drawnItems.clearLayers();
     this.riceLayerGroup.clearLayers();
     this.weatherEffectLayer.clearLayers();
@@ -806,7 +922,11 @@ class MapManager {
       const marker = L.marker(center, { icon: badgeIcon, zIndexOffset: 1300 });
       marker.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
-        this.selectPaddy(p.id);
+        if (this.currentMode === "delete") {
+          this.deletePaddy(p.id);
+        } else {
+          this.selectPaddy(p.id);
+        }
       });
       this.paddyBadgeLayer.addLayer(marker);
     });

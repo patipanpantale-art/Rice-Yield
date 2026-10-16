@@ -33,8 +33,14 @@
         <div class="brand-subtitle">Interactive Map-Based Sandbox Simulator for Rice Yield Analytics (มข. CS2569)</div>
       </div>
     </div>
-    <div class="header-status-badge" id="backendStatusBadge">
-      <span class="status-dot"></span> ตรวจสอบการเชื่อมต่อระบบ...
+    <div class="header-right-meta">
+      <div class="header-scope-note" id="thailandScopeBanner">
+        <i class="fa-solid fa-map-location-dot" style="color: #16a34a;"></i>
+        <span>ฐานข้อมูลชุดดิน LDD 77 จังหวัด และสถิติภูมิอากาศเฉพาะในประเทศไทย</span>
+      </div>
+      <div class="header-status-badge" id="backendStatusBadge">
+        <span class="status-dot"></span> ตรวจสอบการเชื่อมต่อระบบ...
+      </div>
     </div>
   </header>
 
@@ -294,12 +300,6 @@
 
     <!-- 2.2 แผงกลาง: แผนที่ Leaflet ไฮบริดดาวเทียม + กรอบแผนที่ + แถบแปลงนา + ลิ้นชักเครื่องมือ + ช่องค้นหา 77 จังหวัด -->
     <div class="map-view-container">
-      
-      <!-- การแจ้งเตือนขอบเขตระบบเฉพาะประเทศไทย -->
-      <div class="thailand-scope-banner" id="thailandScopeBanner">
-        <span><i class="fa-solid fa-circle-info" style="color: #16a34a;"></i> ขอบเขตระบบ: ฐานข้อมูลชุดดิน (LDD 77 จังหวัด) และสถิติภูมิอากาศเฉพาะในประเทศไทย</span>
-        <button class="banner-close-btn" id="btnCloseScopeBanner" title="ปิดการแจ้งเตือน">✕</button>
-      </div>
 
       <!-- แถบแสดงรายการแปลงนาแบบมีปุ่มเลื่อน < และ > -->
       <div class="paddy-tabs-wrapper">
@@ -469,6 +469,17 @@
               <i class="fa-solid fa-layer-group" style="color: var(--rice-green);"></i> สรุปผลผลิตจำแนกตามแปลง:
             </div>
             <div id="paddyBreakdownList" class="paddy-breakdown-list"></div>
+
+            <!-- สรุปเหตุการณ์สภาพอากาศ & ผลกระทบในผลลัพธ์ (Point 4) -->
+            <div id="dispDisasterSummaryCard" class="disaster-summary-card">
+              <div class="disaster-summary-title">
+                <i class="fa-solid fa-cloud-bolt" style="color: #0284c7;"></i>
+                <span>สรุปเหตุการณ์สภาพอากาศ & ผลกระทบ:</span>
+              </div>
+              <div id="dispDisasterSummaryText" class="disaster-summary-text">
+                🌤️ ฤดูกาลนี้สภาพอากาศปกติ ไม่มีเหตุการณ์มรสุมรุนแรง ต้นข้าวเติบโตสมบูรณ์
+              </div>
+            </div>
 
             <!-- แจกแจงตัวคูณแบบจำลองผสมผสาน -->
             <div class="multipliers-list" style="margin-top: 10px;">

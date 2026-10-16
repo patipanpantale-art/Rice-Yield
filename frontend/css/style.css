@@ -1219,18 +1219,35 @@ body {
   font-size: 12px;
 }
 
-.paddy-breakdown-variety-tag {
+.paddy-breakdown-variety-tag,
+.paddy-card-variety-select {
+  font-family: inherit;
   font-size: 10px;
-  background: #e2e8f0;
+  background: #f1f5f9;
   color: #334155;
   padding: 2px 7px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 600;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.paddy-breakdown-card.active .paddy-breakdown-variety-tag {
-  background: #bbf7d0;
+.paddy-card-variety-select:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.paddy-breakdown-card.active .paddy-card-variety-select {
+  background: #dcfce7;
   color: #14532d;
+  border-color: #86efac;
+}
+
+.paddy-breakdown-card.active .paddy-card-variety-select:hover {
+  background: #bbf7d0;
+  border-color: #4ade80;
 }
 
 .paddy-breakdown-header-right {

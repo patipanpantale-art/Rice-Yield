@@ -191,7 +191,6 @@ class MapManager {
     this.bindCustomToolbar();
     this.bindDrawerHandle();
     this.bindProvinceSearch();
-    this.bindPaddyTabsScroll();
 
     if (this.onPaddyListChangeCallback) {
       this.onPaddyListChangeCallback([], null);
@@ -309,31 +308,6 @@ class MapManager {
     }
     if (btnZoomOut) {
       btnZoomOut.addEventListener("click", () => this.map.zoomOut());
-    }
-  }
-
-  bindPaddyTabsScroll() {
-    const container = document.getElementById("paddyTabsContainer");
-    const wrapper = document.querySelector(".paddy-tabs-wrapper");
-
-    // ป้องกัน Leaflet แย่งจับเหตุการณ์คลิกและลากเมาส์ (Point 1)
-    if (wrapper && window.L && L.DomEvent) {
-      L.DomEvent.disableClickPropagation(wrapper);
-      L.DomEvent.disableScrollPropagation(wrapper);
-    }
-
-    if (container) {
-      // รองรับการเลื่อนด้วยลูกกลิ้งเมาส์แนวนอนอย่างลื่นไหล
-      container.addEventListener(
-        "wheel",
-        (e) => {
-          if (e.deltaY !== 0) {
-            e.preventDefault();
-            container.scrollLeft += e.deltaY;
-          }
-        },
-        { passive: false }
-      );
     }
   }
 
@@ -679,11 +653,27 @@ class MapManager {
       locationStr = detectedProv ? `จ.${detectedProv.name_th} อ.เมือง${detectedProv.name_th}` : "จ.ขอนแก่น อ.เมืองขอนแก่น";
     }
 
+    const varietySpecs = {
+      kdml105: { name: "ขาวดอกมะลิ 105", duration: 120, H: 16, P: 8, G: 95, W: 25.5 },
+      rd6: { name: "กข6", duration: 130, H: 16, P: 9, G: 100, W: 26.5 },
+      rd41: { name: "กข41", duration: 105, H: 20, P: 10, G: 110, W: 27.5 }
+    };
+    const spec = varietySpecs[currentVariety] || varietySpecs["kdml105"];
+
     const paddyObj = {
       id: paddyId,
       number: nextNum,
       name: paddyName,
       variety: currentVariety,
+      params: {
+        variety: currentVariety,
+        durationDays: spec.duration,
+        H: spec.H,
+        P: spec.P,
+        G: spec.G,
+        W: spec.W,
+        fertilityFactor: 0.82
+      },
       layer: layer,
       geometry: geom,
       areaResult: areaRes,
@@ -749,6 +739,11 @@ class MapManager {
 
     const bounds = paddy.layer.getBounds();
     const center = bounds.getCenter();
+
+    // เลื่อนแผนที่ไปยังแปลงที่โฟกัสอย่างนุ่มนวล (Smooth Pan To Center)
+    if (this.map) {
+      this.map.panTo(center, { animate: true, duration: 0.5 });
+    }
     
     // ตรวจสอบข้อมูลอำเภอและจังหวัดของแปลง
     let detectedProv = paddy.detectedProv;
@@ -792,6 +787,21 @@ class MapManager {
     const activePaddy = this.paddies.find((p) => p.id === this.activePaddyId);
     if (activePaddy) {
       activePaddy.variety = newVariety;
+      const varietySpecs = {
+        kdml105: { name: "ขาวดอกมะลิ 105", duration: 120, H: 16, P: 8, G: 95, W: 25.5 },
+        rd6: { name: "กข6", duration: 130, H: 16, P: 9, G: 100, W: 26.5 },
+        rd41: { name: "กข41", duration: 105, H: 20, P: 10, G: 110, W: 27.5 }
+      };
+      const spec = varietySpecs[newVariety] || varietySpecs["kdml105"];
+      activePaddy.params = {
+        variety: newVariety,
+        durationDays: spec.duration,
+        H: spec.H,
+        P: spec.P,
+        G: spec.G,
+        W: spec.W,
+        fertilityFactor: 0.82
+      };
       this.updatePaddyBadges();
       if (this.onPaddyListChangeCallback) {
         this.onPaddyListChangeCallback(this.paddies, this.activePaddyId);

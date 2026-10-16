@@ -351,15 +351,22 @@ const App = {
     // ปิดการลากแถบควบคุมบนแผนที่ ล็อกให้อยู่กับที่ถาวร ไม่หายเมื่อคลิกหรือพิมพ์ (Point 1, 3)
   },
 
+  getActivePaddy() {
+    if (!this.mapManager || !this.mapManager.paddies) return null;
+    return this.mapManager.paddies.find((p) => p.id === this.mapManager.activePaddyId) || null;
+  },
+
   /**
-   * ซิงก์ระยะเวลาของทั้งฟาร์ม ให้ Progress Bar และ TimeEngine อิงจากพันธุ์ข้าวที่ใช้เวลาเติบโตนานสุด (Point 2)
+   * ซิงก์ระยะเวลาของทั้งฟาร์ม ให้ Progress Bar และ TimeEngine อิงจากพันธุ์ข้าวที่ใช้เวลาเติบโตนานสุด (Point 3)
    */
   syncMaxFarmDuration() {
     const paddies = (this.mapManager && this.mapManager.paddies) ? this.mapManager.paddies : [];
     const varietyDays = { kdml105: 120, rd6: 130, rd41: 105 };
     let maxDays = 120;
     if (paddies.length > 0) {
-      maxDays = Math.max(...paddies.map((p) => varietyDays[p.variety] || 120));
+      maxDays = Math.max(...paddies.map((p) => {
+        return (p.params && p.params.durationDays) || varietyDays[p.variety] || 120;
+      }));
     } else {
       const varietySelect = document.getElementById("riceVariety");
       const currentVariety = varietySelect ? varietySelect.value : "kdml105";
@@ -401,7 +408,8 @@ const App = {
   },
 
   /**
-   * แสดงแทร็ก Gantt Chart ทันทีเมื่อมีแปลงนา พร้อมซิงก์แถบมรสุมบน Progress Bar (Point 5, 6)
+   * แสดงแทร็ก Gantt Chart ทันทีเมื่อมีแปลงนา พร้อมซิงก์แถบมรสุมบน Progress Bar (Point 3)
+   * ปรับสัดส่วนแทร็กตามพันธุ์ข้าวที่ใช้เวลาเติบโตมากสุดในฟาร์ม
    */
   renderGanttTracks(state) {
     const paddies = (this.mapManager && this.mapManager.paddies) ? this.mapManager.paddies : [];
@@ -428,19 +436,19 @@ const App = {
     };
 
     const currentDay = (state && state.currentDay) ? state.currentDay : (timeEngine ? timeEngine.currentDay : 1);
+    const maxFarmDays = (timeEngine && timeEngine.totalDays) ? timeEngine.totalDays : Math.max(...paddies.map(p => (p.params && p.params.durationDays) || varietyDays[p.variety] || 120), 120);
 
-    // ซิงก์แถบ Disaster Highlight บน Scrubber Slider ทันที (Point 5)
+    // ซิงก์แถบ Disaster Highlight บน Scrubber Slider ทันที
     const disasterHighlight = document.getElementById("timelineDisasterHighlight");
     const disasterDays = timeEngine.disasterDays || {};
     const dDays = Object.keys(disasterDays).map(Number).sort((a, b) => a - b);
-    const totalD = timeEngine.totalDays || 120;
 
     if (disasterHighlight) {
       if (dDays.length > 0) {
         const s = dDays[0];
         const e = dDays[dDays.length - 1];
-        const leftPct = ((s - 1) / totalD) * 100;
-        const widthPct = Math.max(3, ((e - s + 1) / totalD) * 100);
+        const leftPct = ((s - 1) / maxFarmDays) * 100;
+        const widthPct = Math.max(3, ((e - s + 1) / maxFarmDays) * 100);
         disasterHighlight.style.display = "block";
         disasterHighlight.style.left = `${leftPct}%`;
         disasterHighlight.style.width = `${widthPct}%`;
@@ -451,26 +459,33 @@ const App = {
     }
 
     ganttBox.innerHTML = paddies.map((p) => {
-      const v = p.variety || "kdml105";
-      const totalD = varietyDays[v] || 120;
+      const v = (p.params && p.params.variety) || p.variety || "kdml105";
+      const paddyDays = (p.params && p.params.durationDays) || varietyDays[v] || 120;
       const vName = varietyNames[v] || v;
-      const prog = Math.min(100, Math.round((currentDay / totalD) * 100));
-      const isReady = currentDay >= totalD;
+
+      // สัดส่วนความกว้างของแทร็กเทียบกับระยะเวลาสูงสุดของทั้งฟาร์ม
+      const spanPct = Math.min(100, Math.max(10, Math.round((paddyDays / maxFarmDays) * 100)));
+
+      // ความก้าวหน้าของการเติบโตของแปลงนี้
+      const prog = Math.min(100, Math.round((currentDay / paddyDays) * 100));
+      const isReady = currentDay >= paddyDays;
       const isUnderDisaster = disasterDays[currentDay] !== undefined;
 
       const statusText = isReady
-        ? "🌾 สุกแก่เก็บเกี่ยวแล้ว"
-        : (isUnderDisaster ? `⚠️ วันที่ ${currentDay}: กำลังเจอมรสุม!` : `${prog}% (${currentDay}/${totalD} วัน)`);
+        ? `🌾 สุกแก่เก็บเกี่ยวแล้ว (${paddyDays} วัน)`
+        : (isUnderDisaster ? `⚠️ วันที่ ${currentDay}: กำลังเจอมรสุม!` : `${prog}% (${currentDay}/${paddyDays} วัน)`);
       const barColor = isReady ? "#ca8a04" : (isUnderDisaster ? "#ea580c" : "#16a34a");
 
       return `
         <div class="gantt-paddy-track">
           <div class="gantt-paddy-info">
-            <span class="gantt-paddy-name">🌾 ${p.name}: <strong>${vName}</strong> (${totalD} วัน)</span>
-            <span class="gantt-paddy-status" style="color:${isReady ? '#b45309' : (isUnderDisaster ? '#c2410c' : '#15803d')}; font-weight:600;">${statusText}</span>
+            <span class="gantt-paddy-name">🌾 <strong>${p.name}</strong>: ${vName} (${paddyDays} วัน)</span>
+            <span class="gantt-paddy-status" style="color:${isReady ? '#b45309' : (isUnderDisaster ? '#c2410c' : '#15803d')};">${statusText}</span>
           </div>
-          <div class="gantt-paddy-bar-bg">
-            <div class="gantt-paddy-bar-fill" style="width: ${prog}%; background: ${barColor};"></div>
+          <div class="gantt-timeline-track-wrap" title="${p.name} อายุ ${paddyDays} วัน (จากทั้งฟาร์ม ${maxFarmDays} วัน)">
+            <div class="gantt-variety-span" style="width: ${spanPct}%;">
+              <div class="gantt-paddy-bar-fill" style="width: ${prog}%; background: ${barColor};"></div>
+            </div>
           </div>
         </div>
       `;
@@ -532,36 +547,67 @@ const App = {
   },
 
   bindEvents() {
-    // 1. พันธุ์ข้าว
+    // 1. พันธุ์ข้าวประจำแปลงที่เลือก (Point 2: ซิงก์กับแปลงปัจจุบัน)
     const varietySelect = document.getElementById("riceVariety");
     if (varietySelect) {
       varietySelect.addEventListener("change", (e) => {
         const val = e.target.value;
-        this.modelParams.variety = val;
-        let days = 120, w = 25.5, g = 95;
-        if (val === "kdml105") { days = 120; w = 25.5; g = 95; }
-        else if (val === "rd6") { days = 130; w = 26.5; g = 100; }
-        else if (val === "rd41") { days = 105; w = 27.5; g = 110; }
+        const varietySpecs = {
+          kdml105: { name: "ขาวดอกมะลิ 105", duration: 120, H: 16, P: 8, G: 95, W: 25.5 },
+          rd6: { name: "กข6", duration: 130, H: 16, P: 9, G: 100, W: 26.5 },
+          rd41: { name: "กข41", duration: 105, H: 20, P: 10, G: 110, W: 27.5 }
+        };
+        const spec = varietySpecs[val] || varietySpecs["kdml105"];
 
-        this.modelParams.durationDays = days;
-        this.modelParams.W = w;
-        this.modelParams.G = g;
+        // อัปเดตสเปกชีวภาพให้แปลงที่กำลังโฟกัสอยู่
+        const activePaddy = this.getActivePaddy();
+        if (activePaddy) {
+          activePaddy.variety = val;
+          activePaddy.params = {
+            variety: val,
+            durationDays: spec.duration,
+            H: spec.H,
+            P: spec.P,
+            G: spec.G,
+            W: spec.W,
+            fertilityFactor: 0.82
+          };
+        }
 
-        const elW = document.getElementById("inputWeight");
-        const elDispW = document.getElementById("dispWeight");
+        this.modelParams = {
+          ...this.modelParams,
+          variety: val,
+          durationDays: spec.duration,
+          H: spec.H,
+          P: spec.P,
+          G: spec.G,
+          W: spec.W
+        };
+
+        // ซิงก์สไลเดอร์ชีวภาพบนหน้าจอให้ตรงกับพันธุ์ใหม่ทันที
+        const elH = document.getElementById("inputHills");
+        const elDispH = document.getElementById("dispHills");
+        const elP = document.getElementById("inputPanicles");
+        const elDispP = document.getElementById("dispPanicles");
         const elG = document.getElementById("inputGrains");
         const elDispG = document.getElementById("dispGrains");
+        const elW = document.getElementById("inputWeight");
+        const elDispW = document.getElementById("dispWeight");
 
-        if (elW) elW.value = w;
-        if (elDispW) elDispW.innerText = w + " กรัม";
-        if (elG) elG.value = g;
-        if (elDispG) elDispG.innerText = g;
+        if (elH) elH.value = spec.H;
+        if (elDispH) elDispH.innerText = spec.H;
+        if (elP) elP.value = spec.P;
+        if (elDispP) elDispP.innerText = spec.P;
+        if (elG) elG.value = spec.G;
+        if (elDispG) elDispG.innerText = spec.G;
+        if (elW) elW.value = spec.W;
+        if (elDispW) elDispW.innerText = spec.W + " กรัม";
 
         if (this.mapManager) {
           this.mapManager.updateActivePaddyVariety(val);
         }
 
-        // ซิงก์ระยะเวลาของทั้งฟาร์มโดยอิงจากพันธุ์ข้าวที่โตนานสุด (Point 2)
+        // ซิงก์ระยะเวลาของทั้งฟาร์มโดยอิงจากพันธุ์ข้าวที่โตนานสุด (Point 3)
         this.syncMaxFarmDuration();
         this.updateDisasterInputLimits();
         this.renderGanttTracks(timeEngine.getState());
@@ -604,11 +650,31 @@ const App = {
       });
     }
 
-    // 3. Sliders ตัวแปรชีวภาพ
-    this.bindRangeInput("inputHills", "dispHills", (val) => { this.modelParams.H = parseFloat(val); });
-    this.bindRangeInput("inputPanicles", "dispPanicles", (val) => { this.modelParams.P = parseFloat(val); });
-    this.bindRangeInput("inputGrains", "dispGrains", (val) => { this.modelParams.G = parseFloat(val); });
-    this.bindRangeInput("inputWeight", "dispWeight", (val) => { this.modelParams.W = parseFloat(val); });
+    // 3. Sliders ตัวแปรชีวภาพ (Point 2: ผูกตรงกับแปลงที่เลือกอยู่)
+    this.bindRangeInput("inputHills", "dispHills", (val) => {
+      const v = parseFloat(val);
+      this.modelParams.H = v;
+      const p = this.getActivePaddy();
+      if (p && p.params) p.params.H = v;
+    });
+    this.bindRangeInput("inputPanicles", "dispPanicles", (val) => {
+      const v = parseFloat(val);
+      this.modelParams.P = v;
+      const p = this.getActivePaddy();
+      if (p && p.params) p.params.P = v;
+    });
+    this.bindRangeInput("inputGrains", "dispGrains", (val) => {
+      const v = parseFloat(val);
+      this.modelParams.G = v;
+      const p = this.getActivePaddy();
+      if (p && p.params) p.params.G = v;
+    });
+    this.bindRangeInput("inputWeight", "dispWeight", (val) => {
+      const v = parseFloat(val);
+      this.modelParams.W = v;
+      const p = this.getActivePaddy();
+      if (p && p.params) p.params.W = v;
+    });
 
     // 4. ปุ่มเร่งเวลา
     const btnPlay = document.getElementById("btnPlay");
@@ -753,21 +819,6 @@ const App = {
         this.snapshotCurrentRunAsPrevious();
         timeEngine.reset();
         timeEngine.play();
-      });
-    }
-
-    // 9. ปุ่มเลื่อนแท็บแปลงนา
-    const btnTabPrev = document.getElementById("btnPaddyTabPrev");
-    const btnTabNext = document.getElementById("btnPaddyTabNext");
-    const tabsContainer = document.getElementById("paddyTabsContainer");
-    if (btnTabPrev && tabsContainer) {
-      btnTabPrev.addEventListener("click", () => {
-        tabsContainer.scrollBy({ left: -140, behavior: "smooth" });
-      });
-    }
-    if (btnTabNext && tabsContainer) {
-      btnTabNext.addEventListener("click", () => {
-        tabsContainer.scrollBy({ left: 140, behavior: "smooth" });
       });
     }
   },
@@ -1036,39 +1087,7 @@ const App = {
   },
 
   renderPaddyTabs(paddies, activeId) {
-    const container = document.getElementById("paddyTabsContainer");
-    if (!container) return;
-
-    container.innerHTML = "";
-    if (!paddies || paddies.length === 0) {
-      container.innerHTML = `<span class="paddy-tab-empty-hint">🌱 ยังไม่มีแปลงนา (คลิกเครื่องมือวาดแปลงเพื่อเริ่มต้น)</span>`;
-      return;
-    }
-
-    const varietyShortNames = {
-      kdml105: "มะลิ 105",
-      rd6: "กข6",
-      rd41: "กข41"
-    };
-
-    paddies.forEach((p) => {
-      const tab = document.createElement("button");
-      tab.className = `paddy-tab ${p.id === activeId ? 'active' : ''}`;
-      const vTag = varietyShortNames[p.variety] || p.variety || "มะลิ 105";
-      
-      tab.innerHTML = `🌾 ${p.name} <span style="font-size:10px; opacity:0.85; margin-left:2px;">(${vTag})</span> <span class="paddy-tab-del" title="ลบแปลงนี้">✕</span>`;
-      
-      tab.addEventListener("click", (e) => {
-        if (e.target.classList.contains("paddy-tab-del")) {
-          e.stopPropagation();
-          if (this.mapManager) this.mapManager.deletePaddy(p.id);
-        } else {
-          if (this.mapManager) this.mapManager.selectPaddy(p.id);
-        }
-      });
-
-      container.appendChild(tab);
-    });
+    // ฟังก์ชันนี้ไม่จำเป็นต้องใช้แท็บด้านบนอีกต่อไปแล้ว (Point 1: ใช้การ์ดแผงขวาแทน)
   },
 
   getQualitativeRating(val, type) {
@@ -1129,6 +1148,31 @@ const App = {
       } else {
         elLandUseAlert.style.display = "none";
       }
+    }
+
+    if (paddy && paddy.params) {
+      // ซิงก์ข้อมูลตัวแปรชีวภาพของแปลงที่เลือกไปยังแผงควบคุมซ้ายมือ (Point 2)
+      const pParams = paddy.params;
+      this.modelParams = { ...this.modelParams, ...pParams };
+
+      const varietySelect = document.getElementById("riceVariety");
+      if (varietySelect && pParams.variety) {
+        varietySelect.value = pParams.variety;
+      }
+
+      const elH = document.getElementById("inputHills");
+      const elDispH = document.getElementById("dispHills");
+      const elP = document.getElementById("inputPanicles");
+      const elDispP = document.getElementById("dispPanicles");
+      const elG = document.getElementById("inputGrains");
+      const elDispG = document.getElementById("dispGrains");
+      const elW = document.getElementById("inputWeight");
+      const elDispW = document.getElementById("dispWeight");
+
+      if (elH && pParams.H !== undefined) { elH.value = pParams.H; if (elDispH) elDispH.innerText = pParams.H; }
+      if (elP && pParams.P !== undefined) { elP.value = pParams.P; if (elDispP) elDispP.innerText = pParams.P; }
+      if (elG && pParams.G !== undefined) { elG.value = pParams.G; if (elDispG) elDispG.innerText = pParams.G; }
+      if (elW && pParams.W !== undefined) { elW.value = pParams.W; if (elDispW) elDispW.innerText = pParams.W + " กรัม"; }
     }
 
     if (paddy && (paddy.amphoeProp || paddy.locationStr)) {
@@ -1227,6 +1271,19 @@ const App = {
     if (dispDap) dispDap.innerText = `วันที่ ${state.currentDay} / ${state.totalDays}`;
     if (dispStageName) dispStageName.innerText = state.stage.name;
     if (dispPercent) dispPercent.innerText = `${state.percent}%`;
+
+    // Point 4: ให้ช่องเริ่มมรสุมวันที่ (#disasterStartDay) ขยับวันตาม progress แบบเรียลไทม์
+    const startInput = document.getElementById("disasterStartDay");
+    const endInput = document.getElementById("disasterEndDay");
+    if (startInput && document.activeElement !== startInput) {
+      startInput.value = state.currentDay;
+      if (endInput && document.activeElement !== endInput) {
+        const curEnd = parseInt(endInput.value, 10);
+        if (isNaN(curEnd) || curEnd <= state.currentDay) {
+          endInput.value = Math.min(state.totalDays, state.currentDay + 15);
+        }
+      }
+    }
 
     document.querySelectorAll(".stage-item-label").forEach((el, idx) => {
       if (idx + 1 === state.stage.id) {
@@ -1338,7 +1395,7 @@ const App = {
       rd41: { name: "กข41", duration: 105, H: 20, P: 10, G: 110, W: 27.5 }
     };
 
-    const fertilityFactor = this.modelParams.fertilityFactor || 0.82;
+    const defaultFertility = this.modelParams.fertilityFactor || 0.82;
     const { f_soil, f_temp, f_climate, f_ndvi, f_stress } = this.multipliers;
     const totalMultiplier = f_soil * f_temp * f_climate * f_ndvi * f_stress;
     const baseMultNoStress = f_soil * f_temp * f_climate * f_ndvi * 1.0;
@@ -1353,19 +1410,26 @@ const App = {
     const breakdownItems = [];
 
     paddies.forEach((p) => {
-      const vKey = p.variety || "kdml105";
+      const vKey = (p.params && p.params.variety) || p.variety || "kdml105";
       const spec = varietySpecs[vKey] || varietySpecs["kdml105"];
       
+      const pH = (p.params && p.params.H !== undefined) ? p.params.H : spec.H;
+      const pP = (p.params && p.params.P !== undefined) ? p.params.P : spec.P;
+      const pG = (p.params && p.params.G !== undefined) ? p.params.G : spec.G;
+      const pW = (p.params && p.params.W !== undefined) ? p.params.W : spec.W;
+      const pDuration = (p.params && p.params.durationDays) || spec.duration;
+      const pFertility = (p.params && p.params.fertilityFactor) || defaultFertility;
+
       const sqM = (p.areaResult && p.areaResult.sqMeters) ? p.areaResult.sqMeters : (p.geometry ? AreaCalculator.calculateArea(p.geometry).sqMeters : 1600);
       const rai = sqM / 1600;
 
-      // สมการที่ 3: ศักยภาพผลผลิตตามพันธุกรรม (Ypot)
-      const grainsPerSqM = spec.H * spec.P * spec.G * fertilityFactor;
-      const kgPerSqM = ((grainsPerSqM * spec.W) / 1000) / 1000;
+      // สมการที่ 3: ศักยภาพผลผลิตตามพันธุกรรม (Ypot) ของแปลงนี้
+      const grainsPerSqM = pH * pP * pG * pFertility;
+      const kgPerSqM = ((grainsPerSqM * pW) / 1000) / 1000;
       const paddyYpot = kgPerSqM * sqM;
       const paddyYpotTons = paddyYpot / 1000;
 
-      // สมการที่ 4: ผลผลิตหลังปรับลดด้วยสิ่งแวดล้อมและมรสุม (Yfinal)
+      // สมการที่ 4: ผลผลิตหลังปรับลดด้วยสิ่งแวดล้อมและมรสุม (Yfinal) ของแปลงนี้
       const paddyYfinal = paddyYpot * totalMultiplier;
       const paddyYcurrent = paddyYfinal * biomassRatio;
       const paddyTons = paddyYcurrent / 1000;
@@ -1383,10 +1447,16 @@ const App = {
       const formattedArea = p.areaResult ? p.areaResult.formattedThai : `${rai.toFixed(2)} ไร่`;
 
       breakdownItems.push(`
-        <div class="paddy-breakdown-card ${isActive ? 'active' : ''}" onclick="window.App.mapManager.selectPaddy('${p.id}')">
+        <div class="paddy-breakdown-card ${isActive ? 'active' : ''}" id="paddyCard_${p.id}" data-paddy-id="${p.id}" onclick="window.App.mapManager.selectPaddy('${p.id}')">
           <div class="paddy-breakdown-header">
-            <span class="paddy-breakdown-name">🌾 ${p.name}</span>
-            <span class="paddy-breakdown-variety-tag">${spec.name} (${spec.duration} วัน)</span>
+            <div class="paddy-breakdown-header-left">
+              <span class="paddy-breakdown-name">🌾 ${p.name}</span>
+              <span class="paddy-breakdown-variety-tag">${spec.name} (${pDuration} วัน)</span>
+            </div>
+            <div class="paddy-breakdown-header-right">
+              ${isActive ? '<span class="active-paddy-badge"><i class="fa-solid fa-crosshairs"></i> กำลังเลือก</span>' : '<span class="select-paddy-hint">คลิกเลือก</span>'}
+              <button class="paddy-card-del-btn" title="ลบแปลงนี้" onclick="event.stopPropagation(); window.App.mapManager.deletePaddy('${p.id}');">✕</button>
+            </div>
           </div>
           <div class="paddy-breakdown-grid">
             <div>
@@ -1406,9 +1476,21 @@ const App = {
               <span class="paddy-breakdown-val" style="color:#15803d; font-weight:600;"><i class="fa-solid fa-location-dot" style="font-size:10px;"></i> ${p.locationStr || 'จ.ขอนแก่น อ.เมือง'}</span>
             </div>
           </div>
+          <div class="paddy-breakdown-bio-row" title="ตัวแปรชีวภาพเฉพาะแปลงนี้ (ปรับเปลี่ยนได้ที่แผงซ้ายมือ)">
+            <span><i class="fa-solid fa-dna" style="color:var(--rice-green); font-size:9.5px;"></i> <strong>ชีวภาพ:</strong> H=${pH} | P=${pP} | G=${pG} | W=${pW}g</span>
+          </div>
         </div>
       `);
     });
+
+    if (this.mapManager && this.mapManager.activePaddyId) {
+      setTimeout(() => {
+        const activeCard = document.getElementById(`paddyCard_${this.mapManager.activePaddyId}`);
+        if (activeCard && activeCard.parentElement) {
+          activeCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }, 40);
+    }
 
     const avgKgPerRai = totalFarmRai > 0 ? (totalFarmFinalKg / totalFarmRai) : 0;
     const avgNoStressKgPerRai = totalFarmRai > 0 ? (totalFarmNoStressKg / totalFarmRai) : 0;

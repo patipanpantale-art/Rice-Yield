@@ -164,17 +164,59 @@ class TimeEngine {
       return;
     }
 
-    this.currentDisasterConfig = { type, startDay, endDay, severity: parseInt(severity, 10) || 5 };
+    const sDay = Math.max(1, Math.min(parseInt(startDay, 10) || 1, this.totalDays));
+    const eDay = Math.max(sDay, Math.min(parseInt(endDay, 10) || this.totalDays, this.totalDays));
+    const sev = Math.max(1, Math.min(parseInt(severity, 10) || 5, 10));
 
-    for (let d = startDay; d <= endDay; d++) {
-      if (d >= 1 && d <= this.totalDays) {
-        this.disasterDays[d] = { type, severity: this.currentDisasterConfig.severity };
-      }
+    this.currentDisasterConfig = { type, startDay: sDay, endDay: eDay, severity: sev };
+
+    for (let d = sDay; d <= eDay; d++) {
+      this.disasterDays[d] = { type, severity: sev };
     }
 
     this.recomputeAllDamage();
     this.calculateWeatherForCurrentDay();
     this.notifyUpdate();
+  }
+
+  calculateFullSeasonDisasterLoss() {
+    let tillering = 0, flowering = 0, ripening = 0;
+    const days = Object.keys(this.disasterDays).map(Number);
+    if (days.length === 0) {
+      return { totalLoss: 0, f_stress: 1.0, tillering: 0, flowering: 0, ripening: 0 };
+    }
+
+    days.forEach((d) => {
+      const dis = this.disasterDays[d];
+      if (dis && (dis.type === "flood" || dis.type === "drought" || dis.type === "heat")) {
+        const ratio = d / this.totalDays;
+        let stageId = 1;
+        if (ratio > 0.83) stageId = 5;
+        else if (ratio > 0.67) stageId = 4;
+        else if (ratio > 0.42) stageId = 3;
+        else if (ratio > 0.17) stageId = 2;
+
+        const severityFactor = (dis.severity || 5) / 5;
+
+        if (stageId === 2) {
+          tillering = Math.min(0.40, tillering + 0.015 * severityFactor);
+        } else if (stageId === 3 || stageId === 4) {
+          flowering = Math.min(0.70, flowering + 0.035 * severityFactor);
+        } else if (stageId === 5) {
+          ripening = Math.min(0.30, ripening + 0.012 * severityFactor);
+        }
+      }
+    });
+
+    const totalLoss = Math.min(0.95, tillering + flowering + ripening);
+    const f_stress = Math.max(0.05, 1.0 - totalLoss);
+    return {
+      totalLoss: Math.round(totalLoss * 100) / 100,
+      f_stress: Math.round(f_stress * 100) / 100,
+      tillering,
+      flowering,
+      ripening
+    };
   }
 
   clearDisasterWindow() {

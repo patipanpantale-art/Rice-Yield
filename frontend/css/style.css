@@ -605,108 +605,10 @@ body {
   user-select: none;
 }
 
-/* 6. Multi-Paddy Tabs Wrapper with Pagination Buttons (< & >) */
-.paddy-tabs-wrapper {
-  position: absolute;
-  top: 10px;
-  left: 14px;
-  display: flex;
-  align-items: center;
-  z-index: 440;
-  max-width: min(520px, calc(100% - 290px));
-  pointer-events: auto;
-}
-
-.paddy-tabs-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 380px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
-  padding: 6px 10px 8px 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1.5px solid #bbf7d0;
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(8px);
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: #4ade80 #f0fdf4;
-}
-
-.paddy-tabs-bar::-webkit-scrollbar {
-  height: 6px;
-}
-
-.paddy-tabs-bar::-webkit-scrollbar-track {
-  background: #f0fdf4;
-  border-radius: 6px;
-  margin: 0 6px;
-}
-
-.paddy-tabs-bar::-webkit-scrollbar-thumb {
-  background: #4ade80;
-  border-radius: 6px;
-  border: 1px solid #86efac;
-}
-
-.paddy-tabs-bar::-webkit-scrollbar-thumb:hover {
-  background: #22c55e;
-}
-
-.paddy-tab-empty-hint {
-  font-size: 11px;
-  color: var(--text-muted);
-  padding: 3px 6px;
-}
-
-.paddy-tab {
-  background: #ffffff;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.15s ease;
-  font-family: inherit;
-  font-weight: 500;
-}
-
-.paddy-tab:hover {
-  background: var(--bg-secondary);
-  border-color: #cbd5e1;
-}
-
-.paddy-tab.active {
-  background: var(--rice-green-subtle);
-  border-color: var(--rice-green);
-  color: #15803d;
-  font-weight: 600;
-}
-
-.paddy-tab-del {
-  font-size: 10px;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 1px 4px;
-  border-radius: 3px;
-  transition: all 0.15s;
-}
-.paddy-tab-del:hover {
-  color: #e11d48;
-  background: #ffe4e6;
-}
-
-/* 7. Retractable Map Toolbar Drawer */
+/* 6. Retractable Map Toolbar Drawer */
 .map-toolbar-drawer {
   position: absolute;
-  top: 48px;
+  top: 10px;
   left: 14px;
   display: flex;
   flex-direction: column;
@@ -1099,51 +1001,76 @@ body {
   font-weight: 600;
 }
 
-/* Multi-Variety Gantt Container */
+/* Multi-Variety Gantt Container (Proportional Duration Scaling) */
 .multi-variety-gantt-container {
   margin-top: 8px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border-subtle);
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gantt-paddy-track {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
 }
 
-.gantt-track-item {
+.gantt-paddy-track:hover {
+  border-color: #bbf7d0;
+  background: #fcfdfc;
+}
+
+.gantt-paddy-info {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
   font-size: 10.5px;
 }
 
-.gantt-track-label {
-  width: 130px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.gantt-paddy-name {
+  color: var(--text-primary);
   font-weight: 500;
-  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.gantt-track-bar-bg {
-  flex: 1;
-  height: 6px;
-  background: #e2e8f0;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.gantt-track-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.2s ease;
-}
-
-.gantt-track-status {
-  width: 60px;
-  text-align: right;
+.gantt-paddy-status {
+  font-size: 10px;
   font-weight: 600;
-  color: #15803d;
+}
+
+.gantt-timeline-track-wrap {
+  width: 100%;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.gantt-variety-span {
+  height: 100%;
+  position: relative;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+  transition: width 0.3s ease;
+}
+
+.gantt-paddy-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.15s ease, background-color 0.2s ease;
 }
 
 /* 10. Right Panel: Cute Empty State & Portfolio */
@@ -1235,53 +1162,161 @@ body {
   margin-top: 2px;
 }
 
-/* Per-Paddy Breakdown List */
+/* Per-Paddy Breakdown List (Interactive Master-Detail) */
 .paddy-breakdown-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin-top: 10px;
 }
 
 .paddy-breakdown-card {
   background: #ffffff;
-  border: 1px solid var(--border-subtle);
+  border: 1.5px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
+  padding: 10px 12px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 7px;
   font-size: 11px;
-  transition: all 0.15s;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.paddy-breakdown-card:hover {
+  border-color: #86efac;
+  background: #fcfdfc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.09);
 }
 
 .paddy-breakdown-card.active {
-  border-color: var(--rice-green);
+  border-color: #16a34a;
   background: #f0fdf4;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.18);
+}
+
+.paddy-breakdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px dashed #e2e8f0;
+  padding-bottom: 6px;
+}
+
+.paddy-breakdown-header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .paddy-breakdown-name {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.paddy-breakdown-variety {
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-.paddy-breakdown-metrics {
-  text-align: right;
-}
-
-.paddy-breakdown-tons {
   font-weight: 700;
-  color: #15803d;
+  color: var(--text-primary);
+  font-size: 12px;
 }
 
-.paddy-breakdown-kg {
+.paddy-breakdown-variety-tag {
   font-size: 10px;
+  background: #e2e8f0;
+  color: #334155;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.paddy-breakdown-card.active .paddy-breakdown-variety-tag {
+  background: #bbf7d0;
+  color: #14532d;
+}
+
+.paddy-breakdown-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-paddy-badge {
+  font-size: 10px;
+  background: #16a34a;
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.select-paddy-hint {
+  font-size: 10px;
+  color: #94a3b8;
+  transition: color 0.15s;
+}
+
+.paddy-breakdown-card:hover .select-paddy-hint {
+  color: #16a34a;
+}
+
+.paddy-card-del-btn {
+  background: #ffffff;
+  border: 1px solid #fecaca;
+  color: #ef4444;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.paddy-card-del-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #f87171;
+}
+
+.paddy-breakdown-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 8px;
+  font-size: 10.5px;
+}
+
+.paddy-breakdown-lbl {
+  color: var(--text-muted);
+  font-size: 10px;
+  display: block;
+}
+
+.paddy-breakdown-val {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.paddy-breakdown-bio-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 4px 7px;
+  border-radius: 4px;
   color: var(--text-secondary);
+  border: 1px dashed #cbd5e1;
+  margin-top: 2px;
+}
+
+.paddy-breakdown-card.active .paddy-breakdown-bio-row {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #86efac;
 }
 
 /* Scenario Comparison Ghost Pill */

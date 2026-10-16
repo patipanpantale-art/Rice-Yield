@@ -313,8 +313,6 @@ class MapManager {
   }
 
   bindPaddyTabsScroll() {
-    const prevBtn = document.getElementById("btnPaddyTabPrev");
-    const nextBtn = document.getElementById("btnPaddyTabNext");
     const container = document.getElementById("paddyTabsContainer");
     const wrapper = document.querySelector(".paddy-tabs-wrapper");
 
@@ -324,21 +322,18 @@ class MapManager {
       L.DomEvent.disableScrollPropagation(wrapper);
     }
 
-    if (prevBtn && container) {
-      if (window.L && L.DomEvent) L.DomEvent.disableClickPropagation(prevBtn);
-      prevBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        container.scrollLeft -= 140;
-      });
-    }
-    if (nextBtn && container) {
-      if (window.L && L.DomEvent) L.DomEvent.disableClickPropagation(nextBtn);
-      nextBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        container.scrollLeft += 140;
-      });
+    if (container) {
+      // รองรับการเลื่อนด้วยลูกกลิ้งเมาส์แนวนอนอย่างลื่นไหล
+      container.addEventListener(
+        "wheel",
+        (e) => {
+          if (e.deltaY !== 0) {
+            e.preventDefault();
+            container.scrollLeft += e.deltaY;
+          }
+        },
+        { passive: false }
+      );
     }
   }
 

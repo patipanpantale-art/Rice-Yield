@@ -108,6 +108,7 @@ const App = {
     this.bindCollapsibleSections();
     this.bindMinimizableTimeline();
     this.bindDisasterModal();
+    this.bindPopups();
 
     // 3. ดักจับเมื่อผู้ใช้วาดหรือเลือกแปลงนา (Point 4, 6: แสดงผลในแถบ progress และหน้าต่างขวาทันที)
     this.mapManager.onPolygonChange((geometry, detectedProv, paddy, landUseInfo) => {
@@ -240,6 +241,108 @@ const App = {
       if (isDragging) {
         isDragging = false;
         handle.style.cursor = "grab";
+      }
+    });
+  },
+
+  /**
+   * ระบบแจ้งเตือนภายในหน้าเว็บ (In-App Alert Popup) แทนเบราว์เซอร์ alert (Point 2)
+   */
+  showAlert(title, message, type = "warning") {
+    const modal = document.getElementById("appAlertModal");
+    const elTitle = document.getElementById("appAlertTitle");
+    const elMsg = document.getElementById("appAlertMessage");
+    const elIcon = document.getElementById("appAlertIcon");
+    const elWrap = document.getElementById("appAlertIconWrap");
+
+    if (!modal) {
+      alert(`${title}\n${message}`);
+      return;
+    }
+
+    if (elTitle) elTitle.innerText = title;
+    if (elMsg) elMsg.innerText = message;
+
+    if (elIcon && elWrap) {
+      if (type === "warning") {
+        elIcon.className = "fa-solid fa-triangle-exclamation";
+        elWrap.className = "app-popup-icon warning";
+      } else if (type === "info") {
+        elIcon.className = "fa-solid fa-circle-info";
+        elWrap.className = "app-popup-icon info";
+      } else if (type === "success") {
+        elIcon.className = "fa-solid fa-circle-check";
+        elWrap.className = "app-popup-icon success";
+      }
+    }
+
+    modal.style.display = "flex";
+  },
+
+  closeAlert() {
+    const modal = document.getElementById("appAlertModal");
+    if (modal) modal.style.display = "none";
+  },
+
+  /**
+   * ผูกเหตุการณ์ Modal แจ้งเตือน และ Modal คำชี้แจงเพื่อการศึกษา (Point 2, 3)
+   */
+  bindPopups() {
+    // 1. In-App Alert Popup
+    const alertModal = document.getElementById("appAlertModal");
+    const btnCloseAlert = document.getElementById("btnAppAlertClose");
+    if (btnCloseAlert) {
+      btnCloseAlert.addEventListener("click", () => this.closeAlert());
+    }
+    if (alertModal) {
+      alertModal.addEventListener("click", (e) => {
+        if (e.target === alertModal) this.closeAlert();
+      });
+    }
+
+    // 2. Welcome Disclaimer Modal (คำชี้แจงเพื่อการศึกษา & ขอบเขตประเทศไทย)
+    const welcomeModal = document.getElementById("welcomeDisclaimerModal");
+    const btnAccept = document.getElementById("btnWelcomeAccept");
+    const btnOpenAbout = document.getElementById("btnOpenAboutModal");
+
+    const closeWelcome = () => {
+      if (welcomeModal) welcomeModal.style.display = "none";
+      try {
+        sessionStorage.setItem("rice_sim_welcome_seen", "true");
+      } catch (e) {}
+    };
+
+    if (btnAccept) {
+      btnAccept.addEventListener("click", closeWelcome);
+    }
+
+    if (btnOpenAbout) {
+      btnOpenAbout.addEventListener("click", () => {
+        if (welcomeModal) welcomeModal.style.display = "flex";
+      });
+    }
+
+    if (welcomeModal) {
+      welcomeModal.addEventListener("click", (e) => {
+        if (e.target === welcomeModal) closeWelcome();
+      });
+    }
+
+    // เปิด Welcome Modal อัตโนมัติเมื่อเข้าใช้งานครั้งแรกใน Session
+    try {
+      const hasSeen = sessionStorage.getItem("rice_sim_welcome_seen");
+      if (!hasSeen && welcomeModal) {
+        welcomeModal.style.display = "flex";
+      }
+    } catch (e) {
+      if (welcomeModal) welcomeModal.style.display = "flex";
+    }
+
+    // กด ESC เพื่อปิด Modal
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        this.closeAlert();
+        if (welcomeModal) welcomeModal.style.display = "none";
       }
     });
   },
@@ -516,12 +619,20 @@ const App = {
     if (btnPlay) {
       btnPlay.addEventListener("click", () => {
         if (!this.mapManager || this.mapManager.paddies.length === 0) {
-          alert("กรุณาใช้เครื่องมือ \"วาดแปลง\" บนแผนที่ก่อนเริ่มการจำลองผลผลิตข้าว!");
+          this.showAlert(
+            "ยังไม่ได้วาดแปลงนา",
+            "กรุณาใช้เครื่องมือ \"วาดแปลง\" บนแถบเครื่องมือเพื่อวาดแปลงนาบนแผนที่ก่อนเริ่มการจำลองผลผลิตข้าว",
+            "warning"
+          );
           return;
         }
         const varietySelect = document.getElementById("riceVariety");
         if (!varietySelect || !varietySelect.value) {
-          alert("กรุณาเลือกชนิดพันธุ์ข้าวก่อนเริ่มการจำลอง!");
+          this.showAlert(
+            "ยังไม่ได้เลือกพันธุ์ข้าว",
+            "กรุณาเลือกชนิดพันธุ์ข้าวก่อนเริ่มการจำลองผลผลิต",
+            "warning"
+          );
           return;
         }
         timeEngine.play();

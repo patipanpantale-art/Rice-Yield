@@ -108,18 +108,20 @@ const App = {
     this.bindCollapsibleSections();
     this.bindMinimizableTimeline();
     this.bindDisasterModal();
-    this.bindDraggableMapWidgets();
 
-    // 3. ดักจับเมื่อผู้ใช้วาดหรือเลือกแปลงนา
+    // 3. ดักจับเมื่อผู้ใช้วาดหรือเลือกแปลงนา (Point 4, 6: แสดงผลในแถบ progress และหน้าต่างขวาทันที)
     this.mapManager.onPolygonChange((geometry, detectedProv, paddy, landUseInfo) => {
       this.handlePolygonUpdate(geometry, detectedProv, paddy, landUseInfo);
+      this.updatePanelVisibility(this.mapManager ? this.mapManager.paddies.length : (geometry ? 1 : 0));
       this.updateDisasterInputLimits();
       this.renderGanttTracks(timeEngine.getState());
+      this.recalculateYield();
     });
 
-    // 4. ดักจับการเปลี่ยนแปลงรายการแปลงนา (Point 6: แสดงผลในแถบ progress ทันที)
+    // 4. ดักจับการเปลี่ยนแปลงรายการแปลงนา (Point 4, 6)
     this.mapManager.onPaddyListChange((paddies, activeId) => {
       this.renderPaddyTabs(paddies, activeId);
+      this.updatePanelVisibility(paddies ? paddies.length : 0);
       this.updateDisasterInputLimits();
       this.renderGanttTracks(timeEngine.getState());
       this.recalculateYield();
@@ -240,16 +242,7 @@ const App = {
   },
 
   bindDraggableMapWidgets() {
-    const paddyTabsWrapper = document.querySelector(".paddy-tabs-wrapper");
-    if (paddyTabsWrapper) {
-      this.makeDraggable(paddyTabsWrapper, paddyTabsWrapper);
-    }
-
-    const searchBar = document.querySelector(".map-search-bar-container");
-    const searchWrap = document.querySelector(".map-search-input-wrap");
-    if (searchBar && searchWrap) {
-      this.makeDraggable(searchBar, searchWrap);
-    }
+    // ปิดการลากแถบควบคุมบนแผนที่ ล็อกให้อยู่กับที่ถาวร ไม่หายเมื่อคลิกหรือพิมพ์ (Point 1, 3)
   },
 
   /**
@@ -277,7 +270,7 @@ const App = {
   },
 
   /**
-   * แสดงแทร็ก Gantt Chart ทันทีเมื่อมีแปลงนา (Point 6)
+   * แสดงแทร็ก Gantt Chart ทันทีเมื่อมีแปลงนา พร้อมซิงก์แถบมรสุมบน Progress Bar (Point 5, 6)
    */
   renderGanttTracks(state) {
     const paddies = (this.mapManager && this.mapManager.paddies) ? this.mapManager.paddies : [];
@@ -286,6 +279,8 @@ const App = {
 
     if (paddies.length === 0) {
       ganttBox.style.display = "none";
+      const highlight = document.getElementById("timelineDisasterHighlight");
+      if (highlight) highlight.style.display = "none";
       return;
     }
 
@@ -301,7 +296,28 @@ const App = {
       rd41: 105
     };
 
-    const currentDay = (state && state.currentDay) ? state.currentDay : 1;
+    const currentDay = (state && state.currentDay) ? state.currentDay : (timeEngine ? timeEngine.currentDay : 1);
+
+    // ซิงก์แถบ Disaster Highlight บน Scrubber Slider ทันที (Point 5)
+    const disasterHighlight = document.getElementById("timelineDisasterHighlight");
+    const disasterDays = timeEngine.disasterDays || {};
+    const dDays = Object.keys(disasterDays).map(Number).sort((a, b) => a - b);
+    const totalD = timeEngine.totalDays || 120;
+
+    if (disasterHighlight) {
+      if (dDays.length > 0) {
+        const s = dDays[0];
+        const e = dDays[dDays.length - 1];
+        const leftPct = ((s - 1) / totalD) * 100;
+        const widthPct = Math.max(3, ((e - s + 1) / totalD) * 100);
+        disasterHighlight.style.display = "block";
+        disasterHighlight.style.left = `${leftPct}%`;
+        disasterHighlight.style.width = `${widthPct}%`;
+        disasterHighlight.title = `🌧️ ช่วงมรสุม: วันที่ ${s} - ${e} (รวม ${dDays.length} วัน)`;
+      } else {
+        disasterHighlight.style.display = "none";
+      }
+    }
 
     ganttBox.innerHTML = paddies.map((p) => {
       const v = p.variety || "kdml105";
@@ -309,14 +325,18 @@ const App = {
       const vName = varietyNames[v] || v;
       const prog = Math.min(100, Math.round((currentDay / totalD) * 100));
       const isReady = currentDay >= totalD;
-      const statusText = isReady ? "🌾 สุกแก่เก็บเกี่ยวแล้ว" : `${prog}% (${currentDay}/${totalD} วัน)`;
-      const barColor = isReady ? "#ca8a04" : "#16a34a";
+      const isUnderDisaster = disasterDays[currentDay] !== undefined;
+
+      const statusText = isReady
+        ? "🌾 สุกแก่เก็บเกี่ยวแล้ว"
+        : (isUnderDisaster ? `⚠️ วันที่ ${currentDay}: กำลังเจอมรสุม!` : `${prog}% (${currentDay}/${totalD} วัน)`);
+      const barColor = isReady ? "#ca8a04" : (isUnderDisaster ? "#ea580c" : "#16a34a");
 
       return `
         <div class="gantt-paddy-track">
           <div class="gantt-paddy-info">
             <span class="gantt-paddy-name">🌾 ${p.name}: <strong>${vName}</strong> (${totalD} วัน)</span>
-            <span class="gantt-paddy-status" style="color:${isReady ? '#b45309' : '#15803d'}; font-weight:600;">${statusText}</span>
+            <span class="gantt-paddy-status" style="color:${isReady ? '#b45309' : (isUnderDisaster ? '#c2410c' : '#15803d')}; font-weight:600;">${statusText}</span>
           </div>
           <div class="gantt-paddy-bar-bg">
             <div class="gantt-paddy-bar-fill" style="width: ${prog}%; background: ${barColor};"></div>
@@ -327,7 +347,7 @@ const App = {
   },
 
   /**
-   * สรุปเหตุการณ์สภาพอากาศ & มรสุมในแผงผลลัพธ์โดยย่อและเข้าใจง่าย (Point 4)
+   * สรุปเหตุการณ์สภาพอากาศ & มรสุมในแผงผลลัพธ์โดยย่อและซิงก์กับไทม์ไลน์ (Point 4, 5)
    */
   renderResultDisasterSummary() {
     const elText = document.getElementById("dispDisasterSummaryText");
@@ -335,6 +355,7 @@ const App = {
 
     const disasterDays = timeEngine.disasterDays || {};
     const days = Object.keys(disasterDays).map(Number).sort((a, b) => a - b);
+    const curDay = timeEngine ? timeEngine.currentDay : 1;
 
     if (days.length === 0) {
       elText.innerHTML = `🌤️ <strong>สภาพอากาศปกติ:</strong> ตลอดฤดูกาลเพาะปลูกนี้ไม่มีมรสุมหรือภัยธรรมชาติรุนแรง ข้าวเจริญเติบโตเต็มศักยภาพ`;
@@ -366,8 +387,14 @@ const App = {
 
     const stageStr = affectedStages.join(" ➔ ");
 
+    const isNowDisaster = disasterDays[curDay] !== undefined;
+    const liveStatusBadge = isNowDisaster
+      ? `<span style="background:#fee2e2; color:#b91c1c; padding:2px 7px; border-radius:10px; font-weight:700; font-size:10.5px; border:1px solid #fca5a5;">🚨 วันนี้ (วันที่ ${curDay}): อยู่ในช่วงมรสุม ${tName}</span>`
+      : `<span style="background:#f0fdf4; color:#15803d; padding:2px 7px; border-radius:10px; font-weight:600; font-size:10.5px; border:1px solid #bbf7d0;">🌤️ วันนี้ (วันที่ ${curDay}): อากาศปกติ</span>`;
+
     elText.innerHTML = `
-      🌧️ <strong>มรสุม ${tName}:</strong> วันที่ <strong>${startDay} - ${endDay}</strong> (รวม ${duration} วัน) | ความรุนแรงระดับ <strong>${sev}/10</strong><br>
+      <div style="margin-bottom: 4px;">${liveStatusBadge}</div>
+      🌧️ <strong>มรสุม ${tName}:</strong> ช่วงวันที่ <strong>${startDay} - ${endDay}</strong> (รวม ${duration} วัน) | ความรุนแรงระดับ <strong>${sev}/10</strong><br>
       • <strong>ช่วงอายุที่กระทบ:</strong> ${stageStr}<br>
       • <strong>ผลต่อผลผลิต:</strong> ${lossPct > 0 ? `สูญเสียผลผลิตสะสมประมาณ <span style="color:#b91c1c; font-weight:700;">-${lossPct}%</span>` : 'กระทบเล็กน้อย ผลผลิตอยู่ในเกณฑ์ปกติ'}
     `;
@@ -947,6 +974,9 @@ const App = {
     this.currentArea = areaResult;
     this.landUseInfo = landUseInfo;
 
+    // แสดงหน้าต่างผลลัพธ์ทันทีเมื่อมีแปลงนา (Point 4)
+    this.updatePanelVisibility(this.mapManager ? this.mapManager.paddies.length : 1);
+
     const elAreaThai = document.getElementById("dispAreaThai");
     const elAreaSqM = document.getElementById("dispAreaSqM");
     if (elAreaThai) elAreaThai.innerText = areaResult.formattedThai;
@@ -1205,8 +1235,8 @@ const App = {
               <span class="paddy-breakdown-val">${paddyYpotTons.toFixed(2)} ตัน</span>
             </div>
             <div>
-              <span class="paddy-breakdown-lbl">สถานะแปลง:</span>
-              <span class="paddy-breakdown-val" style="color:#15803d;">${isActive ? '● กำลังเลือก' : 'ปกติ'}</span>
+              <span class="paddy-breakdown-lbl">ที่ตั้งแปลง:</span>
+              <span class="paddy-breakdown-val" style="color:#15803d; font-weight:600;"><i class="fa-solid fa-location-dot" style="font-size:10px;"></i> ${p.locationStr || 'จ.ขอนแก่น อ.เมือง'}</span>
             </div>
           </div>
         </div>
@@ -1219,6 +1249,7 @@ const App = {
     const elTotal = document.getElementById("dispTotalYield");
     const elPerRai = document.getElementById("dispYieldPerRai");
     const elPot = document.getElementById("dispPotYield");
+    const elLoss = document.getElementById("dispYieldLossDesc");
     const elBench = document.getElementById("dispOaeBenchmark");
     const elBreakdown = document.getElementById("paddyBreakdownList");
 
@@ -1230,6 +1261,18 @@ const App = {
     }
     if (elPot) {
       elPot.innerText = `ศักยภาพรวม: ${totalFarmPotTons.toFixed(2)} ตัน`;
+    }
+
+    if (elLoss) {
+      const lossTons = Math.max(0, totalFarmPotTons - totalFarmTons);
+      const lossPct = totalFarmPotTons > 0 ? Math.round((lossTons / totalFarmPotTons) * 100) : 0;
+      if (lossTons > 0.005) {
+        elLoss.innerHTML = `🔻 สูญเสีย: <strong>${lossTons.toFixed(2)} ตัน (-${lossPct}%)</strong> จากศักยภาพรวม`;
+        elLoss.style.display = "block";
+      } else {
+        elLoss.innerHTML = `<span style="color:#15803d;">✨ ได้ผลผลิตเต็มศักยภาพสูงสุด (100%)</span>`;
+        elLoss.style.display = "block";
+      }
     }
 
     if (elBreakdown) {

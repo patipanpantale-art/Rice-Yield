@@ -404,10 +404,8 @@ class MapManager {
   }
 
   setMode(mode, btnElement) {
-    if (this.activeDrawHandler) {
-      this.activeDrawHandler.disable();
-      this.activeDrawHandler = null;
-    }
+    this.cleanupRectDrawer();
+    this.cleanupPolygonDrawer();
 
     this.currentMode = mode;
     document.querySelectorAll(".map-tool-btn").forEach((b) => b.classList.remove("active"));
@@ -420,14 +418,87 @@ class MapManager {
     } else if (mode === "delete") {
       if (btnElement) btnElement.classList.add("active");
       if (container) container.classList.add("map-delete-mode");
-    } else if (mode === "polygon" || mode === "rectangle") {
+    } else if (mode === "polygon") {
       if (btnElement) btnElement.classList.add("active");
       if (container) container.classList.remove("map-delete-mode");
-      this.startDraw(mode);
+      this.startDrawPolygon();
+    } else if (mode === "rectangle") {
+      if (btnElement) btnElement.classList.add("active");
+      if (container) container.classList.remove("map-delete-mode");
+      this.start2ClickRectangle();
     }
   }
 
-  startDraw(type) {
+  /**
+   * วาดแปลงสี่เหลี่ยมแบบ 2-Click: คลิกจุดมุมแรก -> ขยับเมาส์ดูตัวอย่าง -> คลิกจุดมุมตรงข้ามเพื่อเสร็จสิ้น (Point 2)
+   */
+  start2ClickRectangle() {
+    this.cleanupRectDrawer();
+
+    const shapeOptions = {
+      color: "#22c55e",
+      fillColor: "#16a34a",
+      fillOpacity: 0.35,
+      weight: 3.5,
+      dashArray: "5, 5"
+    };
+
+    let corner1 = null;
+    let previewRect = null;
+
+    const onMapClick = (e) => {
+      if (!corner1) {
+        corner1 = e.latlng;
+        previewRect = L.rectangle([corner1, corner1], shapeOptions).addTo(this.map);
+      } else {
+        const corner2 = e.latlng;
+        cleanup();
+        const finalRect = L.rectangle([corner1, corner2], {
+          color: "#22c55e",
+          fillColor: "#16a34a",
+          fillOpacity: 0.35,
+          weight: 4
+        });
+        this.registerPaddy(finalRect);
+        this.setMode("pan");
+      }
+    };
+
+    const onMouseMove = (e) => {
+      if (corner1 && previewRect) {
+        previewRect.setBounds([corner1, e.latlng]);
+      }
+    };
+
+    const cleanup = () => {
+      this.map.off("click", onMapClick);
+      this.map.off("mousemove", onMouseMove);
+      if (previewRect) {
+        this.map.removeLayer(previewRect);
+        previewRect = null;
+      }
+      this.rectDrawer = null;
+    };
+
+    this.map.on("click", onMapClick);
+    this.map.on("mousemove", onMouseMove);
+
+    this.rectDrawer = { cleanup };
+  }
+
+  cleanupRectDrawer() {
+    if (this.rectDrawer && typeof this.rectDrawer.cleanup === "function") {
+      this.rectDrawer.cleanup();
+      this.rectDrawer = null;
+    }
+  }
+
+  /**
+   * วาดแปลงอิสระ (Polygon) พร้อมระบบคลิกบรรจบจุดเริ่มต้น หรือดับเบิลคลิกเพื่อเสร็จสิ้น (Point 2)
+   */
+  startDrawPolygon() {
+    this.cleanupPolygonDrawer();
+
     const shapeOptions = {
       color: "#22c55e",
       fillColor: "#16a34a",
@@ -436,29 +507,71 @@ class MapManager {
       dashArray: "5, 5"
     };
 
-    if (type === "polygon") {
-      this.activeDrawHandler = new L.Draw.Polygon(this.map, {
-        shapeOptions,
-        showArea: true,
-        guidelineDistance: 15,
-        icon: new L.DivIcon({
-          className: "leaflet-drawing-vertex-icon",
-          iconSize: [14, 14],
-          iconAnchor: [7, 7]
-        })
-      });
-    } else if (type === "rectangle") {
-      this.activeDrawHandler = new L.Draw.Rectangle(this.map, { shapeOptions });
-    }
+    this.activeDrawHandler = new L.Draw.Polygon(this.map, {
+      shapeOptions,
+      showArea: true,
+      guidelineDistance: 15,
+      icon: new L.DivIcon({
+        className: "leaflet-drawing-vertex-icon",
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      })
+    });
 
     this.activeDrawHandler.enable();
-    // ไม่ผูก once(L.Draw.Event.CREATED) ซ้ำที่นี่อีก เพราะมีตัวรับหลักใน init() ป้องกันบั๊กแปลงซ้อน
+
+    // ดักจับคลิกเพื่อบรรจบจุดแรก (Snap to first vertex)
+    const onMapClick = (e) => {
+      if (!this.activeDrawHandler || !this.activeDrawHandler._poly) return;
+      const latlngs = this.activeDrawHandler._poly.getLatLngs();
+      if (!latlngs || latlngs.length < 3) return;
+
+      const firstPt = latlngs[0];
+      const p1 = this.map.latLngToContainerPoint(firstPt);
+      const p2 = this.map.latLngToContainerPoint(e.latlng);
+
+      if (p1.distanceTo(p2) <= 35) {
+        L.DomEvent.stopPropagation(e);
+        this.activeDrawHandler.completeShape();
+      }
+    };
+
+    const onDblClick = (e) => {
+      if (!this.activeDrawHandler || !this.activeDrawHandler._poly) return;
+      const latlngs = this.activeDrawHandler._poly.getLatLngs();
+      if (latlngs && latlngs.length >= 3) {
+        L.DomEvent.stopPropagation(e);
+        this.activeDrawHandler.completeShape();
+      }
+    };
+
+    this.map.on("click", onMapClick);
+    this.map.on("dblclick", onDblClick);
+
+    this.polygonExtraCleanup = () => {
+      this.map.off("click", onMapClick);
+      this.map.off("dblclick", onDblClick);
+    };
+  }
+
+  cleanupPolygonDrawer() {
+    if (this.polygonExtraCleanup) {
+      this.polygonExtraCleanup();
+      this.polygonExtraCleanup = null;
+    }
+    if (this.activeDrawHandler) {
+      this.activeDrawHandler.disable();
+      this.activeDrawHandler = null;
+    }
   }
 
   /**
-   * ลงทะเบียนแปลงนาใหม่ พร้อมบันทึกพันธุ์ข้าวประจำแปลง
+   * ลงทะเบียนแปลงนาใหม่ พร้อมคำนวณพื้นที่และที่ตั้งจังหวัดทันที (Point 4)
    */
   registerPaddy(layer) {
+    this.cleanupRectDrawer();
+    this.cleanupPolygonDrawer();
+
     this.drawnItems.addLayer(layer);
 
     const usedNumbers = this.paddies.map((p) => p.number);
@@ -475,13 +588,30 @@ class MapManager {
     const varietySelect = document.getElementById("riceVariety");
     const currentVariety = varietySelect ? varietySelect.value : "kdml105";
 
+    const geom = layer.toGeoJSON().geometry;
+    let areaRes = null;
+    if (window.AreaCalculator) {
+      areaRes = window.AreaCalculator.calculateArea(geom);
+    }
+
+    const bounds = layer.getBounds();
+    const center = bounds.getCenter();
+    let detectedProv = null;
+    if (typeof detectProvinceFromCoord === "function") {
+      detectedProv = detectProvinceFromCoord(center.lat, center.lng);
+    }
+    const locationStr = detectedProv ? `จ.${detectedProv.name_th} อ.เมือง` : "จ.ขอนแก่น อ.เมือง";
+
     const paddyObj = {
       id: paddyId,
       number: nextNum,
       name: paddyName,
       variety: currentVariety,
       layer: layer,
-      geometry: layer.toGeoJSON().geometry,
+      geometry: geom,
+      areaResult: areaRes,
+      locationStr: locationStr,
+      detectedProv: detectedProv,
       ricePlants: plants
     };
 
@@ -654,7 +784,7 @@ class MapManager {
   }
 
   /**
-   * สัญลักษณ์ป้ายแปลงตรงจุดกึ่งกลาง (Top Z-Index ไม่โดนสัญลักษณ์ทับ)
+   * สัญลักษณ์ป้ายแปลงตรงจุดกึ่งกลาง (ตัวหนังสือคมชัด ไม่เป็นกรอบปุ่มหนาเทอะทะ Point 7)
    */
   updatePaddyBadges() {
     this.paddyBadgeLayer.clearLayers();
@@ -668,12 +798,12 @@ class MapManager {
       const badgeIcon = L.divIcon({
         className: "paddy-centroid-badge-container",
         html: `<div class="paddy-centroid-badge ${isActive ? 'active' : ''}">
-          🌾 ${p.name} <span style="font-size:10px; opacity:0.9; margin-left:2px;">(${vName})</span>
+          🌾 ${p.name} <span style="font-size:10.5px; opacity:0.9; margin-left:3px;">(${vName})</span>
         </div>`,
         iconAnchor: [55, 14]
       });
 
-      const marker = L.marker(center, { icon: badgeIcon, zIndexOffset: 1100 });
+      const marker = L.marker(center, { icon: badgeIcon, zIndexOffset: 1300 });
       marker.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
         this.selectPaddy(p.id);
@@ -683,7 +813,7 @@ class MapManager {
   }
 
   /**
-   * สุ่มตำแหน่งต้นข้าว โดยเว้นระยะปลอดภัยรอบจุดกึ่งกลาง ไม่ให้เกิดทับหรืออยู่ใต้ป้ายชื่อแปลง
+   * สุ่มตำแหน่งต้นข้าว โดยเว้นระยะปลอดภัยรอบจุดกึ่งกลาง ไม่ให้เกิดทับหรืออยู่ใกล้ป้ายชื่อแปลง (Point 3, 7)
    */
   generateRicePlantPositions(polygonLayer) {
     const plants = [];
@@ -713,9 +843,10 @@ class MapManager {
         const pLat = minLat + r * rowStep + jitterLat;
         const pLng = minLng + c * colStep + jitterLng;
 
-        // เว้นรัศมีรอบกึ่งกลางแปลง ไม่ให้ต้นข้าวไปเกิดทับป้ายชื่อแปลง (Point 3)
-        const normDist = Math.hypot((pLat - center.lat) / (latSpan || 0.001), (pLng - center.lng) / (lngSpan || 0.001));
-        if (normDist < 0.28) {
+        // เว้นพื้นที่ปลอดภัยรอบจุดกึ่งกลางแปลง ไม่ให้ต้นข้าวไปเกิดทับหรืออยู่ใต้ป้ายชื่อแปลง (Point 3, 7)
+        const dLat = Math.abs(pLat - center.lat) / (latSpan || 0.001);
+        const dLng = Math.abs(pLng - center.lng) / (lngSpan || 0.001);
+        if (dLat < 0.32 && dLng < 0.42) {
           continue;
         }
 

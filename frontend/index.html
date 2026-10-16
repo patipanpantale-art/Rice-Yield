@@ -383,8 +383,11 @@
             <button id="btnPause" class="btn-ctrl" title="หยุดชั่วคราว"><i class="fa-solid fa-pause"></i></button>
             <button id="btnReset" class="btn-ctrl" title="รีเซ็ตกลับวันแรก"><i class="fa-solid fa-rotate-left"></i></button>
 
-            <!-- แถบ Scrubber Slider -->
-            <input type="range" id="timelineScrubber" min="1" max="120" value="1" class="scrubber-slider" title="ลากเพื่อกรอเวลา">
+            <!-- แถบ Scrubber Slider พร้อม Disaster Highlight Band -->
+            <div class="scrubber-wrapper" style="flex: 1; position: relative; display: flex; align-items: center; min-width: 140px;">
+              <div id="timelineDisasterHighlight" class="timeline-disaster-highlight" style="display: none;"></div>
+              <input type="range" id="timelineScrubber" min="1" max="120" value="1" class="scrubber-slider" title="ลากเพื่อกรอเวลา" style="width: 100%; position: relative; z-index: 2;">
+            </div>
           </div>
 
           <div class="stages-indicator-bar">
@@ -442,6 +445,7 @@
                 </div>
                 <div class="metric-value gold" id="dispTotalYield">0.00 ตัน</div>
                 <div class="metric-sub" id="dispPotYield">ศักยภาพ: 0.00 ตัน</div>
+                <div class="metric-sub" id="dispYieldLossDesc" style="color: #b91c1c; font-size: 11px; margin-top: 3px; font-weight: 600;"></div>
               </div>
 
               <div class="metric-card">

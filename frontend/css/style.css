@@ -503,7 +503,7 @@ body {
   position: absolute;
   top: 10px;
   right: 14px;
-  width: 240px;
+  width: 250px;
   z-index: 460;
 }
 
@@ -609,12 +609,12 @@ body {
 .paddy-tabs-wrapper {
   position: absolute;
   top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 14px;
   display: flex;
   align-items: center;
   gap: 4px;
   z-index: 440;
+  max-width: calc(100% - 290px);
 }
 
 .paddy-tab-arrow-btn {
@@ -644,11 +644,11 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  max-width: 320px;
+  max-width: 380px;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
-  padding: 3px 6px;
+  padding: 4px 8px;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -712,11 +712,10 @@ body {
 .map-toolbar-drawer {
   position: absolute;
   top: 48px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 14px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   z-index: 450;
   pointer-events: auto;
 }
@@ -754,7 +753,7 @@ body {
   gap: 4px;
   box-shadow: var(--shadow-card);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: top center;
+  transform-origin: top left;
 }
 
 .custom-map-toolbar.collapsed {
@@ -799,17 +798,41 @@ body {
   margin: 0 2px;
 }
 
-/* 8. Leaflet Drawing Custom Glowing Circular Handles */
+/* 8. Leaflet Drawing Custom Glowing Circular Handles & Cleanups */
+/* กำจัดกรอบดำและ Tooltip ตกค้างของ Leaflet ที่มุมซ้ายบน */
+.leaflet-top.leaflet-left,
+.leaflet-draw-tooltip,
+.leaflet-draw-toolbar {
+  display: none !important;
+}
+
 .leaflet-drawing-vertex-icon,
 .leaflet-editing-icon {
   background: #22c55e !important;
   border: 2.5px solid #ffffff !important;
   border-radius: 50% !important;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.35), 0 0 6px rgba(34, 197, 94, 0.7) !important;
-  width: 14px !important;
-  height: 14px !important;
-  margin-left: -7px !important;
-  margin-top: -7px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35), 0 0 8px rgba(34, 197, 94, 0.8) !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin-left: -8px !important;
+  margin-top: -8px !important;
+  cursor: crosshair !important;
+}
+
+/* First vertex marker pulse target to easily close polygon */
+.leaflet-first-vertex-target {
+  background: #f59e0b !important;
+  border: 2.5px solid #ffffff !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5), 0 0 12px rgba(245, 158, 11, 0.9) !important;
+  animation: pulseFirstVertex 1.2s infinite ease-in-out;
+  cursor: pointer !important;
+}
+
+@keyframes pulseFirstVertex {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
 }
 
 /* Rice Stalks & Centroid Badges */
@@ -838,28 +861,61 @@ body {
   z-index: 1000 !important;
 }
 
+/* ป้ายชื่อแปลงแบบตัวหนังสือลอย คมชัด ไม่เป็นกรอบปุ่มหนาเทอะทะ (Point 7) */
 .paddy-centroid-badge {
-  background: #ffffff;
-  border: 2px solid #16a34a;
-  color: #0f172a;
-  padding: 3px 10px;
-  border-radius: 14px;
-  font-size: 11.5px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 2px 4px;
+  font-size: 13.5px;
   font-weight: 700;
   white-space: nowrap;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.45);
+  letter-spacing: 0.2px;
+  text-shadow: 
+    -1.5px -1.5px 0 #0f172a,
+     1.5px -1.5px 0 #0f172a,
+    -1.5px  1.5px 0 #0f172a,
+     1.5px  1.5px 0 #0f172a,
+     0 2px 8px rgba(0, 0, 0, 0.95);
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .paddy-centroid-badge:hover,
 .paddy-centroid-badge.active {
-  background: linear-gradient(135deg, #15803d, #16a34a);
-  color: #ffffff;
-  border: 2px solid #ffffff;
-  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.65);
-  transform: scale(1.08);
+  color: #86efac;
+  text-shadow: 
+    -1.5px -1.5px 0 #052e16,
+     1.5px -1.5px 0 #052e16,
+    -1.5px  1.5px 0 #052e16,
+     1.5px  1.5px 0 #052e16,
+     0 0 12px rgba(74, 222, 128, 0.9),
+     0 2px 8px rgba(0, 0, 0, 0.95);
+  transform: scale(1.1);
+}
+
+/* Scrubber Disaster Highlight Band (Point 5) */
+.timeline-disaster-highlight {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 8px;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(239, 68, 68, 0.65),
+    rgba(239, 68, 68, 0.65) 4px,
+    rgba(220, 38, 38, 0.9) 4px,
+    rgba(220, 38, 38, 0.9) 8px
+  );
+  border-radius: 4px;
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+  transition: all 0.2s ease;
 }
 
 /* Disaster Summary Card in Result Panel (Point 4) */

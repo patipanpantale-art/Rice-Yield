@@ -33,11 +33,10 @@
         <div class="brand-subtitle">Interactive Map-Based Sandbox Simulator for Rice Yield Analytics (มข. CS2569)</div>
       </div>
     </div>
-    <div class="header-right-meta">
-      <div class="header-scope-note" id="thailandScopeBanner">
-        <i class="fa-solid fa-map-location-dot" style="color: #16a34a;"></i>
-        <span>ฐานข้อมูลชุดดิน LDD 77 จังหวัด และสถิติภูมิอากาศเฉพาะในประเทศไทย</span>
-      </div>
+      <button class="header-scope-note" id="btnOpenAboutModal" style="cursor: pointer; border: 1px solid #bbf7d0; background: rgba(22, 163, 74, 0.08); transition: all 0.2s;" title="คลิกเพื่ออ่านคำชี้แจงและที่มาของข้อมูล">
+        <i class="fa-solid fa-circle-info" style="color: #16a34a;"></i>
+        <span>คำชี้แจง & ขอบเขตข้อมูล (ไทยเท่านั้น)</span>
+      </button>
       <div class="header-status-badge" id="backendStatusBadge">
         <span class="status-dot"></span> ตรวจสอบการเชื่อมต่อระบบ...
       </div>
@@ -301,13 +300,11 @@
     <!-- 2.2 แผงกลาง: แผนที่ Leaflet ไฮบริดดาวเทียม + กรอบแผนที่ + แถบแปลงนา + ลิ้นชักเครื่องมือ + ช่องค้นหา 77 จังหวัด -->
     <div class="map-view-container">
 
-      <!-- แถบแสดงรายการแปลงนาแบบมีปุ่มเลื่อน « และ » -->
+      <!-- แถบแสดงรายการแปลงนา สไตล์มินิมอลน่ารัก เลื่อนได้อิสระ (Paddy Tabs Bar) -->
       <div class="paddy-tabs-wrapper">
-        <button id="btnPaddyTabPrev" class="paddy-tab-arrow-btn" title="เลื่อนแท็บไปทางซ้าย">«</button>
         <div id="paddyTabsContainer" class="paddy-tabs-bar">
           <span class="paddy-tab-empty-hint">🌱 ยังไม่มีแปลงนา (คลิกเครื่องมือวาดแปลงเพื่อเริ่มต้น)</span>
         </div>
-        <button id="btnPaddyTabNext" class="paddy-tab-arrow-btn" title="เลื่อนแท็บไปทางขวา">»</button>
       </div>
 
       <!-- ช่องค้นหาจังหวัด 77 จังหวัด พร้อม Auto-Suggest, Smooth Flight และตีกรอบจังหวัด -->
@@ -688,6 +685,64 @@
       </div>
       <div id="dispModalDisasterTimeline" class="disaster-event-timeline-list">
         <!-- รายการจะถูกแทรกแบบ Dynamic ผ่าน JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal แจ้งเตือนภายในเว็บ (In-App Popup Alert) แทนเบราว์เซอร์ alert -->
+  <div id="appAlertModal" class="app-popup-overlay" style="display: none;">
+    <div class="app-popup-card">
+      <div class="app-popup-icon warning" id="appAlertIconWrap">
+        <i class="fa-solid fa-triangle-exclamation" id="appAlertIcon"></i>
+      </div>
+      <h3 class="app-popup-title" id="appAlertTitle">แจ้งเตือน</h3>
+      <p class="app-popup-desc" id="appAlertMessage">ข้อความแจ้งเตือน</p>
+      <div class="app-popup-actions">
+        <button id="btnAppAlertClose" class="app-popup-btn primary">เข้าใจแล้ว</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal คำชี้แจงเพื่อการศึกษาและขอบเขตประเทศไทย (Welcome / Educational Disclaimer Modal) -->
+  <div id="welcomeDisclaimerModal" class="app-popup-overlay" style="display: none;">
+    <div class="app-popup-card welcome-card">
+      <div class="welcome-header-badge">
+        <span class="welcome-tag">🎓 CP353761 วิทยาลัยการคอมพิวเตอร์ มหาวิทยาลัยขอนแก่น</span>
+      </div>
+      <div class="app-popup-icon info">
+        <i class="fa-solid fa-wheat-awn"></i>
+      </div>
+      <h2 class="welcome-title">ยินดีต้อนรับสู่โปรแกรมจำลองพื้นที่เพาะปลูกเสมือนจริง</h2>
+      <div class="welcome-subtitle">Interactive Map-Based Sandbox Simulator for Rice Yield Analytics</div>
+      
+      <div class="welcome-notice-box">
+        <div class="welcome-notice-item">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <div>
+            <strong>เพื่อการศึกษาและวิจัยทางวิชาการ (Educational & Research Prototype):</strong>
+            <span>ระบบนี้พัฒนาขึ้นเพื่อเป็นห้องปฏิบัติการเสมือนจริง (Virtual Sandbox Lab) ในการศึกษาความสัมพันธ์ระหว่างดิน สภาพอากาศ ดัชนีดาวเทียม และผลผลิตข้าว</span>
+          </div>
+        </div>
+        <div class="welcome-notice-item">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <div>
+            <strong>ขอบเขตข้อมูลเฉพาะในประเทศไทย (Thailand Scope Only):</strong>
+            <span>ปัจจุบันรองรับและเชื่อมโยงฐานข้อมูลกลุ่มชุดดิน 62 ชุดดินของกรมพัฒนาที่ดิน (LDD) และขอบเขตการปกครอง 77 จังหวัด 928 อำเภอทั่วประเทศไทย</span>
+          </div>
+        </div>
+        <div class="welcome-notice-item">
+          <i class="fa-solid fa-chart-line"></i>
+          <div>
+            <strong>แบบจำลองทางคณิตศาสตร์แบบผสมผสาน (Hybrid Yield Model):</strong>
+            <span>ประเมินผลผลิตตามหลักสรีรวิทยาข้าว (IRRI Yoshida) ร่วมกับสมการตอบสนองต่อน้ำ FAO-33, อุณหภูมิ, ภาพถ่ายดาวเทียม และเกณฑ์มาตรฐานสถิติ สศก.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-popup-actions" style="margin-top: 16px;">
+        <button id="btnWelcomeAccept" class="app-popup-btn primary" style="width: 100%; padding: 10px 18px; font-size: 13.5px;">
+          <i class="fa-solid fa-seedling" style="margin-right: 6px;"></i> เข้าใจแล้ว / เริ่มต้นใช้งานระบบ
+        </button>
       </div>
     </div>
   </div>

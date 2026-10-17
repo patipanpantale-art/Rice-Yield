@@ -20,6 +20,8 @@ class MapManager {
     // รายการแปลง: { id, number, name, variety, layer, geometry, ricePlants }
     this.paddies = [];
     this.activePaddyId = null;
+    this.hoverPaddyId = null;
+    this.activeVisualStyle = null;
 
     // เลเยอร์การแสดงผล
     this.riceLayerGroup = null;
@@ -49,6 +51,8 @@ class MapManager {
     // Callbacks
     this.onPolygonChangeCallback = null;
     this.onPaddyListChangeCallback = null;
+    this.onHoverChangeCallback = null;
+    this.onPaddyDeletedCallback = null;
   }
 
   init(defaultCoords = [16.4322, 102.8236], defaultZoom = 9) {
@@ -192,6 +196,11 @@ class MapManager {
     this.bindDrawerHandle();
     this.bindProvinceSearch();
 
+    // กด Esc เพื่อยกเลิกการวาด/โหมดลบ กลับสู่โหมดปกติ
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && this.currentMode !== "pan") this.setMode("pan");
+    });
+
     if (this.onPaddyListChangeCallback) {
       this.onPaddyListChangeCallback([], null);
     }
@@ -248,12 +257,14 @@ class MapManager {
     const chevron = document.getElementById("drawerChevron");
 
     if (handle && toolbar) {
+      const syncChevron = () => {
+        if (chevron) chevron.style.transform = toolbar.classList.contains("collapsed") ? "rotate(0)" : "rotate(180deg)";
+      };
       handle.addEventListener("click", () => {
         toolbar.classList.toggle("collapsed");
-        if (chevron) {
-          chevron.style.transform = toolbar.classList.contains("collapsed") ? "rotate(0)" : "rotate(180deg)";
-        }
+        syncChevron();
       });
+      syncChevron();
     }
   }
 
@@ -447,6 +458,13 @@ class MapManager {
     document.querySelectorAll(".map-tool-btn").forEach((b) => b.classList.remove("active"));
     const container = document.getElementById(this.containerId);
 
+    this.updateDrawHint(mode);
+    const mapEl = document.getElementById(this.containerId);
+    if (mapEl) mapEl.classList.toggle("map-drawing-mode", mode === "polygon" || mode === "rectangle");
+    if (this.paddies) {
+      this.paddies.forEach((p) => p.layer && p.layer.closeTooltip && p.layer.closeTooltip());
+    }
+
     if (mode === "pan") {
       const btnPan = document.getElementById("toolPan");
       if (btnPan) btnPan.classList.add("active");
@@ -462,6 +480,23 @@ class MapManager {
       if (btnElement) btnElement.classList.add("active");
       if (container) container.classList.remove("map-delete-mode");
       this.start2ClickRectangle();
+    }
+  }
+
+  /** แถบคำแนะนำบนแผนที่ระหว่างวาด/ลบแปลง */
+  updateDrawHint(mode) {
+    const el = document.getElementById("mapDrawHint");
+    if (!el) return;
+    const hints = {
+      polygon: `<i class="fa-solid fa-draw-polygon"></i> คลิกวางจุดมุมแปลงทีละจุด · <b>คลิกจุดแรก</b> หรือ <b>ดับเบิลคลิก</b> เพื่อจบ · <kbd>Esc</kbd> ยกเลิก`,
+      rectangle: `<i class="fa-regular fa-square"></i> คลิกมุมแรก แล้วคลิก <b>มุมตรงข้าม</b> เพื่อสร้างแปลงสี่เหลี่ยม · <kbd>Esc</kbd> ยกเลิก`,
+      delete: `<i class="fa-solid fa-eraser"></i> คลิกที่แปลงเพื่อลบ (กด "เลิกทำ" ได้) · <kbd>Esc</kbd> ออกจากโหมดลบ`
+    };
+    if (hints[mode]) {
+      el.innerHTML = hints[mode];
+      el.className = `map-draw-hint show${mode === "delete" ? " danger" : ""}`;
+    } else {
+      el.className = "map-draw-hint";
     }
   }
 
@@ -602,7 +637,7 @@ class MapManager {
   }
 
   /**
-   * ลงทะเบียนแปลงนาใหม่ พร้อมคำนวณพื้นที่และที่ตั้งจังหวัดทันที (Point 4)
+   * ลงทะเบียนแปลงนาใหม่ พร้อมคำนวณพื้นที่และที่ตั้งจังหวัดทันที
    */
   registerPaddy(layer) {
     this.cleanupRectDrawer();
@@ -616,142 +651,134 @@ class MapManager {
       nextNum++;
     }
 
-    const paddyId = Date.now() + Math.floor(Math.random() * 1000);
-    const paddyName = `แปลงที่ ${nextNum}`;
+    const paddyId = String(Date.now() + Math.floor(Math.random() * 1000));
     const plants = this.generateRicePlantPositions(layer);
 
-    // อ่านพันธุ์ข้าวปัจจุบันที่เลือกไว้บนแผงซ้าย
+    // อ่านพันธุ์ข้าวปัจจุบันที่เลือกไว้บนแผงซ้าย (ใช้เป็นพันธุ์ของแปลงใหม่)
     const varietySelect = document.getElementById("riceVariety");
-    const currentVariety = varietySelect ? varietySelect.value : "kdml105";
+    const currentVariety = getVarietySpec(varietySelect ? varietySelect.value : "kdml105").key;
 
     const geom = layer.toGeoJSON().geometry;
-    let areaRes = null;
-    if (window.AreaCalculator) {
-      areaRes = window.AreaCalculator.calculateArea(geom);
-    }
+    const areaRes = window.AreaCalculator ? AreaCalculator.calculateArea(geom) : null;
+    const center = layer.getBounds().getCenter();
 
-    const bounds = layer.getBounds();
-    const center = bounds.getCenter();
-
-    // Point 4: ตรวจสอบอำเภอและจังหวัดจริงจาก GeoJSON ขอบเขต 928 อำเภอทั่วไทย
+    // ตรวจสอบอำเภอและจังหวัดจริงจาก GeoJSON ขอบเขต 928 อำเภอทั่วไทย
     const amphoeProp = this.findAmphoeFromCoord(center.lat, center.lng);
     let detectedProv = null;
-    let locationStr = "จ.ขอนแก่น อ.เมืองขอนแก่น";
+    let locationStr = "ไม่ทราบตำแหน่ง (นอกขอบเขตไทย?)";
 
     if (amphoeProp) {
       const pName = amphoeProp.pro_th.startsWith("จ.") ? amphoeProp.pro_th : `จ.${amphoeProp.pro_th}`;
       const aName = amphoeProp.amp_th.startsWith("อ.") ? amphoeProp.amp_th : `อ.${amphoeProp.amp_th}`;
       locationStr = `${pName} ${aName}`;
-
       if (typeof THAI_PROVINCES !== "undefined") {
         detectedProv = THAI_PROVINCES.find((p) => p.name_th === amphoeProp.pro_th || amphoeProp.pro_th.includes(p.name_th)) || null;
       }
-    } else {
-      if (typeof detectProvinceFromCoord === "function") {
-        detectedProv = detectProvinceFromCoord(center.lat, center.lng);
-      }
-      locationStr = detectedProv ? `จ.${detectedProv.name_th} อ.เมือง${detectedProv.name_th}` : "จ.ขอนแก่น อ.เมืองขอนแก่น";
+    } else if (typeof detectProvinceFromCoord === "function") {
+      detectedProv = detectProvinceFromCoord(center.lat, center.lng);
+      if (detectedProv) locationStr = `จ.${detectedProv.name_th}`;
     }
-
-    const varietySpecs = {
-      kdml105: { name: "ขาวดอกมะลิ 105", duration: 120, H: 16, P: 8, G: 95, W: 25.5 },
-      rd6: { name: "กข6", duration: 130, H: 16, P: 9, G: 100, W: 26.5 },
-      rd41: { name: "กข41", duration: 105, H: 20, P: 10, G: 110, W: 27.5 }
-    };
-    const spec = varietySpecs[currentVariety] || varietySpecs["kdml105"];
 
     const paddyObj = {
       id: paddyId,
       number: nextNum,
-      name: paddyName,
+      name: `แปลงที่ ${nextNum}`,
       variety: currentVariety,
-      params: {
-        variety: currentVariety,
-        durationDays: spec.duration,
-        H: spec.H,
-        P: spec.P,
-        G: spec.G,
-        W: spec.W,
-        fertilityFactor: 0.82
-      },
+      params: buildPaddyParams(currentVariety),
       layer: layer,
       geometry: geom,
       areaResult: areaRes,
       locationStr: locationStr,
       amphoeProp: amphoeProp,
       detectedProv: detectedProv,
+      soil: null,
       ricePlants: plants
     };
 
-    layer.on("click", () => {
-      if (this.currentMode === "delete") {
-        this.deletePaddy(paddyId);
-      } else {
-        this.selectPaddy(paddyId);
-      }
-    });
+    this.attachPaddyLayerEvents(paddyObj);
 
     this.paddies.push(paddyObj);
     this.paddies.sort((a, b) => a.number - b.number);
 
     this.updatePaddyBadges();
-    this.selectPaddy(paddyId);
+    this.selectPaddy(paddyId, { source: "draw" });
+  }
+
+  /** ผูกเหตุการณ์คลิก/โฮเวอร์ของรูปแปลงบนแผนที่ */
+  attachPaddyLayerEvents(paddy) {
+    const layer = paddy.layer;
+    layer.off("click mouseover mouseout");
+
+    layer.on("click", (e) => {
+      // ระหว่างวาดแปลงใหม่ ให้คลิกทะลุไปยังตัววาด ไม่เลือกแปลงเดิม
+      if (this.isDrawingMode()) return;
+      L.DomEvent.stopPropagation(e);
+      if (this.currentMode === "delete") {
+        this.deletePaddy(paddy.id);
+      } else {
+        this.selectPaddy(paddy.id, { source: "map" });
+      }
+    });
+    layer.on("mouseover", () => {
+      if (!this.isDrawingMode()) this.setHoverPaddy(paddy.id, "map");
+    });
+    layer.on("mouseout", () => this.setHoverPaddy(null, "map"));
+
+    layer.bindTooltip(() => this.getPaddyTooltipHtml(paddy), {
+      sticky: true,
+      direction: "top",
+      offset: [0, -12],
+      className: "paddy-hover-tooltip",
+      opacity: 1
+    });
+  }
+
+  getPaddyTooltipHtml(paddy) {
+    const spec = getVarietySpec(paddy.variety);
+    const area = paddy.areaResult ? paddy.areaResult.formattedThai : "-";
+    const hint = this.currentMode === "delete"
+      ? `<div class="pht-hint danger"><i class="fa-solid fa-eraser"></i> คลิกเพื่อลบแปลงนี้</div>`
+      : (String(paddy.id) === String(this.activePaddyId)
+        ? `<div class="pht-hint">กำลังเลือกแปลงนี้อยู่</div>`
+        : `<div class="pht-hint">คลิกเพื่อเลือกและดูรายละเอียดทางขวา</div>`);
+    return `<div class="pht-title">🌾 ${paddy.name}</div>
+      <div class="pht-row">${spec.name} · ${getPaddyDuration(paddy)} วัน</div>
+      <div class="pht-row">${area}</div>
+      ${hint}`;
+  }
+
+  isDrawingMode() {
+    return this.currentMode === "polygon" || this.currentMode === "rectangle";
   }
 
   /**
-   * เลือกแปลงนา และซิงก์พันธุ์ข้าวของแปลงนั้นไปยังตัวเลือกพันธุ์ข้าวบนแผงซ้าย
+   * เลือกแปลงนา
+   * @param {string} paddyId
+   * @param {{source?: "map"|"panel"|"draw"|"delete"|"restore", fly?: boolean}} opts
+   *   fly = เลื่อน/ซูมแผนที่ไปกึ่งกลางแปลง (ใช้เมื่อเลือกจากแผงขวา)
    */
-  selectPaddy(paddyId) {
+  selectPaddy(paddyId, opts = {}) {
     const paddy = this.paddies.find((p) => String(p.id) === String(paddyId));
     if (!paddy) return;
+    const source = opts.source || "map";
 
     this.activePaddyId = paddy.id;
-
-    // อัปเดตสไตล์แปลงให้เด่นชัด คมชัด ไม่กลืนกับแผนที่ดาวเทียม
-    this.paddies.forEach((p) => {
-      if (String(p.id) === String(paddyId)) {
-        p.layer.setStyle({
-          color: "#22c55e",
-          weight: 4.5,
-          fillOpacity: 0.35,
-          fillColor: "#16a34a",
-          dashArray: null
-        });
-      } else {
-        p.layer.setStyle({
-          color: "#f59e0b",
-          weight: 2.5,
-          fillOpacity: 0.22,
-          fillColor: "#d97706",
-          dashArray: "4, 4"
-        });
-      }
-    });
+    this.lastRenderedPaddyId = null;
+    this.applyAllPaddyStyles();
 
     // ซิงก์พันธุ์ข้าวของแปลงนี้เข้ากับตัวเลือกบนแผงซ้าย
     const varietySelect = document.getElementById("riceVariety");
-    if (varietySelect && paddy.variety) {
-      varietySelect.value = paddy.variety;
-      if (window.App) {
-        window.App.modelParams.variety = paddy.variety;
-      }
-    }
+    if (varietySelect && paddy.variety) varietySelect.value = paddy.variety;
 
-    const bounds = paddy.layer.getBounds();
-    const center = bounds.getCenter();
+    if (opts.fly) this.flyToPaddy(paddy);
+    this.pulsePaddy(paddy);
 
-    // เลื่อนแผนที่ไปยังแปลงที่โฟกัสอย่างนุ่มนวล (Smooth Pan To Center)
-    if (this.map) {
-      this.map.panTo(center, { animate: true, duration: 0.5 });
-    }
-    
-    // ตรวจสอบข้อมูลอำเภอและจังหวัดของแปลง
+    const center = paddy.layer.getBounds().getCenter();
     let detectedProv = paddy.detectedProv;
-    let amphoeProp = paddy.amphoeProp;
-    if (!amphoeProp) {
-      amphoeProp = this.findAmphoeFromCoord(center.lat, center.lng);
-      paddy.amphoeProp = amphoeProp;
+    if (!paddy.amphoeProp) {
+      const amphoeProp = this.findAmphoeFromCoord(center.lat, center.lng);
       if (amphoeProp) {
+        paddy.amphoeProp = amphoeProp;
         const pName = amphoeProp.pro_th.startsWith("จ.") ? amphoeProp.pro_th : `จ.${amphoeProp.pro_th}`;
         const aName = amphoeProp.amp_th.startsWith("อ.") ? amphoeProp.amp_th : `อ.${amphoeProp.amp_th}`;
         paddy.locationStr = `${pName} ${aName}`;
@@ -761,7 +788,6 @@ class MapManager {
         }
       }
     }
-
     if (!detectedProv && typeof detectProvinceFromCoord === "function") {
       detectedProv = detectProvinceFromCoord(center.lat, center.lng);
       paddy.detectedProv = detectedProv;
@@ -769,51 +795,96 @@ class MapManager {
 
     const landUseInfo = this.checkLandUse(center.lat, center.lng);
 
-    this.lastRenderedPaddyId = null;
     this.renderRiceVisuals(this.currentStageId, this.currentWeatherState);
-
     this.updatePaddyBadges();
 
     if (this.onPolygonChangeCallback) {
-      this.onPolygonChangeCallback(paddy.geometry, detectedProv, paddy, landUseInfo);
+      this.onPolygonChangeCallback(paddy.geometry, detectedProv, paddy, landUseInfo, source);
     }
-
     if (this.onPaddyListChangeCallback) {
-      this.onPaddyListChangeCallback(this.paddies, this.activePaddyId);
+      this.onPaddyListChangeCallback(this.paddies, this.activePaddyId, source);
     }
+  }
+
+  /** เลื่อนแผนที่ไปยังจุดกึ่งกลางแปลง และซูมให้เห็นทั้งแปลงพอดี */
+  flyToPaddy(paddy) {
+    if (!this.map || !paddy) return;
+    const bounds = paddy.layer.getBounds();
+    const center = bounds.getCenter();
+    const fitZoom = this.map.getBoundsZoom(bounds, false, L.point(120, 120));
+    const targetZoom = Math.max(6, Math.min(fitZoom, 17));
+    this.map.flyTo(center, targetZoom, { duration: 0.8, easeLinearity: 0.3 });
+  }
+
+  /** เอฟเฟกต์กะพริบเส้นขอบแปลงเพื่อบอกตำแหน่ง */
+  pulsePaddy(paddy) {
+    const el = paddy && paddy.layer && paddy.layer.getElement ? paddy.layer.getElement() : null;
+    if (!el) return;
+    el.classList.remove("paddy-pulse");
+    void el.getBoundingClientRect();
+    el.classList.add("paddy-pulse");
+    clearTimeout(paddy._pulseTimer);
+    paddy._pulseTimer = setTimeout(() => el.classList.remove("paddy-pulse"), 1400);
+  }
+
+  /** ไฮไลต์แปลงเมื่อเอาเมาส์ชี้ (ทั้งจากแผนที่และจากการ์ดฝั่งขวา) */
+  setHoverPaddy(paddyId, source = "map") {
+    const next = paddyId === null || paddyId === undefined ? null : String(paddyId);
+    if (this.hoverPaddyId === next) return;
+    this.hoverPaddyId = next;
+    this.applyAllPaddyStyles();
+    this.paddyBadgeLayer.eachLayer((m) => {
+      const el = m.getElement && m.getElement();
+      if (el) el.classList.toggle("is-hover", next !== null && m.options.paddyId === next);
+    });
+    if (this.onHoverChangeCallback) this.onHoverChangeCallback(next, source);
+  }
+
+  /** สไตล์แปลง: แปลงที่เลือก = เขียวทึบ (หรือสีตามสภาพอากาศ), แปลงอื่น = ส้มเส้นประ, โฮเวอร์ = ขอบขาวหนา */
+  getPaddyStyle(paddy) {
+    const isActive = String(paddy.id) === String(this.activePaddyId);
+    const isHover = this.hoverPaddyId !== null && String(paddy.id) === this.hoverPaddyId;
+    let style;
+    if (isActive) {
+      style = { color: "#22c55e", weight: 4.5, fillOpacity: 0.35, fillColor: "#16a34a", dashArray: null };
+      if (this.activeVisualStyle) style = { ...style, ...this.activeVisualStyle };
+    } else {
+      style = { color: "#f59e0b", weight: 2.5, fillOpacity: 0.22, fillColor: "#d97706", dashArray: "4, 4" };
+    }
+    if (isHover) {
+      style = { ...style, color: "#ffffff", weight: isActive ? 5.5 : 4, fillOpacity: Math.min(0.55, style.fillOpacity + 0.15), dashArray: null };
+    }
+    return style;
+  }
+
+  applyAllPaddyStyles() {
+    this.paddies.forEach((p) => p.layer.setStyle(this.getPaddyStyle(p)));
   }
 
   updateActivePaddyVariety(newVariety) {
     const activePaddy = this.paddies.find((p) => String(p.id) === String(this.activePaddyId));
-    if (activePaddy) {
-      activePaddy.variety = newVariety;
-      const varietySpecs = {
-        kdml105: { name: "ขาวดอกมะลิ 105", duration: 120, H: 16, P: 8, G: 95, W: 25.5 },
-        rd6: { name: "กข6", duration: 130, H: 16, P: 9, G: 100, W: 26.5 },
-        rd41: { name: "กข41", duration: 105, H: 20, P: 10, G: 110, W: 27.5 }
-      };
-      const spec = varietySpecs[newVariety] || varietySpecs["kdml105"];
-      activePaddy.params = {
-        variety: newVariety,
-        durationDays: spec.duration,
-        H: spec.H,
-        P: spec.P,
-        G: spec.G,
-        W: spec.W,
-        fertilityFactor: 0.82
-      };
-      this.updatePaddyBadges();
-      if (this.onPaddyListChangeCallback) {
-        this.onPaddyListChangeCallback(this.paddies, this.activePaddyId);
-      }
+    if (!activePaddy) return;
+    this.setPaddyVariety(activePaddy.id, newVariety);
+  }
+
+  /** เปลี่ยนพันธุ์ข้าวของแปลง (รีเซ็ตตัวแปรชีวภาพเป็นค่ามาตรฐานของพันธุ์ใหม่) */
+  setPaddyVariety(paddyId, newVariety) {
+    const paddy = this.paddies.find((p) => String(p.id) === String(paddyId));
+    if (!paddy) return null;
+    const fertility = (paddy.params && paddy.params.fertilityFactor) || DEFAULT_FERTILITY;
+    paddy.variety = getVarietySpec(newVariety).key;
+    paddy.params = buildPaddyParams(paddy.variety, fertility);
+    this.updatePaddyBadges();
+    if (this.onPaddyListChangeCallback) {
+      this.onPaddyListChangeCallback(this.paddies, this.activePaddyId, "variety");
     }
+    return paddy;
   }
 
   checkLandUse(lat, lng) {
     if (typeof checkUrbanZone77 === "function") {
       return checkUrbanZone77(lat, lng);
     }
-
     return {
       isPaddyArea: true,
       zoneType: "พื้นที่เกษตรกรรม (นาข้าว)",
@@ -822,72 +893,94 @@ class MapManager {
     };
   }
 
+  /**
+   * ลบแปลง และคืนข้อมูลแปลงที่ถูกลบ (ใช้สำหรับปุ่ม "เลิกทำ")
+   */
   deletePaddy(paddyId) {
     const idx = this.paddies.findIndex((p) => String(p.id) === String(paddyId));
-    if (idx === -1) return;
+    if (idx === -1) return null;
 
     const paddy = this.paddies[idx];
+    const wasActive = String(this.activePaddyId) === String(paddyId);
+    paddy.layer.closeTooltip && paddy.layer.closeTooltip();
     this.drawnItems.removeLayer(paddy.layer);
-    if (this.map.hasLayer(paddy.layer)) {
-      this.map.removeLayer(paddy.layer);
-    }
+    if (this.map.hasLayer(paddy.layer)) this.map.removeLayer(paddy.layer);
     this.paddies.splice(idx, 1);
+    if (this.hoverPaddyId === String(paddyId)) this.setHoverPaddy(null, "delete");
 
-    if (String(this.activePaddyId) === String(paddyId)) {
+    if (wasActive) {
       this.riceLayerGroup.clearLayers();
       this.weatherEffectLayer.clearLayers();
       this.lastRenderedPaddyId = null;
 
       if (this.paddies.length > 0) {
-        this.selectPaddy(this.paddies[0].id);
+        const next = this.paddies[Math.min(idx, this.paddies.length - 1)];
+        this.selectPaddy(next.id, { source: "delete" });
       } else {
         this.activePaddyId = null;
-        if (this.onPolygonChangeCallback) {
-          this.onPolygonChangeCallback(null, null, null, null);
-        }
+        if (this.onPolygonChangeCallback) this.onPolygonChangeCallback(null, null, null, null, "delete");
+        if (this.onPaddyListChangeCallback) this.onPaddyListChangeCallback(this.paddies, null, "delete");
       }
     } else {
-      this.selectPaddy(this.activePaddyId);
+      // ลบแปลงที่ไม่ได้เลือก: ไม่ต้องเลื่อนแผนที่หรือเปลี่ยนแปลงที่เลือกอยู่
+      if (this.onPaddyListChangeCallback) this.onPaddyListChangeCallback(this.paddies, this.activePaddyId, "delete");
     }
 
     this.updatePaddyBadges();
+    if (this.currentMode === "delete" && this.paddies.length === 0) this.setMode("pan");
+    if (this.onPaddyDeletedCallback) this.onPaddyDeletedCallback([paddy]);
+    return paddy;
+  }
 
-    if (this.onPaddyListChangeCallback) {
-      this.onPaddyListChangeCallback(this.paddies, this.activePaddyId);
-    }
-
-    this.setMode("pan");
+  /** นำแปลงที่ถูกลบกลับมา (ปุ่มเลิกทำ) */
+  restorePaddies(paddies) {
+    if (!paddies || paddies.length === 0) return;
+    let lastId = null;
+    paddies.forEach((paddy) => {
+      if (this.paddies.some((p) => p.number === paddy.number)) {
+        // หมายเลขเดิมถูกใช้ไปแล้ว: ให้หมายเลขใหม่
+        let n = 1;
+        while (this.paddies.some((p) => p.number === n)) n++;
+        paddy.number = n;
+        paddy.name = `แปลงที่ ${n}`;
+      }
+      this.drawnItems.addLayer(paddy.layer);
+      this.attachPaddyLayerEvents(paddy);
+      this.paddies.push(paddy);
+      lastId = paddy.id;
+    });
+    this.paddies.sort((a, b) => a.number - b.number);
+    this.updatePaddyBadges();
+    this.selectPaddy(lastId, { source: "restore", fly: true });
   }
 
   clearAllPaddies() {
     this.cleanupRectDrawer();
     this.cleanupPolygonDrawer();
+    if (this.paddies.length === 0) return [];
 
-    // 1. นำเลเยอร์แปลงนาทั้งหมดออกจากทั้ง drawnItems และแผนที่ Leaflet (Point 1)
-    this.paddies.forEach((p) => {
+    const removed = this.paddies.slice();
+    removed.forEach((p) => {
       if (p.layer) {
+        p.layer.closeTooltip && p.layer.closeTooltip();
         this.drawnItems.removeLayer(p.layer);
-        if (this.map.hasLayer(p.layer)) {
-          this.map.removeLayer(p.layer);
-        }
+        if (this.map.hasLayer(p.layer)) this.map.removeLayer(p.layer);
       }
     });
 
-    this.drawnItems.clearLayers();
     this.riceLayerGroup.clearLayers();
     this.weatherEffectLayer.clearLayers();
     this.paddyBadgeLayer.clearLayers();
     this.paddies = [];
     this.activePaddyId = null;
+    this.hoverPaddyId = null;
     this.lastRenderedPaddyId = null;
 
-    if (this.onPolygonChangeCallback) {
-      this.onPolygonChangeCallback(null, null, null, null);
-    }
-    if (this.onPaddyListChangeCallback) {
-      this.onPaddyListChangeCallback(this.paddies, null);
-    }
+    if (this.onPolygonChangeCallback) this.onPolygonChangeCallback(null, null, null, null, "delete");
+    if (this.onPaddyListChangeCallback) this.onPaddyListChangeCallback(this.paddies, null, "delete");
     this.setMode("pan");
+    if (this.onPaddyDeletedCallback) this.onPaddyDeletedCallback(removed);
+    return removed;
   }
 
   toggleTileLayer(btnElement) {
@@ -905,35 +998,37 @@ class MapManager {
   }
 
   /**
-   * สัญลักษณ์ป้ายแปลงตรงจุดกึ่งกลาง (ตัวหนังสือคมชัด ไม่เป็นกรอบปุ่มหนาเทอะทะ Point 7)
+   * ป้ายชื่อแปลงตรงจุดกึ่งกลาง (จัดกึ่งกลางด้วย CSS ไม่ว่าชื่อจะยาวเท่าไร)
    */
   updatePaddyBadges() {
     this.paddyBadgeLayer.clearLayers();
-    const varietyNames = { kdml105: "มะลิ 105", rd6: "กข6", rd41: "กข41" };
 
     this.paddies.forEach((p) => {
       const center = p.layer.getBounds().getCenter();
       const isActive = String(p.id) === String(this.activePaddyId);
-      const vKey = (p.params && p.params.variety) || p.variety || "kdml105";
-      const vName = varietyNames[vKey] || "มะลิ 105";
+      const isHover = this.hoverPaddyId !== null && String(p.id) === this.hoverPaddyId;
+      const spec = getVarietySpec(p.variety);
 
       const badgeIcon = L.divIcon({
-        className: "paddy-centroid-badge-container",
-        html: `<div class="paddy-centroid-badge ${isActive ? 'active' : ''}">
-          🌾 ${p.name} <span style="font-size:10.5px; opacity:0.9; margin-left:3px;">(${vName})</span>
+        className: `paddy-centroid-badge-container${isHover ? " is-hover" : ""}`,
+        html: `<div class="paddy-centroid-badge ${isActive ? "active" : ""}">
+          🌾 ${p.name} <span class="paddy-badge-variety">(${spec.short})</span>
         </div>`,
-        iconAnchor: [55, 14]
+        iconSize: null
       });
 
-      const marker = L.marker(center, { icon: badgeIcon, zIndexOffset: 1300 });
+      const marker = L.marker(center, { icon: badgeIcon, zIndexOffset: 1300, paddyId: String(p.id), keyboard: false });
       marker.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
+        if (this.isDrawingMode()) return;
         if (this.currentMode === "delete") {
           this.deletePaddy(p.id);
         } else {
-          this.selectPaddy(p.id);
+          this.selectPaddy(p.id, { source: "map" });
         }
       });
+      marker.on("mouseover", () => this.setHoverPaddy(p.id, "map"));
+      marker.on("mouseout", () => this.setHoverPaddy(null, "map"));
       this.paddyBadgeLayer.addLayer(marker);
     });
   }
@@ -1027,8 +1122,10 @@ class MapManager {
     this.lastRenderedPaddyId = this.activePaddyId;
 
     let plantSvg = "";
-    const isFlood = (weatherState === "flood");
-    const isDrought = (weatherState === "drought");
+    // stageId 6 = แปลงนี้ครบอายุเก็บเกี่ยวแล้ว (สภาพอากาศหลังจากนี้ไม่มีผลกับแปลง)
+    const isHarvested = (stageId === 6);
+    const isFlood = !isHarvested && (weatherState === "flood");
+    const isDrought = !isHarvested && (weatherState === "drought");
 
     if (stageId === 1) {
       const color = isDrought ? "#a16207" : "#22c55e";
@@ -1074,20 +1171,16 @@ class MapManager {
       </svg>`;
     }
 
-    if (activePaddy.layer) {
-      if (isFlood) {
-        activePaddy.layer.setStyle({ fillColor: "#0284c7", fillOpacity: 0.5, color: "#0284c7", weight: 4.5 });
-      } else if (isDrought) {
-        activePaddy.layer.setStyle({ fillColor: "#ea580c", fillOpacity: 0.4, color: "#c2410c", weight: 4.5 });
-      } else {
-        activePaddy.layer.setStyle({
-          fillColor: stageId === 5 ? "#fef08a" : "#22c55e",
-          fillOpacity: 0.35,
-          color: stageId === 5 ? "#d97706" : "#22c55e",
-          weight: 4.5
-        });
-      }
+    if (isFlood) {
+      this.activeVisualStyle = { fillColor: "#0284c7", fillOpacity: 0.5, color: "#0284c7", weight: 4.5 };
+    } else if (isDrought) {
+      this.activeVisualStyle = { fillColor: "#ea580c", fillOpacity: 0.4, color: "#c2410c", weight: 4.5 };
+    } else if (stageId >= 5) {
+      this.activeVisualStyle = { fillColor: "#fef08a", fillOpacity: isHarvested ? 0.5 : 0.35, color: "#d97706", weight: 4.5 };
+    } else {
+      this.activeVisualStyle = null;
     }
+    if (activePaddy.layer) activePaddy.layer.setStyle(this.getPaddyStyle(activePaddy));
 
     this.riceLayerGroup.clearLayers();
     activePaddy.ricePlants.forEach((p) => {
@@ -1104,7 +1197,7 @@ class MapManager {
     });
 
     this.weatherEffectLayer.clearLayers();
-    if (weatherState === "rain" || weatherState === "flood") {
+    if (!isHarvested && (weatherState === "rain" || weatherState === "flood")) {
       const bounds = activePaddy.layer.getBounds();
       const center = bounds.getCenter();
       const topLat = bounds.getNorth();

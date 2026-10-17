@@ -1,11 +1,15 @@
 /**
  * Universal Floating Tooltip System
- * รองรับการขึ้นบรรทัดใหม่ (\n หรือ <br>), จัดระยะห่างสวยงาม, 
- * และปรับตำแหน่งอัตโนมัติไม่ให้หลุดขอบจอหรือโดน Header บัง
+ * มี 2 รูปแบบ:
+ *  - data-tooltip : การ์ดคำอธิบายละเอียด (พื้นขาว) สำหรับไอคอน ⓘ อธิบายความหมาย/ที่มาของข้อมูล
+ *  - data-hint    : ป้ายสั้นสีเข้ม สำหรับปุ่ม/ตัวควบคุม บอกว่ากดแล้วจะเกิดอะไรขึ้น
+ * รองรับการขึ้นบรรทัดใหม่ (\n หรือ <br>) ปรับตำแหน่งอัตโนมัติไม่ให้หลุดขอบจอ และแสดงเมื่อโฟกัสด้วยคีย์บอร์ด
  */
 const GlobalTooltip = {
   el: null,
   activeTarget: null,
+  showTimer: null,
+  pendingTarget: null,
 
   init() {
     if (this.el) return;
@@ -13,76 +17,80 @@ const GlobalTooltip = {
     this.el = document.createElement("div");
     this.el.id = "globalFloatingTooltip";
     this.el.className = "global-floating-tooltip";
+    this.el.setAttribute("role", "tooltip");
     document.body.appendChild(this.el);
 
+    const findTarget = (node) => (node && node.closest ? node.closest("[data-tooltip], [data-hint]") : null);
+
     document.addEventListener("mouseover", (e) => {
-      const target = e.target.closest("[data-tooltip]");
-      if (target) {
-        this.show(target);
-      }
+      const target = findTarget(e.target);
+      if (!target) return;
+      if (target === this.activeTarget || target === this.pendingTarget) return;
+      this.schedule(target);
     });
 
     document.addEventListener("mouseout", (e) => {
-      const target = e.target.closest("[data-tooltip]");
-      if (target && target === this.activeTarget) {
-        this.hide();
-      }
+      const target = findTarget(e.target);
+      if (!target) return;
+      if (target.contains(e.relatedTarget)) return;
+      this.hide();
     });
 
+    document.addEventListener("focusin", (e) => {
+      const target = findTarget(e.target);
+      if (target && e.target.matches(":focus-visible")) this.schedule(target, 0);
+    });
+    document.addEventListener("focusout", () => this.hide());
+    document.addEventListener("mousedown", () => this.hide(), true);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") this.hide();
+    });
     window.addEventListener("scroll", () => this.hide(), true);
   },
 
+  schedule(target, delay) {
+    clearTimeout(this.showTimer);
+    this.pendingTarget = target;
+    const isHint = !target.hasAttribute("data-tooltip");
+    const wait = delay !== undefined ? delay : (isHint ? 350 : 120);
+    this.showTimer = setTimeout(() => {
+      this.pendingTarget = null;
+      if (target.isConnected) this.show(target);
+    }, wait);
+  },
+
   show(target) {
-    const rawText = target.getAttribute("data-tooltip");
+    const isHint = !target.hasAttribute("data-tooltip");
+    const rawText = target.getAttribute(isHint ? "data-hint" : "data-tooltip");
     if (!rawText || rawText.trim() === "") return;
 
     this.activeTarget = target;
-    
-    // แปลง \n หรือ | เป็นการขึ้นบรรทัดใหม่อย่างสวยงาม
-    let formattedHtml = rawText
-      .replace(/\\n/g, "<br>")
-      .replace(/\n/g, "<br>");
-
-    // ถ้ามีเครื่องหมาย bullet หรือ line break ให้จัดระเบียบ
-    this.el.innerHTML = formattedHtml;
+    this.el.className = `global-floating-tooltip ${isHint ? "is-hint" : "is-card"}`;
+    this.el.innerHTML = rawText.replace(/\\n/g, "<br>").replace(/\n/g, "<br>");
     this.el.style.display = "block";
-    this.el.style.opacity = "0";
     this.el.style.visibility = "hidden";
+    this.el.style.opacity = "0";
 
     const rect = target.getBoundingClientRect();
-    const tooltipRect = this.el.getBoundingClientRect();
+    const tip = this.el.getBoundingClientRect();
+    const padding = 10;
+    const gap = 8;
 
-    const padding = 12;
-    let top = 0;
-    let left = 0;
-
-    // ถ้าอยู่ใกล้ขอบบน (< 150px) ให้แสดงลงมาด้านล่าง
-    if (rect.top < 150) {
-      top = rect.bottom + 8;
-    } else {
-      top = rect.top - tooltipRect.height - 8;
+    // แสดงด้านบนก่อน ถ้าพื้นที่ไม่พอค่อยแสดงด้านล่าง
+    let top = rect.top - tip.height - gap;
+    let placement = "top";
+    if (top < padding) {
+      top = rect.bottom + gap;
+      placement = "bottom";
+    }
+    if (top + tip.height > window.innerHeight - padding) {
+      top = Math.max(padding, window.innerHeight - tip.height - padding);
     }
 
-    const inLeftPanel = target.closest("#panelLeft");
-    const inRightPanel = target.closest("#panelRight");
+    let left = rect.left + rect.width / 2 - tip.width / 2;
+    left = Math.max(padding, Math.min(left, window.innerWidth - tip.width - padding));
 
-    if (inLeftPanel) {
-      left = Math.min(rect.left, window.innerWidth - tooltipRect.width - padding);
-      if (left < padding) left = padding;
-    } else if (inRightPanel) {
-      left = rect.right - tooltipRect.width;
-      if (left < padding) left = padding;
-    } else {
-      left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-      if (left < padding) left = padding;
-      if (left + tooltipRect.width > window.innerWidth - padding) {
-        left = window.innerWidth - tooltipRect.width - padding;
-      }
-    }
-
-    // ป้องกันไม่ให้ top ล้นขอบจอบน
-    if (top < padding) top = padding;
-
+    this.el.dataset.placement = placement;
     this.el.style.top = `${Math.round(top)}px`;
     this.el.style.left = `${Math.round(left)}px`;
     this.el.style.visibility = "visible";
@@ -90,6 +98,8 @@ const GlobalTooltip = {
   },
 
   hide() {
+    clearTimeout(this.showTimer);
+    this.pendingTarget = null;
     if (!this.el) return;
     this.el.style.opacity = "0";
     this.el.style.visibility = "hidden";

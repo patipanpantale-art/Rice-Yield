@@ -1,0 +1,455 @@
+/* ==========================================================================
+   Zone 3 Layout System: Input (Left) - Map (Center) - Output (Right)
+   High-contrast, user-friendly agritech styling for Khon Kaen Rice Yield Sandbox
+   ========================================================================== */
+
+:root {
+  --z-bg: #f1f5f9;
+  --z-panel-bg: #ffffff;
+  --z-border: #cbd5e1;
+  --z-border-focus: #16a34a;
+  
+  --z-primary: #15803d;
+  --z-primary-hover: #166534;
+  --z-primary-light: #dcfce7;
+  --z-primary-text: #14532d;
+
+  --z-amber: #b45309;
+  --z-amber-light: #fef3c7;
+  --z-amber-text: #78350f;
+
+  --z-blue: #1d4ed8;
+  --z-blue-light: #dbeafe;
+  --z-blue-text: #1e3a8a;
+
+  --z-danger: #b91c1c;
+  --z-danger-light: #fee2e2;
+
+  --z-text-main: #0f172a;
+  --z-text-muted: #64748b;
+  --z-text-light: #94a3b8;
+
+  --z-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --z-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --z-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+/* Main 3-Zone Workspace Container */
+.z-workspace {
+  display: flex;
+  width: 100vw;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+  background-color: var(--z-bg);
+}
+
+/* Zone 1: Input Panel (Left) */
+.z-panel-input {
+  width: 350px;
+  min-width: 330px;
+  max-width: 380px;
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--z-panel-bg);
+  border-right: 2px solid var(--z-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Zone 2: Map Panel (Center) */
+.z-panel-map {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background-color: #e2e8f0;
+}
+
+/* Zone 3: Output Panel (Right) */
+.z-panel-output {
+  width: 410px;
+  min-width: 380px;
+  max-width: 440px;
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--z-panel-bg);
+  border-left: 2px solid var(--z-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Scrollbar refinement */
+.z-panel-input::-webkit-scrollbar,
+.z-panel-output::-webkit-scrollbar {
+  width: 6px;
+}
+.z-panel-input::-webkit-scrollbar-thumb,
+.z-panel-output::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* Panel Header */
+.z-panel-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--z-border);
+  background: #f8fafc;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.z-panel-header h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--z-text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.z-panel-header .z-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+/* Card Sections inside Panels */
+.z-card {
+  margin: 12px 14px;
+  background: #ffffff;
+  border: 1px solid var(--z-border);
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: var(--z-shadow-sm);
+  transition: border-color 0.15s ease;
+}
+.z-card:hover {
+  border-color: #94a3b8;
+}
+.z-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--z-text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--z-border);
+}
+.z-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--z-primary);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Form Controls */
+.z-form-group {
+  margin-bottom: 12px;
+}
+.z-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--z-text-main);
+  margin-bottom: 5px;
+}
+.z-select, .z-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid var(--z-border);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--z-text-main);
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.z-select:focus, .z-input:focus {
+  outline: none;
+  border-color: var(--z-border-focus);
+  box-shadow: 0 0 0 2px var(--z-primary-light);
+}
+
+/* Radio Cards (Selection Groups) */
+.z-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.z-radio-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--z-border);
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.z-radio-card:hover {
+  background: #ffffff;
+  border-color: #94a3b8;
+}
+.z-radio-card.active {
+  background: var(--z-primary-light);
+  border-color: var(--z-primary);
+}
+.z-radio-card input[type="radio"] {
+  margin-top: 3px;
+  accent-color: var(--z-primary);
+}
+.z-radio-content {
+  flex: 1;
+}
+.z-radio-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--z-text-main);
+  display: block;
+}
+.z-radio-desc {
+  font-size: 11px;
+  color: var(--z-text-muted);
+  display: block;
+  margin-top: 1px;
+}
+
+/* Slider with Counter */
+.z-slider-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.z-range-slider {
+  flex: 1;
+  accent-color: var(--z-primary);
+}
+.z-range-val {
+  min-width: 60px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--z-primary);
+  text-align: right;
+}
+
+/* Primary Action Button */
+.z-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.3);
+  transition: all 0.15s;
+}
+.z-btn-primary:hover {
+  background: linear-gradient(135deg, #15803d, #14532d);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(22, 163, 74, 0.4);
+}
+.z-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Floating Map Controls */
+.z-map-toolbar {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: #ffffff;
+  padding: 6px 10px;
+  border-radius: 30px;
+  border: 1px solid var(--z-border);
+  box-shadow: var(--z-shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.z-tool-btn {
+  background: #f8fafc;
+  border: 1px solid var(--z-border);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--z-text-main);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.z-tool-btn:hover {
+  background: #ffffff;
+  border-color: #94a3b8;
+  color: var(--z-primary);
+}
+.z-tool-btn.active {
+  background: var(--z-primary);
+  border-color: var(--z-primary);
+  color: #ffffff;
+}
+
+/* Map Status Banner */
+.z-map-status-overlay {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--z-border);
+  box-shadow: var(--z-shadow-md);
+  font-size: 12px;
+  max-width: 360px;
+}
+
+/* Output Cards */
+.z-highlight-card {
+  background: linear-gradient(135deg, #f0fdf4, #ffffff);
+  border: 2px solid #86efac;
+  border-radius: 10px;
+  padding: 16px;
+  margin: 12px 14px;
+  box-shadow: var(--z-shadow-sm);
+}
+.z-yield-val {
+  font-size: 32px;
+  font-weight: 800;
+  color: #15803d;
+  line-height: 1.1;
+}
+.z-yield-unit {
+  font-size: 14px;
+  font-weight: 600;
+  color: #166534;
+  margin-left: 4px;
+}
+.z-profit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #dcfce7;
+  color: #14532d;
+  margin-top: 8px;
+}
+
+/* Comparison Table (4 Cases) */
+.z-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.z-table th {
+  background: #f8fafc;
+  color: var(--z-text-muted);
+  font-weight: 600;
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--z-border);
+}
+.z-table td {
+  padding: 8px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--z-text-main);
+}
+.z-table tr.highlight {
+  background: #f0fdf4;
+  font-weight: 700;
+}
+.z-table tr.highlight td {
+  color: #15803d;
+}
+
+/* Progress / Feasibility Gauge */
+.z-progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.z-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+/* SSNM Checklist Steps */
+.z-ssnm-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #e2e8f0;
+}
+.z-ssnm-step:last-child {
+  border-bottom: none;
+}
+.z-step-pill {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Empty State Placeholder */
+.z-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--z-text-muted);
+}
+.z-empty-icon {
+  font-size: 40px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}

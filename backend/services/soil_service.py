@@ -121,7 +121,13 @@ class SoilService:
             return self._get_fallback_soil("ยังไม่ได้ติดตั้งไลบรารี geopandas หรือ shapely")
 
         try:
-            poly = shape(geojson_geometry)
+            geom = dict(geojson_geometry)
+            if geom.get("type") == "Polygon":
+                coords = geom.get("coordinates", [])
+                if coords and isinstance(coords[0], list) and coords[0] and isinstance(coords[0][0], (int, float)):
+                    geom["coordinates"] = [coords]
+
+            poly = shape(geom)
             prov_info = self._find_target_province(poly)
 
             if not prov_info:

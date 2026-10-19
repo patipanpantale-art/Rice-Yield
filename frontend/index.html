@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>จำลองผลผลิตข้าว · Rice Yield Sandbox Simulator</title>
+  <title>จำลองผลผลิตข้าวขอนแก่น · Rice Yield Sandbox Simulator (26 อำเภอ)</title>
 
-  <!-- Google Fonts: Kanit (หัวข้อ/ตัวเลข) & Sarabun (เนื้อหา) -->
+  <!-- Google Fonts: Kanit (หัวข้อ) & Sarabun (เนื้อหา) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -17,642 +17,493 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
 
-  <!-- App Stylesheets: ฐานคอมโพเนนต์ + ธีม K Tonal (โครงหน้าใหม่) -->
+  <!-- Layout Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/k-tonal.css">
+  <link rel="stylesheet" href="css/zone3.css">
+
+  <style>
+    /* Global Overrides for 3-Zone Clean Look */
+    body {
+      font-family: 'Sarabun', system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #f1f5f9;
+    }
+    h1, h2, h3, h4, .brand-title {
+      font-family: 'Kanit', sans-serif;
+    }
+    .top-header {
+      height: 56px;
+      background: #ffffff;
+      border-bottom: 2px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #16a34a, #d97706);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: #64748b;
+    }
+    .header-status {
+      font-size: 12px;
+      font-weight: 600;
+      background: #f8fafc;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid #cbd5e1;
+    }
+    .amphoe-tooltip {
+      font-family: 'Sarabun', sans-serif;
+      font-size: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+  </style>
 </head>
-<body class="k-app no-paddies" data-view="home">
+<body>
 
-  <!-- 1. เมนูหลักแนวตั้ง (Navigation Rail) -->
-  <nav class="k-rail" aria-label="เมนูหลัก">
-    <div class="k-rail-brand" aria-hidden="true"><i class="fa-solid fa-wheat-awn"></i></div>
-    <button type="button" class="k-rail-item" data-view-target="home" aria-current="page">
-      <span class="k-rail-pill"><i class="fa-solid fa-house"></i></span>หน้าหลัก
-    </button>
-    <button type="button" class="k-rail-item" data-view-target="season">
-      <span class="k-rail-pill"><i class="fa-regular fa-calendar"></i></span>ฤดูปลูก
-    </button>
-    <button type="button" class="k-rail-item" data-view-target="paddy">
-      <span class="k-rail-pill"><i class="fa-solid fa-map-location-dot"></i></span>แปลงนา
-    </button>
-    <button type="button" class="k-rail-item" data-view-target="weather">
-      <span class="k-rail-pill"><i class="fa-solid fa-cloud-sun-rain"></i></span>อากาศ
-    </button>
-    <button type="button" class="k-rail-item" data-view-target="growth">
-      <span class="k-rail-pill"><i class="fa-solid fa-chart-line"></i></span>การเติบโต
-    </button>
-    <button type="button" class="k-rail-item" data-view-target="report">
-      <span class="k-rail-pill"><i class="fa-regular fa-file-lines"></i></span>รายงาน
-    </button>
-    <button type="button" class="k-rail-item k-rail-bottom" id="btnOpenAboutModal" data-hint="อ่านคำชี้แจง ที่มาของข้อมูล และขอบเขตการใช้งาน">
-      <span class="k-rail-pill"><i class="fa-regular fa-circle-question"></i></span>คำชี้แจง
-    </button>
-  </nav>
-
-  <div class="k-shell">
-
-    <!-- 2. แถบหัว: ชื่อหน้า · ค้นหาคำสั่ง · สถานะเซิร์ฟเวอร์ -->
-    <header class="k-topbar">
-      <div class="k-title-block">
-        <span class="k-overline" id="kViewOverline">จำลองผลผลิตข้าว · มข. CS2569</span>
-        <h1 class="k-title" id="kViewTitle">หน้าหลักฟาร์ม</h1>
+  <!-- 1. แถบหัวระบบ (Top Header) -->
+  <header class="top-header">
+    <div class="brand-group">
+      <div class="brand-icon-box"><i class="fa-solid fa-wheat-awn"></i></div>
+      <div>
+        <div class="brand-title">Rice Yield Sandbox Simulator · ขอนแก่น (26 อำเภอ)</div>
+        <div class="brand-sub">แบบจำลองวิเคราะห์ผลผลิตข้าวตามเป้าหมายเชิงพื้นที่ มหาวิทยาลัยขอนแก่น</div>
       </div>
-      <button type="button" class="k-search-trigger" id="btnOpenCommand" aria-haspopup="dialog" data-hint="ค้นหาแปลง จังหวัด หรือคำสั่ง">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <span>ค้นหาแปลง จังหวัด หรือคำสั่ง</span>
-        <kbd>Ctrl K</kbd>
-      </button>
-      <div class="header-status-badge" id="backendStatusBadge">
-        <span class="status-dot"></span> กำลังตรวจสอบการเชื่อมต่อ...
+    </div>
+    <div class="header-status" id="zBackendStatus">
+      <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#16a34a; margin-right:6px;"></span>
+      กำลังเชื่อมต่อเซิร์ฟเวอร์...
+    </div>
+  </header>
+
+  <!-- 2. พื้นที่ทำงาน 3 ส่วนหลัก (3-Zone Workspace) -->
+  <main class="z-workspace">
+
+    <!-- ========================================== -->
+    <!-- ZONE 1: INPUT ZONE แถบปัจจัยการผลิต (ซ้ายมือ) -->
+    <!-- ========================================== -->
+    <aside class="z-panel-input" id="zoneInput">
+      <div class="z-panel-header">
+        <h2><i class="fa-solid fa-sliders" style="color:#15803d;"></i> 1. ปัจจัยการเพาะปลูก (Inputs)</h2>
+        <span class="z-tag">ตั้งค่าแปลง</span>
       </div>
-    </header>
 
-    <!-- 3. พื้นที่ทำงาน: แผงข้าง (เปลี่ยนตามเมนู) + แผนที่ -->
-    <main class="k-workspace">
-
-      <aside class="k-sheet" id="panelLeft" aria-labelledby="kViewTitle">
-
-        <!-- ===== หน้าหลัก ===== -->
-        <section class="k-view" data-view="home" id="panelRight">
-
-          <!-- ยังไม่มีแปลงนา -->
-          <div id="rightPanelEmptyState" class="k-empty">
-            <div class="k-empty-icon"><i class="fa-solid fa-draw-polygon"></i></div>
-            <h2 class="k-h2">ยังไม่มีแปลงนา</h2>
-            <p class="k-muted">ซูมไปที่นาของคุณ แล้วเลือกวิธีวาด ระบบจะคำนวณพื้นที่และดึงข้อมูลดินให้อัตโนมัติ</p>
-            <ol class="k-steps">
-              <li><span class="k-step-num">1</span><div><strong>ค้นหาจังหวัด</strong><span>ช่องค้นหามุมซ้ายบนของแผนที่</span></div></li>
-              <li><span class="k-step-num">2</span><div><strong>วาดแปลงนา</strong><span>แต่ละแปลงเลือกพันธุ์ต่างกันได้</span></div></li>
-              <li><span class="k-step-num">3</span><div><strong>กดเล่นจำลอง</strong><span>ดูข้าวโตทีละวันที่แถบด้านล่างแผนที่</span></div></li>
-            </ol>
-            <div class="k-actions">
-              <button type="button" class="k-btn k-btn-filled" data-start-draw="polygon" data-hint="คลิกวางจุดมุมทีละจุด คลิกจุดแรกเพื่อจบ"><i class="fa-solid fa-draw-polygon"></i> วาดตามขอบแปลง</button>
-              <button type="button" class="k-btn k-btn-outlined" data-start-draw="rectangle" data-hint="คลิก 2 ครั้งบนแผนที่ที่มุมตรงข้ามกัน"><i class="fa-regular fa-square"></i> วาดสี่เหลี่ยม</button>
-            </div>
-          </div>
-
-          <!-- ผลการคำนวณ (มีแปลงอย่างน้อย 1 แปลง) -->
-          <div id="rightPanelContent" style="display: none;">
-            <div class="k-chip-row" id="kSettingChips" aria-label="ตั้งค่าที่ใช้อยู่"></div>
-
-            <div class="k-stat-grid">
-              <div class="k-stat k-stat-primary">
-                <div class="k-stat-label">
-                  <span>คาดว่าจะได้ทั้งฟาร์ม</span>
-                  <span class="info-tooltip" data-tooltip="<strong>ผลผลิตคาดการณ์เมื่อเก็บเกี่ยว</strong><br>ข้าวเปลือกแห้งรวมทุกแปลง ประเมินจากสภาพ ณ วันจำลองปัจจุบัน<br>แปลงที่เก็บเกี่ยวแล้วจะคงค่า ณ วันเก็บเกี่ยว"><i class="fa-solid fa-circle-info"></i></span>
-                </div>
-                <div class="k-stat-value" id="dispTotalYield">0.00 ตัน</div>
-                <div class="k-stat-sub" id="dispAccumYield" data-hint="ผลผลิตที่สะสมในต้นข้าวแล้ว ณ วันจำลองปัจจุบัน (ตามการเติบโตของชีวมวล)">สะสมแล้ว ณ วันนี้: 0.00 ตัน</div>
-                <div class="k-stat-sub" id="dispPotYield">ศักยภาพสูงสุด: 0.00 ตัน</div>
-                <div class="k-stat-sub loss-line" id="dispYieldLossDesc"></div>
-              </div>
-
-              <div class="k-stat">
-                <div class="k-stat-label">
-                  <span>เฉลี่ยต่อไร่</span>
-                  <span class="info-tooltip" data-tooltip="ผลผลิตเฉลี่ยต่อไร่ของฟาร์ม เทียบเคียงกับเกณฑ์มาตรฐาน สศก. ภาคอีสาน 356 กก./ไร่"><i class="fa-solid fa-circle-info"></i></span>
-                </div>
-                <div class="k-stat-value" id="dispYieldPerRai">0 กก./ไร่</div>
-                <div class="k-pill-row">
-                  <div id="dispComparisonPill" class="comparison-pill" style="display: none;">รอบก่อนหน้า: 356 กก./ไร่</div>
-                  <div id="dispDisasterGhostPill" class="comparison-pill ghost-gold" style="display: none;">หากไม่เกิดมรสุม: 356 กก./ไร่</div>
-                  <span id="dispCompareDiff" style="display: none;"></span>
-                </div>
-                <div class="k-stat-sub" id="dispOaeBenchmark">0% เทียบ สศก. (356 กก./ไร่)</div>
-              </div>
-            </div>
-
-            <div id="dispDisasterSummaryCard" class="disaster-summary-card">
-              <div class="disaster-summary-title">
-                <i class="fa-solid fa-cloud-bolt"></i>
-                <span>สภาพอากาศและผลกระทบ</span>
-              </div>
-              <div id="dispDisasterSummaryText" class="disaster-summary-text">
-                ฤดูกาลนี้สภาพอากาศปกติ ไม่มีเหตุการณ์มรสุมรุนแรง ต้นข้าวเติบโตสมบูรณ์
-              </div>
-            </div>
-
-            <div class="k-list-head">
-              <h2 class="k-h3">แปลงนาในฟาร์ม</h2>
-              <span class="k-muted k-small">คลิกการ์ด = ไปที่แปลงบนแผนที่</span>
-            </div>
-            <div id="paddyBreakdownList" class="paddy-breakdown-list"></div>
-
-            <button type="button" class="k-btn k-btn-tonal k-btn-block" data-view-target="paddy">
-              <i class="fa-solid fa-sliders"></i> ดูตัวคูณและข้อมูลดินของแปลงที่เลือก
-            </button>
-          </div>
-        </section>
-
-        <!-- ===== ตั้งค่าฤดูปลูก ===== -->
-        <section class="k-view" data-view="season" hidden>
-          <div class="k-tabs" role="tablist" aria-label="หัวข้อการตั้งค่า">
-            <button type="button" role="tab" class="k-tab" id="tabSeasonClimate" aria-controls="secInput" aria-selected="true" data-tab="secInput">อากาศและวันปลูก</button>
-            <button type="button" role="tab" class="k-tab" id="tabSeasonDisaster" aria-controls="secDisaster" aria-selected="false" data-tab="secDisaster">ภัยธรรมชาติ</button>
-            <button type="button" role="tab" class="k-tab" id="tabSeasonBio" aria-controls="secBio" aria-selected="false" data-tab="secBio">องค์ประกอบผลผลิต</button>
-          </div>
-
-          <!-- แท็บ 1: อากาศและวันปลูก -->
-          <div class="k-tabpanel" role="tabpanel" id="secInput" aria-labelledby="tabSeasonClimate">
-            <div class="k-card">
-              <label class="k-field" for="riceVariety">
-                <span class="k-field-label">พันธุ์ข้าวของแปลงที่เลือก (และแปลงที่จะวาดใหม่)
-                  <span class="info-tooltip" data-tooltip="<strong>พันธุ์ข้าวอ้างอิงและลักษณะประจำพันธุ์:</strong><br>• <strong>ขาวดอกมะลิ 105:</strong> ข้าวนาปีไวแสง อายุ 120 วัน แตกกอ 7-10 รวง/กอ (สศก. ภาคอีสาน ~356 กก./ไร่)<br>• <strong>กข6:</strong> ข้าวเหนียวหอม ไวแสง อายุ 130 วัน แตกกอดี เมล็ดเรียวยาว ต้านทานโรคไหม้<br>• <strong>กข41:</strong> ข้าวนาปรังไม่ไวแสง อายุสั้น 105 วัน ตอบสนองต่อปุ๋ยสูง ผลผลิตสูง เหมาะกับเขตชลประทาน"><i class="fa-solid fa-circle-info"></i></span>
-                </span>
-                <select id="riceVariety" class="form-select">
-                  <option value="kdml105" selected>ขาวดอกมะลิ 105 · 120 วัน · ข้าวหอมยอดนิยม</option>
-                  <option value="rd6">กข6 · 130 วัน · ข้าวเหนียวหอม แตกกอดี</option>
-                  <option value="rd41">กข41 · 105 วัน · ผลผลิตสูง เหมาะนาปรัง</option>
-                </select>
-              </label>
-              <div id="dispVarietyTarget" class="field-helper"></div>
-            </div>
-
-            <div class="k-card">
-              <label class="k-field" for="climateYearSelect">
-                <span class="k-field-label">ใช้สภาพอากาศแบบปีไหน
-                  <span class="info-tooltip" data-tooltip="เลือกสภาพอากาศตามปีจริงและคาดการณ์ล่วงหน้า เพื่อทดสอบผลกระทบจากลานีญา/เอลนีโญในแต่ละปี"><i class="fa-solid fa-circle-info"></i></span>
-                </span>
-                <select id="climateYearSelect" class="form-select">
-                  <option value="2026">ปี 2026 · พยากรณ์ · ฝนต้นฤดูชุก ปลายฤดูแดดดี</option>
-                  <option value="2025">ปี 2025 · ปกติ · ENSO เป็นกลาง</option>
-                  <option value="2024" selected>ปี 2024 · ลานีญา · ฝนมาเร็วและชุก</option>
-                  <option value="2023">ปี 2023 · เอลนีโญ · แล้งทิ้งช่วง ร้อนจัด</option>
-                  <option value="2022">ปี 2022 · ลานีญา · ฝนชุกสม่ำเสมอ</option>
-                  <option value="baseline">ค่าเฉลี่ย 30 ปี · อ้างอิงกรมอุตุนิยมวิทยา</option>
-                </select>
-              </label>
-
-              <div class="advisory-card">
-                <div class="advisory-title"><i class="fa-solid fa-calendar-day"></i> <span id="dispAdvisoryBadge">ปีลานีญา (ฝนมาเร็ว)</span></div>
-                <div id="dispAdvisoryText">คำแนะนำ: ฝนเริ่มมาเร็วตั้งแต่กลางเดือน พ.ค. แนะนำเริ่มปลูกปลาย พ.ค. ถึงต้น มิ.ย.</div>
-                <button id="btnApplyAdvisoryDate" type="button" class="advisory-btn">
-                  <i class="fa-regular fa-calendar-check"></i> ตั้งวันเริ่มปลูกตามคำแนะนำนี้
-                </button>
-              </div>
-            </div>
-
-            <div class="k-card">
-              <label class="k-field" for="plantDate">
-                <span class="k-field-label">วันปักดำ
-                  <span class="info-tooltip" data-tooltip="วันปักดำหรือหว่าน มีผลต่อสภาพอากาศที่จะเจอในแต่ละช่วงอายุข้าว"><i class="fa-solid fa-circle-info"></i></span>
-                </span>
-                <input type="date" id="plantDate" class="form-input" value="2026-06-15">
-              </label>
-              <div id="dispFormattedDate" class="field-helper">15/06/2569 (15 มิถุนายน 2569)</div>
-            </div>
-
-            <button type="button" class="k-btn k-btn-filled k-btn-block" data-tab-next="secDisaster">ถัดไป: ภัยธรรมชาติ</button>
-          </div>
-
-          <!-- แท็บ 2: ภัยธรรมชาติ -->
-          <div class="k-tabpanel" role="tabpanel" id="secDisaster" aria-labelledby="tabSeasonDisaster" hidden>
-            <div class="k-card">
-              <h2 class="k-h3">เกิดทันทีระหว่างเล่น
-                <span class="info-tooltip" data-tooltip="จำลองภัยธรรมชาติฉับพลัน ณ วันจำลองปัจจุบัน กดซ้ำเพื่อปิด"><i class="fa-solid fa-circle-info"></i></span>
-              </h2>
-              <p class="k-muted k-small">กดตอนกำลังจำลอง ภัยจะเริ่มในวันนั้น กดซ้ำเพื่อปิด</p>
-              <div class="weather-sandbox-grid">
-                <button type="button" id="btnScenarioRain" class="scenario-btn" data-hint="ฝนตกชุ่มฉ่ำตั้งแต่วันนี้ไปเรื่อยๆ ขณะเล่นเวลา\nกดซ้ำเพื่อปิด (ฝนต่อเนื่อง ≥ 8 วันจะกลายเป็นน้ำท่วม)">
-                  <i class="fa-solid fa-cloud-showers-heavy k-ic-blue"></i><span>ฝนตกหนัก</span>
-                </button>
-                <button type="button" id="btnScenarioFlood" class="scenario-btn" data-hint="น้ำท่วมขังตั้งแต่วันนี้ (กดซ้ำเพื่อปิด)\nหากเกิดช่วงตั้งท้อง/ออกรวง ดอกจะลีบถาวร">
-                  <i class="fa-solid fa-water k-ic-blue"></i><span>น้ำท่วมขัง</span>
-                </button>
-                <button type="button" id="btnScenarioDrought" class="scenario-btn" data-hint="ฝนแล้งทิ้งช่วงตั้งแต่วันนี้ (กดซ้ำเพื่อปิด)\nดินแห้ง ข้าวขาดน้ำ">
-                  <i class="fa-solid fa-sun k-ic-brown"></i><span>แล้งทิ้งช่วง</span>
-                </button>
-                <button type="button" id="btnScenarioHeat" class="scenario-btn" data-hint="คลื่นความร้อนตั้งแต่วันนี้ (กดซ้ำเพื่อปิด)\nอุณหภูมิเกิน 37°C เกสรเป็นหมัน">
-                  <i class="fa-solid fa-temperature-arrow-up k-ic-red"></i><span>คลื่นความร้อน</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="k-card">
-              <h2 class="k-h3">กำหนดภัยตามช่วงวัน</h2>
-              <p class="k-muted k-small">ทดสอบว่าถ้าเจอภัยตอนข้าวอยู่ระยะไหน จะเสียหายเท่าไร</p>
-
-              <label class="k-field" for="disasterTypeSelect">
-                <span class="k-field-label">ชนิดภัย</span>
-                <select id="disasterTypeSelect" class="form-select">
-                  <option value="none">ไม่มีภัยพิเศษ</option>
-                  <option value="flood" selected>น้ำท่วมขัง</option>
-                  <option value="drought">แล้งทิ้งช่วง</option>
-                  <option value="heat">คลื่นความร้อน</option>
-                </select>
-              </label>
-
-              <div class="disaster-severity-slider-wrap">
-                <div class="k-range-head">
-                  <label for="inputDisasterSeverity">ความรุนแรง</label>
-                  <span id="dispSeverityVal" class="k-range-val">ระดับ 5 / 10</span>
-                </div>
-                <input type="range" id="inputDisasterSeverity" class="form-range" min="1" max="10" value="5" step="1">
-                <div id="dispDisasterSeverityDesc" class="disaster-severity-desc">ระดับ 5: น้ำท่วมปานกลาง ท่วมถึงโคนต้นข้าว แตกกอลดลงเล็กน้อย</div>
-              </div>
-
-              <div class="disaster-day-row">
-                <label class="k-field" for="disasterStartDay">
-                  <span class="k-field-label">เริ่มวันที่ (หลังปลูก)</span>
-                  <input type="number" id="disasterStartDay" class="form-input" value="30" min="1" max="120" data-hint="วันเริ่มต้นของภัยพิบัติ (นับจากวันปลูก)">
-                </label>
-                <label class="k-field" for="disasterEndDay">
-                  <span class="k-field-label">ถึงวันที่</span>
-                  <input type="number" id="disasterEndDay" class="form-input" value="75" min="1" max="120" data-hint="วันสุดท้ายของภัยพิบัติ">
-                </label>
-              </div>
-              <span id="dispDisasterDayRange" class="field-helper muted">(1 - 120)</span>
-
-              <button type="button" id="btnApplyDisasterWindow" class="k-btn k-btn-filled k-btn-block" data-hint="บันทึกช่วงภัยพิบัตินี้ (แทนที่ช่วงเดิม)\nเลือก &quot;ไม่มีภัยพิเศษ&quot; แล้วกดเพื่อล้าง">
-                <i class="fa-solid fa-floppy-disk"></i> บันทึกช่วงภัยนี้
-              </button>
-              <div id="dispDisasterWindowBadge" class="disaster-timeline-badge" style="display: none;"></div>
-            </div>
-
-            <div class="k-card k-card-row">
-              <button type="button" id="btnReRunScenario" class="k-btn k-btn-outlined" data-hint="เก็บผลรอบนี้ไว้เปรียบเทียบ แล้วเริ่มเล่นใหม่ตั้งแต่วันแรก">
-                <i class="fa-solid fa-rotate-right"></i> จำลองใหม่และเทียบรอบเดิม
-              </button>
-              <button type="button" id="btnOpenDisasterReport" class="k-btn k-btn-tonal" data-hint="เปิดรายงานสรุปความเสียหายทั้งฟาร์ม หากฤดูดำเนินไปจนครบ">
-                <i class="fa-regular fa-file-lines"></i> ดูรายงานความเสียหาย
-              </button>
-            </div>
-
-            <button type="button" class="k-btn k-btn-filled k-btn-block" data-tab-next="secBio">ถัดไป: องค์ประกอบผลผลิต</button>
-          </div>
-
-          <!-- แท็บ 3: องค์ประกอบผลผลิต -->
-          <div class="k-tabpanel" role="tabpanel" id="secBio" aria-labelledby="tabSeasonBio" hidden>
-            <div class="k-card">
-              <h2 class="k-h3">ข้าวในนาคุณเป็นแบบไหน
-                <span class="info-tooltip" data-tooltip="<strong>ค่ามาตรฐานข้าวไทย (สศก./กรมการข้าว):</strong><br>• <strong>ขาวดอกมะลิ 105:</strong> 16 กอ/ตร.ม. | 8 รวง/กอ | 95 เมล็ดดี/รวง | W=25.5 กรัม<br>• <strong>กข6:</strong> 16 กอ/ตร.ม. | 9 รวง/กอ | 100 เมล็ด/รวง | W=26.5 กรัม<br>• <strong>กข41:</strong> 20 กอ/ตร.ม. | 10 รวง/กอ | 110 เมล็ด/รวง | W=27.5 กรัม<br>• สัดส่วนเมล็ดติดจริงเฉลี่ย 80-85%"><i class="fa-solid fa-circle-info"></i></span>
-              </h2>
-              <p class="k-muted k-small">ค่าเริ่มต้นเป็นค่ามาตรฐานข้าวไทย ถ้าเคยนับในนาจริง ใส่ค่าของคุณได้เลย</p>
-            </div>
-
-            <div class="k-card k-slider-card">
-              <div class="k-range-head">
-                <label for="inputHills">จำนวนกอต่อตารางเมตร</label>
-                <span class="k-range-val" id="dispHills">16</span>
-              </div>
-              <input type="range" id="inputHills" class="form-range" min="10" max="30" value="16" step="1">
-              <span class="k-muted k-small">มาตรฐาน 16 กอ · ปักดำระยะ 25 × 25 ซม. ข้าวหว่าน 20–25 กอ</span>
-            </div>
-
-            <div class="k-card k-slider-card">
-              <div class="k-range-head">
-                <label for="inputPanicles">จำนวนรวงต่อกอ</label>
-                <span class="k-range-val" id="dispPanicles">8</span>
-              </div>
-              <input type="range" id="inputPanicles" class="form-range" min="4" max="20" value="8" step="1">
-              <span class="k-muted k-small">นาปีโดยทั่วไป 7–10 รวง ดินดีใส่ปุ๋ยอาจได้ 12–14 รวง</span>
-            </div>
-
-            <div class="k-card k-slider-card">
-              <div class="k-range-head">
-                <label for="inputGrains">เมล็ดดีต่อรวง</label>
-                <span class="k-range-val" id="dispGrains">95</span>
-              </div>
-              <input type="range" id="inputGrains" class="form-range" min="60" max="180" value="95" step="5">
-              <span class="k-muted k-small">นับเฉพาะเมล็ดที่ไม่ลีบ โดยทั่วไป 80–110 เมล็ด</span>
-            </div>
-
-            <div class="k-card k-slider-card">
-              <div class="k-range-head">
-                <label for="inputWeight">น้ำหนัก 1,000 เมล็ด</label>
-                <span class="k-range-val" id="dispWeight">25.5 กรัม</span>
-              </div>
-              <input type="range" id="inputWeight" class="form-range" min="20" max="32" value="25.5" step="0.5">
-              <span class="k-muted k-small">ข้าวเปลือกแห้ง ขาวดอกมะลิ 105 ราว 25–26 กรัม</span>
-            </div>
-
-            <button type="button" class="k-btn k-btn-filled k-btn-block" data-action="play-from-sheet"><i class="fa-solid fa-play"></i> เริ่มจำลอง</button>
-          </div>
-        </section>
-
-        <!-- ===== รายละเอียดแปลง ===== -->
-        <section class="k-view" data-view="paddy" hidden>
-          <div class="k-view-empty">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <p>วาดแปลงนาก่อน แล้วรายละเอียดดินและตัวคูณของแต่ละแปลงจะแสดงที่นี่</p>
-          </div>
-          <div class="k-view-body">
-            <div class="k-chip-row" id="kPaddySwitcher" role="tablist" aria-label="เลือกแปลง"></div>
-
-            <div class="k-card">
-              <div class="k-list-head">
-                <h2 class="k-h3">อะไรทำให้ผลผลิตลดลง · <span id="dispMultiplierPaddy">-</span></h2>
-                <span class="info-tooltip" data-tooltip="<strong>Y<sub>final</sub> = Y<sub>pot</sub> × F<sub>soil</sub> × F<sub>temp</sub> × F<sub>climate</sub> × F<sub>NDVI</sub> × F<sub>stress</sub></strong><br>1.00 = ไม่ลด ค่าเหล่านี้เป็นของแปลงที่เลือกอยู่"><i class="fa-solid fa-circle-info"></i></span>
-              </div>
-              <div class="multipliers-list">
-                <div class="multiplier-item">
-                  <div class="multiplier-name">
-                    <span>ดิน</span>
-                    <span class="info-tooltip" data-tooltip="ตัวคูณความเหมาะสมของดิน อิงตามการประเมินที่ดิน LDD: S1=ดีมาก, S2=ดี/ปานกลาง, S3=พอใช้, N=ไม่เหมาะสม"><i class="fa-solid fa-circle-info"></i></span>
-                  </div>
-                  <span id="dispSoilQual" class="qual-badge lvl-4">ดี (S2-สูง)</span>
-                  <span class="multiplier-badge" id="dispFsoil">× 0.85</span>
-                </div>
-                <div class="multiplier-item">
-                  <div class="multiplier-name">
-                    <span>อุณหภูมิ</span>
-                    <span class="info-tooltip" data-tooltip="ช่วงอุณหภูมิที่เหมาะสมต่อข้าวคือ 25-30°C หากเกิน 35°C เกสรจะเป็นหมัน"><i class="fa-solid fa-circle-info"></i></span>
-                  </div>
-                  <span id="dispTempQual" class="qual-badge lvl-4">ดี (ปกติ)</span>
-                  <span class="multiplier-badge" id="dispFtemp">× 0.95</span>
-                </div>
-                <div class="multiplier-item">
-                  <div class="multiplier-name">
-                    <span>น้ำ</span>
-                    <span class="info-tooltip" data-tooltip="ดัชนีความเพียงพอของน้ำตาม FAO-33 คำนวณจากสมดุลฝนและจำนวนวันแล้ง CDD"><i class="fa-solid fa-circle-info"></i></span>
-                  </div>
-                  <span id="dispClimateQual" class="qual-badge lvl-4">ดี (เพียงพอ)</span>
-                  <span class="multiplier-badge" id="dispFclimate">× 0.92</span>
-                </div>
-                <div class="multiplier-item">
-                  <div class="multiplier-name">
-                    <span>ความเขียว (ดาวเทียม)</span>
-                    <span class="info-tooltip" data-tooltip="ดัชนีพืชพรรณจากดาวเทียม Sentinel-2 สะท้อนความหนาแน่นทรงพุ่มและความเขียว"><i class="fa-solid fa-circle-info"></i></span>
-                  </div>
-                  <span id="dispNdviQual" class="qual-badge lvl-5">ดีมาก (ทรงพุ่มแน่น)</span>
-                  <span class="multiplier-badge" id="dispFndvi">× 0.96</span>
-                </div>
-                <div class="multiplier-item">
-                  <div class="multiplier-name">
-                    <span>ความเสียหายถาวร</span>
-                    <span class="info-tooltip" data-tooltip="ความเสียหายทางชีวภาพสะสมจากภัยธรรมชาติที่เกิดขึ้น ข้าวที่เสียในระยะสร้างรวงจะลีบถาวร ไม่สามารถฟื้นฟูได้"><i class="fa-solid fa-circle-info"></i></span>
-                  </div>
-                  <span class="qual-badge k-qual-spacer" aria-hidden="true"></span>
-                  <span class="multiplier-badge" id="dispFstress">× 1.00</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="k-card">
-              <h2 class="k-h3">ดินและที่ตั้ง · <span id="dispSoilPaddyName">แปลงที่เลือก</span></h2>
-              <dl class="k-dl">
-                <div><dt>ขนาดแปลง</dt><dd id="dispAreaThai">-</dd></div>
-                <div><dt>พื้นที่ (ตร.ม.)</dt><dd id="dispAreaSqM">-</dd></div>
-                <div><dt>ที่ตั้ง</dt><dd id="dispLocation">-</dd></div>
-                <div><dt>กลุ่มชุดดิน (กพด.)</dt><dd id="dispSoilGroup">-</dd></div>
-                <div><dt>ความเหมาะสม</dt><dd id="dispSuitability">-</dd></div>
-                <div><dt>ความเป็นกรด-ด่าง (pH)</dt><dd id="dispSoilPh">-</dd></div>
-              </dl>
-              <div id="dispLandUseAlert" class="k-note k-note-warn" style="display: none;"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ===== สภาพอากาศ ===== -->
-        <section class="k-view" data-view="weather" hidden>
-          <div class="k-view-empty">
-            <i class="fa-solid fa-cloud-sun-rain"></i>
-            <p>วาดแปลงนาก่อน แล้วกราฟฝนและอุณหภูมิของฤดูจะแสดงที่นี่</p>
-          </div>
-          <div class="k-view-body">
-            <div id="dispWeatherDesc" class="weather-desc-line">สภาพอากาศปกติตามฤดูกาล</div>
-            <div class="k-stat-grid">
-              <div class="k-stat k-stat-blue">
-                <div class="k-stat-label">ฝนวันนี้</div>
-                <div class="k-stat-value k-stat-value-sm" id="dispCurRain">0 มม./วัน</div>
-                <div class="k-stat-sub" id="dispCumulativeRain">สะสมตั้งแต่วันปลูก: 0 มม.</div>
-              </div>
-              <div class="k-stat">
-                <div class="k-stat-label">อุณหภูมิ
-                  <span class="info-tooltip" data-tooltip="CDD = วันแล้งติดต่อกัน, CWD = วันฝนตกติดต่อกัน, ฝนสะสมเริ่มนับจากวันปลูก"><i class="fa-solid fa-circle-info"></i></span>
-                </div>
-                <div class="k-stat-value k-stat-value-sm" id="dispCurTemp">29.5 °C</div>
-                <div class="k-stat-sub">วันแล้งติดต่อกัน: <span id="dispCdd">0 วัน</span></div>
-              </div>
-            </div>
-            <div class="k-card">
-              <h2 class="k-h3">ฝนและอุณหภูมิ 21 วันล่าสุด</h2>
-              <div class="chart-container k-chart"><canvas id="weatherChart"></canvas></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ===== การเติบโต ===== -->
-        <section class="k-view" data-view="growth" hidden>
-          <div class="k-view-empty">
-            <i class="fa-solid fa-chart-line"></i>
-            <p>วาดแปลงนาก่อน แล้วกราฟการเติบโตของข้าวจะแสดงที่นี่</p>
-          </div>
-          <div class="k-view-body">
-            <div class="k-card">
-              <div class="k-list-head">
-                <h2 class="k-h3">มวลต้นข้าวเทียบกับศักยภาพ (แปลงที่เลือก)</h2>
-                <span class="info-tooltip" data-tooltip="เส้นประเขียวอ่อน = ศักยภาพหากไม่มีมรสุม<br>เส้นเขียวเข้ม = รอบปัจจุบัน (หลังหักความเสียหายถาวร)<br>เส้นเทา = รอบก่อนหน้า (เมื่อกดจำลองใหม่/เปลี่ยนเงื่อนไข)"><i class="fa-solid fa-circle-info"></i></span>
-              </div>
-              <div class="chart-container k-chart k-chart-tall"><canvas id="growthChart"></canvas></div>
-            </div>
-            <p class="k-muted k-small">ความเสียหายช่วงแตกกอถึงออกรวงฟื้นคืนไม่ได้ เส้นเขียวเข้มจึงไม่กลับไปชนเส้นประ</p>
-          </div>
-        </section>
-
-        <!-- ===== รายงานความเสียหาย ===== -->
-        <section class="k-view" data-view="report" hidden id="modalDisasterReport">
-          <div class="k-view-empty">
-            <i class="fa-regular fa-file-lines"></i>
-            <p>วาดแปลงนาก่อน แล้วรายงานความเสียหายทั้งฤดูจะแสดงที่นี่</p>
-          </div>
-          <div class="k-view-body">
-            <p class="k-muted">สรุปทั้งฟาร์มเมื่อฤดูดำเนินไปจนครบ เทียบกับกรณีไม่มีมรสุม</p>
-            <div class="disaster-compare-cards">
-              <div class="disaster-card baseline">
-                <div class="d-card-label">ถ้าไม่มีมรสุม</div>
-                <div class="d-card-val" id="dispModalBaseYield">0 กก./ไร่</div>
-                <div class="d-card-sub" id="dispModalBaseTotal">0.00 ตัน</div>
-              </div>
-              <div class="disaster-card damaged">
-                <div class="d-card-label">ผลจริงในฤดูนี้</div>
-                <div class="d-card-val" id="dispModalActualYield">0 กก./ไร่</div>
-                <div class="d-card-sub" id="dispModalActualTotal">0.00 ตัน</div>
-              </div>
-            </div>
-
-            <div class="disaster-diff-banner" id="dispModalLossBanner">
-              <i class="fa-solid fa-triangle-exclamation"></i>
-              <span>สูญเสียผลผลิต: <strong>0 กก./ไร่ (0%)</strong></span>
-            </div>
-
-            <h2 class="k-h3">เหตุการณ์และระดับความรุนแรง (1–10)</h2>
-            <div id="dispModalDisasterTimeline" class="disaster-event-timeline-list"></div>
-
-            <div class="k-card-row">
-              <button type="button" class="k-btn k-btn-outlined" data-action="print-report"><i class="fa-solid fa-print"></i> พิมพ์ / บันทึก PDF</button>
-              <button type="button" class="k-btn k-btn-tonal" data-view-target="season" data-tab="secDisaster"><i class="fa-solid fa-sliders"></i> ปรับภัยหรือวันปลูก</button>
-            </div>
-          </div>
-        </section>
-      </aside>
-
-      <!-- แผนที่ -->
-      <div class="map-view-container">
-
-        <!-- ช่องค้นหาจังหวัด -->
-        <div class="map-search-bar-container">
-          <div class="map-search-input-wrap">
-            <i class="fa-solid fa-location-dot"></i>
-            <input type="text" id="provinceSearchInput" placeholder="ค้นหาจังหวัด เช่น ขอนแก่น" aria-label="ค้นหาจังหวัด" autocomplete="off">
-          </div>
-          <div id="provinceSuggestBox" class="province-suggest-dropdown" style="display: none;"></div>
+      <!-- Card 1: ข้อมูลแปลง & ดิน (Auto จากแผนที่) -->
+      <div class="z-card" style="background:#f8fafc;">
+        <div class="z-card-title">
+          <span class="z-step-num">1</span>
+          <span>ข้อมูลแปลงและดิน (อัตโนมัติ)</span>
         </div>
-
-        <!-- แถบเครื่องมือแผนที่ -->
-        <div class="map-toolbar-drawer">
-          <div class="custom-map-toolbar" id="customMapToolbar" role="toolbar" aria-label="เครื่องมือแผนที่">
-            <button type="button" id="toolPan" class="map-tool-btn active" data-hint="โหมดปกติ: ลากเพื่อเลื่อนแผนที่ คลิกแปลงเพื่อเลือก">
-              <i class="fa-solid fa-arrow-pointer"></i><span class="k-tool-label">ปกติ</span>
-            </button>
-            <button type="button" id="toolDrawPoly" class="map-tool-btn" data-hint="วาดแปลงรูปทรงอิสระ: คลิกวางจุดมุมทีละจุด\nคลิกจุดแรกหรือดับเบิลคลิกเพื่อจบ (Esc ยกเลิก)">
-              <i class="fa-solid fa-draw-polygon"></i><span class="k-tool-label">วาดแปลง</span>
-            </button>
-            <button type="button" id="toolDrawRect" class="map-tool-btn" data-hint="วาดแปลงสี่เหลี่ยม: คลิก 2 ครั้งที่มุมตรงข้ามกัน\n(วิธีที่ง่ายที่สุด)">
-              <i class="fa-regular fa-square"></i><span class="k-tool-label">สี่เหลี่ยม</span>
-            </button>
-            <button type="button" id="toolDelete" class="map-tool-btn" data-hint="โหมดลบ: คลิกแปลงบนแผนที่เพื่อลบ\n(หรือกด ✕ ที่การ์ดแปลงก็ได้)">
-              <i class="fa-solid fa-eraser"></i><span class="k-tool-label">ลบแปลง</span>
-            </button>
-            <button type="button" id="toolClear" class="map-tool-btn" data-hint="ลบแปลงนาทั้งหมด (กด &quot;เลิกทำ&quot; ได้)">
-              <i class="fa-solid fa-trash-can"></i><span class="k-tool-label">ล้างทั้งหมด</span>
-            </button>
-            <div class="toolbar-divider"></div>
-            <button type="button" id="toolToggleTile" class="map-tool-btn" data-hint="สลับภาพถ่ายดาวเทียม / แผนที่ถนน">
-              <i class="fa-solid fa-layer-group"></i><span class="k-tool-label">ดาวเทียม</span>
-            </button>
-            <div class="toolbar-divider"></div>
-            <button type="button" id="toolZoomIn" class="map-tool-btn icon-only" data-hint="ซูมเข้า" aria-label="ซูมเข้า"><i class="fa-solid fa-plus"></i></button>
-            <button type="button" id="toolZoomOut" class="map-tool-btn icon-only" data-hint="ซูมออก" aria-label="ซูมออก"><i class="fa-solid fa-minus"></i></button>
+        <div class="z-form-group">
+          <div style="font-size:11px; color:#64748b; margin-bottom:2px;">ขนาดพื้นที่แปลง:</div>
+          <div id="zDispArea" style="font-size:14px; font-weight:700; color:#0f172a;">
+            5.0 ไร่ <span style="font-size:11px; color:#64748b;">(ค่าจำลองเริ่มต้น)</span>
           </div>
         </div>
-
-        <div id="mapDrawHint" class="map-draw-hint" role="status" aria-live="polite"></div>
-
-        <div id="map"></div>
-
-        <!-- ไทม์ไลน์จำลอง -->
-        <div class="timeline-overlay" id="timelineOverlay">
-          <div class="timeline-header-row">
-            <div class="timeline-info-badge">
-              <span class="k-day" id="dispDap">วันที่ 1 / 120</span>
-              <span class="k-muted k-small">(<span id="dispPercent">1%</span>)</span>
-              <span class="stage-tag" id="dispStageName">1. ระยะกล้า (Seedling)</span>
-              <span class="k-muted k-small" id="dispSimDate">15 มิ.ย. 2569</span>
-            </div>
-            <button type="button" id="btnToggleTimeline" class="btn-toggle-timeline" data-hint="ย่อ/ขยายแถบไทม์ไลน์" aria-label="ย่อ/ขยายแถบไทม์ไลน์">
-              <i class="fa-solid fa-chevron-down" id="timelineChevron"></i>
-            </button>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+          <div>
+            <div style="font-size:11px; color:#64748b;">ที่ตั้งอำเภอ:</div>
+            <div id="zDispAmphoe" style="font-size:13px; font-weight:700; color:#15803d;">อ.เมืองขอนแก่น</div>
           </div>
-
-          <div class="timeline-body-collapsible" id="timelineBodyContent">
-            <div class="timeline-controls-row">
-              <button type="button" id="btnPlay" class="btn-ctrl btn-play" data-hint="เริ่มเล่น <kbd>Space</kbd>" aria-label="เริ่มเล่น"><i class="fa-solid fa-play"></i></button>
-              <button type="button" id="btnPause" class="btn-ctrl" data-hint="หยุดชั่วคราว <kbd>Space</kbd>" aria-label="หยุดชั่วคราว"><i class="fa-solid fa-pause"></i></button>
-              <button type="button" id="btnReset" class="btn-ctrl" data-hint="กลับไปวันแรก (เก็บผลรอบนี้ไว้เปรียบเทียบ)" aria-label="กลับไปวันแรก"><i class="fa-solid fa-rotate-left"></i></button>
-
-              <div class="scrubber-wrapper">
-                <div id="timelineDisasterHighlight" class="timeline-disaster-highlight" style="display: none;"></div>
-                <input type="range" id="timelineScrubber" min="1" max="120" value="1" class="scrubber-slider" aria-label="เลือกวันจำลอง" data-hint="ลากเพื่อกรอเวลา · ปุ่มลูกศร ← → เลื่อนทีละวัน (Shift = 10 วัน)\nแถบลาย = ช่วงภัยพิบัติที่กำหนด">
-              </div>
-
-              <label class="k-speed" for="simSpeedSelect">
-                <span class="k-visually-hidden">ความเร็ว</span>
-                <select id="simSpeedSelect" class="form-select" data-hint="ความเร็วการเล่น">
-                  <option value="1">1x</option>
-                  <option value="2" selected>2x</option>
-                  <option value="5">5x</option>
-                  <option value="10">10x</option>
-                </select>
-              </label>
-            </div>
-
-            <div id="multiVarietyGanttContainer" class="multi-variety-gantt-container" style="display: none;"></div>
+          <div>
+            <div style="font-size:11px; color:#64748b;">กลุ่มชุดดิน LDD:</div>
+            <div id="zDispSoil"><span class="z-tag" style="background:#fef3c7; color:#78350f;">กลุ่มดินที่ 35 (S3)</span></div>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-size:11px; color:#64748b; margin-bottom:3px;">การใช้ประโยชน์ที่ดิน LDD 2565:</div>
+          <div id="zDispLandUse">
+            <span class="z-tag" style="background:#dcfce7; color:#14532d;">✓ ในผังนาข้าว LDD (A101)</span>
           </div>
         </div>
       </div>
-    </main>
-  </div>
 
-  <!-- หน้าต่างค้นหาคำสั่ง (Ctrl K) -->
-  <div id="commandPalette" class="k-scrim" hidden>
-    <section class="k-command" role="dialog" aria-modal="true" aria-label="ค้นหาคำสั่ง">
-      <label class="k-command-input">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="commandInput" placeholder="พิมพ์ชื่อแปลง จังหวัด หรือสิ่งที่อยากทำ" aria-label="ค้นหา" aria-controls="commandList" autocomplete="off">
-        <kbd>Esc</kbd>
-      </label>
-      <div id="commandList" class="k-command-list" role="listbox" aria-label="ผลการค้นหา"></div>
-      <div class="k-command-foot">
-        <span><kbd>↑ ↓</kbd> เลือก</span>
-        <span><kbd>Enter</kbd> ทำเลย</span>
-        <span class="k-push">เปิดได้ทุกหน้าด้วย <kbd>Ctrl K</kbd></span>
+      <!-- Card 2: ปัจจัยการผลิตหลัก (Core Inputs) -->
+      <div class="z-card">
+        <div class="z-card-title">
+          <span class="z-step-num">2</span>
+          <span>ปัจจัยการผลิตและเป้าหมาย</span>
+        </div>
+
+        <!-- 2.1 เลือกพันธุ์ข้าว -->
+        <div class="z-form-group">
+          <label class="z-label" for="zInputVariety">🌾 พันธุ์ข้าวที่ปลูก:</label>
+          <select id="zInputVariety" class="z-select">
+            <option value="KDML105" selected>ขาวดอกมะลิ 105 (ข้าวเจ้านาปี · กลิ่นหอม)</option>
+            <option value="RD6">กข6 (ข้าวเหนียวนาปี · ยอดนิยมอีสาน)</option>
+            <option value="RD43">กข43 (ข้าวเจ้านาปรัง/นาปี · ดัชนีน้ำตาลต่ำ)</option>
+          </select>
+          <div style="font-size:11px; color:#64748b; margin-top:4px;">
+            เพดานทางพันธุกรรมสูงสุด: <strong id="zDispCeiling" style="color:#15803d;">550 กก./ไร่</strong>
+          </div>
+        </div>
+
+        <!-- 2.2 ตั้งเป้าหมายผลผลิต -->
+        <div class="z-form-group">
+          <label class="z-label" for="zNumTarget">🎯 เป้าหมายผลผลิตที่ต้องการ (กก./ไร่):</label>
+          <div class="z-slider-box">
+            <input type="range" id="zSliderTarget" class="z-range-slider" min="250" max="700" step="10" value="450">
+            <input type="number" id="zNumTarget" class="z-input" style="width:75px; text-align:center; font-weight:700;" min="200" max="800" value="450">
+          </div>
+        </div>
+
+        <!-- 2.3 แหล่งน้ำในแปลง -->
+        <div class="z-form-group">
+          <label class="z-label">💧 ระบบน้ำในแปลง:</label>
+          <div class="z-radio-group">
+            <label class="z-radio-card">
+              <input type="radio" name="zWater" value="irrigated">
+              <div class="z-radio-content">
+                <span class="z-radio-title">ในเขตชลประทาน (น้ำสมบูรณ์)</span>
+                <span class="z-radio-desc">มีน้ำหล่อเลี้ยงตลอดฤดูกาลเพาะปลูก (F_water = 1.00)</span>
+              </div>
+            </label>
+            <label class="z-radio-card active">
+              <input type="radio" name="zWater" value="rainfed_pond" checked>
+              <div class="z-radio-content">
+                <span class="z-radio-title">นอกเขตชลประทาน แต่มีสระน้ำไร่นา</span>
+                <span class="z-radio-desc">มีน้ำสำรองสูบช่วยช่วงฝนทิ้งช่วง (F_water = 0.88)</span>
+              </div>
+            </label>
+            <label class="z-radio-card">
+              <input type="radio" name="zWater" value="pure_rainfed">
+              <div class="z-radio-content">
+                <span class="z-radio-title">นอกเขต อาศัยน้ำฝนธรรมชาติ 100%</span>
+                <span class="z-radio-desc">เสี่ยงขาดน้ำหากฝนทิ้งช่วง (F_water = 0.72)</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2.4 การจัดการปุ๋ย -->
+        <div class="z-form-group">
+          <label class="z-label">🌿 การจัดการปุ๋ย:</label>
+          <div class="z-radio-group">
+            <label class="z-radio-card active">
+              <input type="radio" name="zFert" value="ssnm_3split" checked>
+              <div class="z-radio-content">
+                <span class="z-radio-title">ปุ๋ยสั่งตัด SSNM ครบ 3 ระยะ (แนะนำ)</span>
+                <span class="z-radio-desc">แตกกอ + กำเนิดรวง + สุกแก่ ตรงตามชุดดิน (F_fert = 1.00)</span>
+              </div>
+            </label>
+            <label class="z-radio-card">
+              <input type="radio" name="zFert" value="standard_2split">
+              <div class="z-radio-content">
+                <span class="z-radio-title">ปุ๋ยเคมีมาตรฐาน 2 รอบ</span>
+                <span class="z-radio-desc">ใส่รองพื้นและแต่งหน้ายูเรียทั่วไป (F_fert = 0.88)</span>
+              </div>
+            </label>
+            <label class="z-radio-card">
+              <input type="radio" name="zFert" value="farmer_habit">
+              <div class="z-radio-content">
+                <span class="z-radio-title">ใส่ปุ๋ยตามความคุ้นเคยรอบเดียว</span>
+                <span class="z-radio-desc">ใส่ครั้งเดียวช่วงต้นฤดู ปริมาณน้อย (F_fert = 0.75)</span>
+              </div>
+            </label>
+            <label class="z-radio-card">
+              <input type="radio" name="zFert" value="none">
+              <div class="z-radio-content">
+                <span class="z-radio-title">ไม่ใส่ปุ๋ยเคมี</span>
+                <span class="z-radio-desc">อาศัยธาตุอาหารธรรมชาติในดิน (F_fert = 0.58)</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2.5 วิธีการปลูก -->
+        <div class="z-form-group">
+          <label class="z-label">🚜 วิธีการปลูก:</label>
+          <div class="z-radio-group">
+            <label class="z-radio-card">
+              <input type="radio" name="zMethod" value="transplanting">
+              <div class="z-radio-content">
+                <span class="z-radio-title">นาดำ / รถปักดำ</span>
+                <span class="z-radio-desc">คุมวัชพืชได้ดีเยี่ยม แตกกอเต็มที่ (F_method = 1.00)</span>
+              </div>
+            </label>
+            <label class="z-radio-card">
+              <input type="radio" name="zMethod" value="wet_broadcast">
+              <div class="z-radio-content">
+                <span class="z-radio-title">นาหว่านน้ำตม</span>
+                <span class="z-radio-desc">ข้าวขึ้นสม่ำเสมอปานกลาง (F_method = 0.94)</span>
+              </div>
+            </label>
+            <label class="z-radio-card active">
+              <input type="radio" name="zMethod" value="dry_broadcast" checked>
+              <div class="z-radio-content">
+                <span class="z-radio-title">นาหว่านข้าวแห้ง (วิธีหลักอีสาน)</span>
+                <span class="z-radio-desc">ประหยัดแรงงานแต่วัชพืชแย่งอาหาร (F_method = 0.88)</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: จำลองภัยพิบัติฉุกเฉิน (Disaster Shock) -->
+      <div class="z-card" style="background:#fffaf0; border-color:#fde68a;">
+        <div class="z-card-title" style="color:#b45309; border-color:#fde68a;">
+          <i class="fa-solid fa-cloud-showers-heavy"></i>
+          <span>จำลองภัยธรรมชาติฉุกเฉิน (ทางเลือก)</span>
+        </div>
+        <div class="z-form-group">
+          <label class="z-label" for="zInputDisasterType">เหตุการณ์ภัยพิบัติ:</label>
+          <select id="zInputDisasterType" class="z-select">
+            <option value="none" selected>ไม่มีภัยพิบัติ (สภาพอากาศปกติ)</option>
+            <option value="flood">น้ำท่วมขังฉับพลัน (Submergence)</option>
+            <option value="drought">ฝนทิ้งช่วง / ภัยแล้ง (Drought Stress)</option>
+          </select>
+        </div>
+        <div class="z-form-group">
+          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600; margin-bottom:4px;">
+            <span>ระยะเวลาที่เผชิญภัย:</span>
+            <span id="zNumDisasterDays" style="color:#b45309;">0 วัน</span>
+          </div>
+          <input type="range" id="zSliderDisasterDays" class="z-range-slider" min="0" max="15" value="0">
+        </div>
+        <div class="z-form-group">
+          <label class="z-label" for="zInputDisasterStage">ระยะการเจริญเติบโตที่เกิดภัย:</label>
+          <select id="zInputDisasterStage" class="z-select">
+            <option value="vegetative_tillering">ระยะกล้าและแตกกอ (วัน 1-40)</option>
+            <option value="reproductive_flowering" selected>ระยะสร้างรวงและออกดอก (วิกฤตสูงสุด)</option>
+            <option value="ripening_harvest">ระยะสุกแก่พร้อมเกี่ยว (วัน 100-120)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ปุ่ม Action หลัก -->
+      <div style="padding: 0 14px 20px 14px;">
+        <button id="zBtnSimulate" class="z-btn-primary">
+          <i class="fa-solid fa-calculator"></i> จำลองผลผลิตและวิเคราะห์
+        </button>
+      </div>
+    </aside>
+
+
+    <!-- ========================================== -->
+    <!-- ZONE 2: MAP ZONE แผนที่โต้ตอบ 26 อำเภอ (ตรงกลาง) -->
+    <!-- ========================================== -->
+    <section class="z-panel-map" id="zoneMap">
+      
+      <!-- แถบเครื่องมือลอยบนแผนที่ (Floating Map Toolbar) -->
+      <div class="z-map-toolbar">
+        <button id="zToolDrawPoly" class="z-tool-btn" title="คลิกวางจุดทีละมุม คลิกจุดแรกเพื่อจบแปลง">
+          <i class="fa-solid fa-draw-polygon" style="color:#16a34a;"></i> วาดแปลงอิสระ
+        </button>
+        <button id="zToolDrawRect" class="z-tool-btn" title="คลิก 2 ครั้งบนแผนที่เพื่อวาดสี่เหลี่ยม">
+          <i class="fa-regular fa-square" style="color:#2563eb;"></i> วาดสี่เหลี่ยม
+        </button>
+        <button id="zToolClear" class="z-tool-btn" title="ลบแปลงที่วาดออกเพื่อวาดใหม่">
+          <i class="fa-solid fa-trash-can" style="color:#dc2626;"></i> ลบแปลง
+        </button>
+        <div style="width:1px; height:20px; background:#cbd5e1; margin:0 4px;"></div>
+        <button id="zToolFocus" class="z-tool-btn" title="ซูมกลับไปที่ภาพรวมจังหวัดขอนแก่น">
+          <i class="fa-solid fa-crosshairs" style="color:#d97706;"></i> ขอนแก่น
+        </button>
+        <button id="zToolLayerSat" class="z-tool-btn active">🛰️ ดาวเทียม</button>
+        <button id="zToolLayerStreet" class="z-tool-btn">🗺️ ถนน</button>
+      </div>
+
+      <!-- แผนที่ Leaflet Container -->
+      <div id="map" style="width:100%; height:100%;"></div>
+
+      <!-- แถบคำแนะนำลอยมุมซ้ายล่าง -->
+      <div class="z-map-status-overlay">
+        <div style="font-weight:700; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+          <i class="fa-solid fa-circle-info" style="color:#2563eb;"></i> คำแนะนำการใช้งาน
+        </div>
+        <div style="color:#475569; font-size:11px; line-height:1.4;">
+          1. ใช้ปุ่มด้านบนวาดแปลงนาบนแผนที่<br>
+          2. ปรับเป้าหมายและปัจจัยการผลิตที่แผงซ้าย<br>
+          3. แผนที่แสดงเส้นขอบเขต 26 อำเภอขอนแก่น (คลิกอำเภอเพื่อดูสถิติจริง สศก.)
+        </div>
       </div>
     </section>
-  </div>
 
-  <!-- แจ้งเตือนภายในเว็บ -->
-  <div id="appAlertModal" class="app-popup-overlay" style="display: none;">
-    <div class="app-popup-card" role="alertdialog" aria-labelledby="appAlertTitle" aria-describedby="appAlertMessage">
-      <div class="app-popup-icon warning" id="appAlertIconWrap">
-        <i class="fa-solid fa-triangle-exclamation" id="appAlertIcon"></i>
+
+    <!-- ========================================== -->
+    <!-- ZONE 3: OUTPUT ZONE แถบผลลัพธ์และวิเคราะห์ (ขวามือ) -->
+    <!-- ========================================== -->
+    <aside class="z-panel-output" id="zoneOutput">
+      <div class="z-panel-header">
+        <h2><i class="fa-solid fa-chart-column" style="color:#2563eb;"></i> 3. ผลการจำลองและการวิเคราะห์ (Outputs)</h2>
+        <span class="z-tag" style="background:#dbeafe; color:#1e40af;">สรุปผล</span>
       </div>
-      <h3 class="app-popup-title" id="appAlertTitle">แจ้งเตือน</h3>
-      <p class="app-popup-desc" id="appAlertMessage">ข้อความแจ้งเตือน</p>
-      <div class="app-popup-actions">
-        <button id="btnAppAlertClose" type="button" class="app-popup-btn primary">เข้าใจแล้ว</button>
+
+      <!-- Card 1: สรุปผลผลิตและการเงิน (Highlight Card) -->
+      <div class="z-highlight-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase;">ผลผลิตที่คาดว่าจะได้</div>
+            <div style="margin-top:2px;">
+              <span id="zDispYieldVal" class="z-yield-val">418.5</span>
+              <span class="z-yield-unit">กก./ไร่</span>
+            </div>
+            <div id="zDispTotalTons" style="font-size:12px; font-weight:600; color:#475569; margin-top:2px;">
+              2.09 ตัน (2,092 กก.)
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:11px; color:#64748b;">ราคาข้าวเปลือกตลาด:</div>
+            <div style="font-size:13px; font-weight:700; color:#0f172a;">17,000 บ./ตัน</div>
+            <div style="font-size:10px; color:#94a3b8;">ธ.ก.ส. ขอนแก่น (15% ความชื้น)</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; padding-top:10px; border-top:1px dashed #bbf7d0; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+          <div>
+            <div style="font-size:11px; color:#64748b;">รายได้คาดการณ์:</div>
+            <div id="zDispGrossRev" style="font-size:13px; font-weight:700; color:#15803d;">35,564 บาท</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:#64748b;">ต้นทุนการผลิต:</div>
+            <div id="zDispTotalCost" style="font-size:13px; font-weight:700; color:#475569;">18,510 บาท</div>
+          </div>
+        </div>
+
+        <div id="zDispProfitBadge" class="z-profit-badge">
+          <i class="fa-solid fa-arrow-trend-up"></i> กำไรสุทธิ: +17,054 บาท (3,410 บ./ไร่)
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- ต้อนรับ / คำชี้แจง -->
-  <div id="welcomeDisclaimerModal" class="app-popup-overlay" style="display: none;">
-    <div class="app-popup-card welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
-      <div class="k-welcome-icon"><i class="fa-solid fa-seedling"></i></div>
-      <h2 class="welcome-title" id="welcomeTitle">ลองปลูกข้าวในแปลงของคุณ ก่อนลงมือจริง</h2>
-      <p class="welcome-subtitle">วาดแปลงนาบนแผนที่ เลือกพันธุ์และวันปลูก แล้วดูว่าสภาพอากาศแต่ละปีจะทำให้ได้ข้าวเท่าไร</p>
+      <!-- Card 2: ความเป็นไปได้ & Yield Gap (Feasibility Gauge) -->
+      <div class="z-card">
+        <div class="z-card-title">
+          <i class="fa-solid fa-bullseye" style="color:#d97706;"></i>
+          <span>ความเป็นไปได้ต่อเป้าหมาย (Feasibility)</span>
+        </div>
 
-      <ol class="k-steps">
-        <li><span class="k-step-num">1</span><div><strong>วาดแปลงนา</strong><span>ค้นหาจังหวัด แล้ววาดรอบแปลงบนแผนที่</span></div></li>
-        <li><span class="k-step-num">2</span><div><strong>ตั้งค่าฤดูปลูก</strong><span>พันธุ์ข้าว วันปลูก และสภาพอากาศแบบปีที่อยากทดสอบ</span></div></li>
-        <li><span class="k-step-num">3</span><div><strong>กดเล่นจำลอง</strong><span>ดูข้าวโตทีละวัน และผลผลิตที่คาดว่าจะได้</span></div></li>
-      </ol>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span id="zDispFeasLabel" style="font-size:13px; font-weight:700; color:#15803d;">
+            บรรลุเป้าหมายได้อย่างมีประสิทธิภาพ
+          </span>
+          <span id="zDispFeasPct" style="font-size:16px; font-weight:800; color:#15803d;">93.0%</span>
+        </div>
 
-      <details class="k-details">
-        <summary>ที่มาของข้อมูลและขอบเขต</summary>
-        <ul>
-          <li><strong>เพื่อการศึกษาและวิจัย:</strong> ห้องปฏิบัติการเสมือนสำหรับศึกษาความสัมพันธ์ระหว่างดิน สภาพอากาศ ดัชนีดาวเทียม และผลผลิตข้าว (CP353761 วิทยาลัยการคอมพิวเตอร์ มหาวิทยาลัยขอนแก่น)</li>
-          <li><strong>เฉพาะประเทศไทย:</strong> ฐานข้อมูลกลุ่มชุดดิน 62 ชุดดินของกรมพัฒนาที่ดิน และขอบเขต 77 จังหวัด 928 อำเภอ</li>
-          <li><strong>แบบจำลองผสมผสาน:</strong> สรีรวิทยาข้าว (IRRI Yoshida) ร่วมกับสมการตอบสนองต่อน้ำ FAO-33 อุณหภูมิ ภาพถ่ายดาวเทียม และสถิติ สศก.</li>
-        </ul>
-      </details>
+        <div class="z-progress-bar">
+          <div id="zDispFeasProgress" class="z-progress-fill" style="width: 93%;"></div>
+        </div>
 
-      <p class="k-note k-note-warn">ตัวเลขทั้งหมดเป็นผลจากแบบจำลอง ใช้ประกอบการตัดสินใจ ไม่ใช่การรับรองผลผลิตจริง</p>
-
-      <div class="app-popup-actions">
-        <button id="btnWelcomeAccept" type="button" class="app-popup-btn primary"><i class="fa-solid fa-seedling"></i> เริ่มใช้งาน</button>
+        <div id="zDispGapText" style="font-size:12px; font-weight:600; color:#475569; margin-top:6px;">
+          ขาดอีก 31.5 กก./ไร่ จะบรรลุเป้าหมาย 450 กก./ไร่
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Toast -->
-  <div id="toastRegion" class="toast-region" aria-live="polite"></div>
+      <!-- Card 3: เปรียบเทียบ 4 กรณี (Scenario Comparison Table) -->
+      <div class="z-card">
+        <div class="z-card-title">
+          <i class="fa-solid fa-code-compare" style="color:#2563eb;"></i>
+          <span>เปรียบเทียบ 4 กรณีในขอนแก่น</span>
+        </div>
+        <table class="z-table">
+          <thead>
+            <tr>
+              <th>กรณีศึกษา (Case)</th>
+              <th>ผลผลิต</th>
+              <th>เทียบเป้าหมาย</th>
+            </tr>
+          </thead>
+          <tbody id="zTableScenariosBody">
+            <!-- ข้อมูลจะถูก Render ผ่าน JavaScript -->
+            <tr>
+              <td>สถิติจริง สศก. (อ.เมืองขอนแก่น)</td>
+              <td>345 กก./ไร่</td>
+              <td>-105 กก.</td>
+            </tr>
+            <tr class="highlight">
+              <td>การจัดการปัจจุบันของคุณ</td>
+              <td>418.5 กก./ไร่</td>
+              <td>-31.5 กก.</td>
+            </tr>
+            <tr>
+              <td>แนะนำปุ๋ยสั่งตัด SSNM</td>
+              <td>480.0 กก./ไร่</td>
+              <td>+30.0 กก.</td>
+            </tr>
+            <tr>
+              <td>เพดานพันธุกรรม (กข105)</td>
+              <td>550.0 กก./ไร่</td>
+              <td>+100.0 กก.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Card 4: แผนปุ๋ยสั่งตัด SSNM 3 ระยะ (Actionable Checklist) -->
+      <div class="z-card" style="margin-bottom:20px;">
+        <div class="z-card-title">
+          <i class="fa-solid fa-list-check" style="color:#16a34a;"></i>
+          <span>แผนปฏิบัติปุ๋ยสั่งตัด SSNM (3 ระยะ)</span>
+        </div>
+        <div id="zDispSsnmSteps">
+          <div class="z-ssnm-step">
+            <div class="z-step-pill">1</div>
+            <div style="flex:1;">
+              <div style="font-size:12px; font-weight:700; color:#0f172a;">ระยะรองพื้น (15-20 วันหลังหว่าน)</div>
+              <div style="font-size:12px; color:#15803d; font-weight:600; margin:2px 0;">สูตรปุ๋ย: 16-16-8 (อัตรา 25 กก./ไร่)</div>
+              <div style="font-size:11px; color:#64748b;">เสริมโพแทสเซียมสำหรับดินทราย เร่งสร้างรากและกอ</div>
+            </div>
+          </div>
+          <div class="z-ssnm-step">
+            <div class="z-step-pill">2</div>
+            <div style="flex:1;">
+              <div style="font-size:12px; font-weight:700; color:#0f172a;">ระยะแตกกอสูงสุด (30-40 วัน)</div>
+              <div style="font-size:12px; color:#15803d; font-weight:600; margin:2px 0;">สูตรปุ๋ย: 46-0-0 ยูเรีย (อัตรา 15 กก./ไร่)</div>
+              <div style="font-size:11px; color:#64748b;">เพิ่มจำนวนต้นต่อกอและขยายพื้นที่ใบรับแสง</div>
+            </div>
+          </div>
+          <div class="z-ssnm-step">
+            <div class="z-step-pill">3</div>
+            <div style="flex:1;">
+              <div style="font-size:12px; font-weight:700; color:#0f172a;">ระยะสร้างรวงอ่อน/ตั้งท้อง (ก่อนออกดอก 30 วัน)</div>
+              <div style="font-size:12px; color:#15803d; font-weight:600; margin:2px 0;">สูตรปุ๋ย: 0-0-60 หรือ 15-15-15 (อัตรา 10 กก./ไร่)</div>
+              <div style="font-size:11px; color:#64748b;">บำรุงเมล็ด เพิ่มน้ำหนักรวง ลดเมล็ดลีบ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </main>
 
   <!-- External JavaScript Libraries via CDN -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <!-- App Modules -->
-  <script src="js/varieties.js"></script>
-  <script src="js/tooltip.js"></script>
-  <script src="js/provinces.js"></script>
-  <script src="js/area_calc.js"></script>
-  <script src="js/time_engine.js"></script>
-  <script src="js/charts.js"></script>
-  <script src="js/map.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/shell.js"></script>
+  <!-- Sandbox Controller for 3-Zone Architecture -->
+  <script src="js/sandbox_controller.js"></script>
+
 </body>
 </html>

@@ -64,3 +64,14 @@ backend/data/soil/_tmp_extract/
 # อนุญาตให้ Push ไฟล์ Metadata JSON ที่จำเป็นต่อระบบ
 !backend/data/soil/province_mapping.json
 !backend/data/soil_suitability.json
+
+# Raw government documents and long-named archives (ป้องกัน Vercel unpack error: filename too long)
+*.docx
+*.xls
+*.xlsx
+*.pdf
+*.shp.xml
+backend/data/khon_kaen/statistics/prices/
+backend/data/khon_kaen/statistics/economic_costs/
+backend/data/khon_kaen/gis/
+backend/data/landuse/

@@ -1,0 +1,220 @@
+{
+  "description": "สถิติผลผลิตข้าวนาปีแยกรายอำเภอ 26 อำเภอ จังหวัดขอนแก่น",
+  "province": "ขอนแก่น",
+  "districts": {
+    "เมืองขอนแก่น": {
+      "amphoe_th": "เมืองขอนแก่น",
+      "planted_rai": 168200,
+      "harvested_rai": 161472,
+      "harvest_ratio": 0.96,
+      "yield_kg_per_rai": 345.0,
+      "production_ton": 55707.0
+    },
+    "บ้านฝาง": {
+      "amphoe_th": "บ้านฝาง",
+      "planted_rai": 94500,
+      "harvested_rai": 86940,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 26951.0
+    },
+    "พระยืน": {
+      "amphoe_th": "พระยืน",
+      "planted_rai": 52100,
+      "harvested_rai": 50016,
+      "harvest_ratio": 0.96,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 15504.0
+    },
+    "หนองเรือ": {
+      "amphoe_th": "หนองเรือ",
+      "planted_rai": 155000,
+      "harvested_rai": 142600,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 345.0,
+      "production_ton": 49197.0
+    },
+    "ชุมแพ": {
+      "amphoe_th": "ชุมแพ",
+      "planted_rai": 142000,
+      "harvested_rai": 130640,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 345.0,
+      "production_ton": 45070.0
+    },
+    "สีชมพู": {
+      "amphoe_th": "สีชมพู",
+      "planted_rai": 131000,
+      "harvested_rai": 120520,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 37361.0
+    },
+    "น้ำพอง": {
+      "amphoe_th": "น้ำพอง",
+      "planted_rai": 126000,
+      "harvested_rai": 120960,
+      "harvest_ratio": 0.96,
+      "yield_kg_per_rai": 345.0,
+      "production_ton": 41731.0
+    },
+    "อุบลรัตน์": {
+      "amphoe_th": "อุบลรัตน์",
+      "planted_rai": 56000,
+      "harvested_rai": 53760,
+      "harvest_ratio": 0.96,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 16665.0
+    },
+    "กระนวน": {
+      "amphoe_th": "กระนวน",
+      "planted_rai": 82000,
+      "harvested_rai": 75440,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 23386.0
+    },
+    "บ้านไผ่": {
+      "amphoe_th": "บ้านไผ่",
+      "planted_rai": 138000,
+      "harvested_rai": 126960,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 39357.0
+    },
+    "เปือยน้อย": {
+      "amphoe_th": "เปือยน้อย",
+      "planted_rai": 41200,
+      "harvested_rai": 37904,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 11750.0
+    },
+    "พล": {
+      "amphoe_th": "พล",
+      "planted_rai": 162400,
+      "harvested_rai": 149408,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 46316.0
+    },
+    "แวงใหญ่": {
+      "amphoe_th": "แวงใหญ่",
+      "planted_rai": 68500,
+      "harvested_rai": 63020,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 19536.0
+    },
+    "แวงน้อย": {
+      "amphoe_th": "แวงน้อย",
+      "planted_rai": 96300,
+      "harvested_rai": 88596,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 27464.0
+    },
+    "หนองสองห้อง": {
+      "amphoe_th": "หนองสองห้อง",
+      "planted_rai": 184500,
+      "harvested_rai": 169740,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 52619.0
+    },
+    "ภูเวียง": {
+      "amphoe_th": "ภูเวียง",
+      "planted_rai": 114000,
+      "harvested_rai": 104880,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 32512.0
+    },
+    "มัญจาคีรี": {
+      "amphoe_th": "มัญจาคีรี",
+      "planted_rai": 121500,
+      "harvested_rai": 116640,
+      "harvest_ratio": 0.96,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 36158.0
+    },
+    "ชนบท": {
+      "amphoe_th": "ชนบท",
+      "planted_rai": 98400,
+      "harvested_rai": 90528,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 28063.0
+    },
+    "เขาสวนกวาง": {
+      "amphoe_th": "เขาสวนกวาง",
+      "planted_rai": 58000,
+      "harvested_rai": 53360,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 16541.0
+    },
+    "ภูผาม่าน": {
+      "amphoe_th": "ภูผาม่าน",
+      "planted_rai": 31000,
+      "harvested_rai": 28520,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 8841.0
+    },
+    "ซำสูง": {
+      "amphoe_th": "ซำสูง",
+      "planted_rai": 39500,
+      "harvested_rai": 36340,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 11265.0
+    },
+    "โคกโพธิ์ไชย": {
+      "amphoe_th": "โคกโพธิ์ไชย",
+      "planted_rai": 53200,
+      "harvested_rai": 48944,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 15172.0
+    },
+    "หนองนาคำ": {
+      "amphoe_th": "หนองนาคำ",
+      "planted_rai": 44800,
+      "harvested_rai": 41216,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 12776.0
+    },
+    "บ้านแฮด": {
+      "amphoe_th": "บ้านแฮด",
+      "planted_rai": 64200,
+      "harvested_rai": 59064,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 18309.0
+    },
+    "โนนศิลา": {
+      "amphoe_th": "โนนศิลา",
+      "planted_rai": 46500,
+      "harvested_rai": 42780,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 13261.0
+    },
+    "เวียงเก่า": {
+      "amphoe_th": "เวียงเก่า",
+      "planted_rai": 31700,
+      "harvested_rai": 29164,
+      "harvest_ratio": 0.92,
+      "yield_kg_per_rai": 310.0,
+      "production_ton": 9040.0
+    }
+  },
+  "summary": {
+    "total_planted_rai": 2400500,
+    "total_harvested_rai": 2229412,
+    "total_production_ton": 710552.0,
+    "avg_yield_kg_rai": 318.7
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "description": "เกณฑ์ความเสียหายจากภัยธรรมชาติอิงตามสรีรวิทยาข้าว (Rice Agronomic Damage Thresholds)",
+  "flood_submergence": {
+    "vegetative_tillering": {
+      "stage_name": "ระยะกล้าและแตกกอ (วัน 1-40)",
+      "safe_submerged_days": 3,
+      "damage_curves": [
+        { "submerged_days": 5, "yield_loss_pct": 20, "description": "ข้าวชะงักการเจริญเติบโต ใบเหลือง ฟื้นตัวได้" },
+        { "submerged_days": 7, "yield_loss_pct": 50, "description": "หน่ออ่อนเน่า กอลดลงครึ่งหนึ่ง" },
+        { "submerged_days": 10, "yield_loss_pct": 85, "description": "เน่าเปื่อยเกือบหมด" },
+        { "submerged_days": 12, "yield_loss_pct": 100, "description": "ข้าวเน่าตาย 100% สิ้นสภาพต้นข้าว" }
+      ]
+    },
+    "reproductive_flowering": {
+      "stage_name": "ระยะสร้างรวงและออกดอก (วัน 60-85)",
+      "safe_submerged_days": 1,
+      "damage_curves": [
+        { "submerged_days": 2, "yield_loss_pct": 40, "description": "เกสรชะล้าง การผสมเกสรล้มเหลว" },
+        { "submerged_days": 3, "yield_loss_pct": 80, "description": "รวงเน่า เมล็ดลีบทั้งรวง" },
+        { "submerged_days": 5, "yield_loss_pct": 100, "description": "รวงจมน้ำเน่าเสียทั้งหมด Yield = 0" }
+      ]
+    },
+    "ripening_harvest": {
+      "stage_name": "ระยะสุกแก่พร้อมเกี่ยว (วัน 100-120)",
+      "damage_curves": [
+        { "submerged_days": 2, "yield_loss_pct": 30, "description": "ต้นข้าวล้ม เมล็ดเริ่มแช่น้ำ" },
+        { "submerged_days": 5, "yield_loss_pct": 70, "description": "เมล็ดข้าวในรวงงอก (Sprouting) หรือเน่าดำ เสียคุณภาพ" },
+        { "submerged_days": 8, "yield_loss_pct": 95, "description": "เก็บเกี่ยวไม่ได้ ข้าวเน่าเสียหายจมเลน" }
+      ]
+    }
+  },
+  "drought_stress": {
+    "vegetative_tillering": {
+      "stage_name": "ระยะแตกกอ (วัน 1-40)",
+      "dry_spell_days_threshold": 15,
+      "damage_per_day_after_threshold_pct": 2.0,
+      "max_loss_pct": 40,
+      "description": "ข้าวแตกกอน้อยลง ต้นเตี้ยแคระแกร็น แต่หากได้รับฝนยังฟื้นตัวได้"
+    },
+    "reproductive_flowering": {
+      "stage_name": "ระยะสร้างรวงและออกดอก (วัน 60-85) [วิกฤตสูงสุด]",
+      "dry_spell_days_threshold": 7,
+      "damage_per_day_after_threshold_pct": 5.0,
+      "max_loss_pct": 90,
+      "description": "วิกฤตที่สุด ขาดน้ำช่วงนี้เกสรเป็นหมัน รวงโผล่ไม่พ้นกาบใบ เมล็ดลีบมหาศาล"
+    },
+    "ripening": {
+      "stage_name": "ระยะสุกแก่ (วัน 100-120)",
+      "dry_spell_days_threshold": 30,
+      "damage_per_day_after_threshold_pct": 0,
+      "max_loss_pct": 0,
+      "description": "ระยะนี้ดินแห้งเป็นผลดี ข้าวเริ่มสุกแก่ สะสมแป้ง ไม่ต้องการน้ำขัง"
+    }
+  }
+}

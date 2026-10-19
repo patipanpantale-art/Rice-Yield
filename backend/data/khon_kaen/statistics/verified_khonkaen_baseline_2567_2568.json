@@ -1,0 +1,126 @@
+{
+  "province": "ขอนแก่น",
+  "crop_year": "2567/68",
+  "sources": [
+    "สำนักงานเศรษฐกิจการเกษตร (สศก.) กระทรวงเกษตรและสหกรณ์",
+    "กรมป้องกันและบรรเทาสาธารณภัย (ปภ.) กระทรวงมหาดไทย",
+    "กรมพัฒนาที่ดิน (LDD)"
+  ],
+  "in_season_rice": {
+    "description": "ข้าวนาปี ปีเพาะปลูก 2567/68 ณ ความชื้น 15%",
+    "planted_area_rai": 2310469,
+    "harvested_area_rai": 2261978,
+    "damaged_area_rai": 48491,
+    "damage_pct": 2.1,
+    "production_ton": 775703,
+    "yield_kg_per_rai_planted": 336,
+    "yield_kg_per_rai_harvested": 343,
+    "variety_breakdown": {
+      "glutinous_rice_rd6": {
+        "name": "ข้าวเหนียว (กข6)",
+        "share_pct": 70.11,
+        "planted_rai": 1619878,
+        "harvested_rai": 1585393,
+        "production_ton": 548958,
+        "yield_kg_rai": 339
+      },
+      "jasmine_rice_kdml105": {
+        "name": "ข้าวเจ้าหอมมะลิ (ขาวดอกมะลิ 105)",
+        "share_pct": 28.69,
+        "planted_rai": 662930,
+        "harvested_rai": 649156,
+        "production_ton": 215322,
+        "yield_kg_rai": 325
+      },
+      "other_rice": {
+        "name": "ข้าวเจ้าอื่นๆ",
+        "share_pct": 1.2,
+        "planted_rai": 27661,
+        "harvested_rai": 27429,
+        "production_ton": 11423,
+        "yield_kg_rai": 413
+      }
+    },
+    "irrigation_breakdown": {
+      "irrigated": {
+        "share_pct": 9.28,
+        "planted_rai": 214474,
+        "harvested_rai": 210853,
+        "production_ton": 93730,
+        "yield_kg_rai": 437
+      },
+      "rainfed": {
+        "share_pct": 90.72,
+        "planted_rai": 2095995,
+        "harvested_rai": 2051125,
+        "production_ton": 681973,
+        "yield_kg_rai": 325
+      }
+    },
+    "fertilizer_usage": {
+      "fertilized_area_rai": 2170455,
+      "fertilized_share_pct": 93.94,
+      "total_chemical_fertilizer_ton": 64571,
+      "avg_rate_kg_rai_fertilized": 29.75,
+      "avg_rate_kg_rai_overall": 27.95
+    },
+    "planting_calendar_pct": {
+      "may": 13.08,
+      "june": 61.7,
+      "july": 21.97,
+      "august": 3.25
+    },
+    "harvesting_calendar_pct": {
+      "october": 0.13,
+      "november": 96.25,
+      "december": 3.62
+    }
+  },
+  "dry_season_rice": {
+    "description": "ข้าวนาปรัง ปี 2567",
+    "planted_area_rai": 143079,
+    "harvested_area_rai": 142755,
+    "production_ton": 79786,
+    "yield_kg_rai": 558,
+    "variety_breakdown": {
+      "non_glutinous": {
+        "name": "ข้าวเจ้า (เช่น กข43, ชัยนาท 1)",
+        "share_pct": 82.53,
+        "planted_rai": 118082,
+        "harvested_rai": 117876,
+        "production_ton": 67084,
+        "yield_kg_rai": 568
+      },
+      "glutinous": {
+        "name": "ข้าวเหนียว",
+        "share_pct": 17.47,
+        "planted_rai": 24997,
+        "harvested_rai": 24879,
+        "production_ton": 12702,
+        "yield_kg_rai": 508
+      }
+    }
+  },
+  "economic_cost_benchmark_baht_per_rai": {
+    "in_season_rice": 3902.25,
+    "dry_season_rice": 4831.02,
+    "cassava_alternative": 6158.66
+  },
+  "disaster_damage_recorded_2568": {
+    "flood": {
+      "occurrences": 22,
+      "affected_amphoes": 16,
+      "affected_tambons": 85,
+      "affected_villages": 724,
+      "paddy_damage_rai": 50488.25,
+      "upland_crop_damage_rai": 45249.0,
+      "orchard_damage_rai": 336.5,
+      "total_agri_damage_rai": 96073.75
+    },
+    "drought": {
+      "occurrences": 5,
+      "affected_amphoes": 4,
+      "affected_tambons": 5
+    }
+  }
+}

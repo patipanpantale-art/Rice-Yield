@@ -22,13 +22,13 @@
   <link rel="stylesheet" href="css/zone3.css">
 
   <style>
-    /* Global Overrides for 3-Zone Clean Look */
     body {
       font-family: 'Sarabun', system-ui, sans-serif;
       margin: 0;
       padding: 0;
       overflow: hidden;
       background: #f1f5f9;
+      min-width: 1200px; /* ออกแบบสำหรับจอคอมพิวเตอร์ */
     }
     h1, h2, h3, h4, .brand-title {
       font-family: 'Kanit', sans-serif;
@@ -40,6 +40,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 16px;
       padding: 0 20px;
       z-index: 100;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -48,10 +49,12 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      min-width: 0;
     }
     .brand-icon-box {
       width: 38px;
       height: 38px;
+      flex-shrink: 0;
       border-radius: 8px;
       background: linear-gradient(135deg, #16a34a, #d97706);
       display: flex;
@@ -66,18 +69,12 @@
       font-weight: 700;
       color: #0f172a;
       line-height: 1.2;
+      white-space: nowrap;
     }
     .brand-sub {
       font-size: 11px;
       color: #64748b;
-    }
-    .header-status {
-      font-size: 12px;
-      font-weight: 600;
-      background: #f8fafc;
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid #cbd5e1;
+      white-space: nowrap;
     }
     .amphoe-tooltip {
       font-family: 'Sarabun', sans-serif;
@@ -98,399 +95,402 @@
     <div class="brand-group">
       <div class="brand-icon-box"><i class="fa-solid fa-wheat-awn"></i></div>
       <div>
-        <div class="brand-title">Rice Yield Sandbox Simulator · ขอนแก่น (26 อำเภอ)</div>
-        <div class="brand-sub">แบบจำลองวิเคราะห์ผลผลิตข้าวตามเป้าหมายเชิงพื้นที่ มหาวิทยาลัยขอนแก่น</div>
+        <div class="brand-title">Rice Yield Sandbox Simulator · ขอนแก่น</div>
+        <div class="brand-sub">แบบจำลองวิเคราะห์ผลผลิตข้าวตามเป้าหมายเชิงพื้นที่ (26 อำเภอ)</div>
       </div>
     </div>
-    <div class="header-status" id="zBackendStatus">
-      <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#16a34a; margin-right:6px;"></span>
-      กำลังเชื่อมต่อเซิร์ฟเวอร์...
+
+    <!-- แถบขั้นตอน 1-2-3 -->
+    <nav class="z-stepper" id="zStepper" aria-label="ขั้นตอนการใช้งาน">
+      <button type="button" class="z-step current" data-step="1">
+        <span class="z-step-circle">1</span><span>วาดแปลง</span>
+      </button>
+      <span class="z-step-line"></span>
+      <button type="button" class="z-step" data-step="2">
+        <span class="z-step-circle">2</span><span>ตั้งค่า</span>
+      </button>
+      <span class="z-step-line"></span>
+      <button type="button" class="z-step" data-step="3">
+        <span class="z-step-circle">3</span><span>ดูผล</span>
+      </button>
+    </nav>
+
+    <!-- สถานะเซิร์ฟเวอร์: จุดสี + tooltip -->
+    <div class="z-status" id="zBackendStatus" tabindex="0" data-tip="กำลังเชื่อมต่อเซิร์ฟเวอร์...">
+      <span class="z-status-dot"></span>
     </div>
   </header>
 
-  <!-- 2. พื้นที่ทำงาน 3 ส่วนหลัก (3-Zone Workspace) -->
+  <!-- 2. พื้นที่ทำงาน 3 ส่วนหลัก -->
   <main class="z-workspace">
 
     <!-- ========================================== -->
-    <!-- ZONE 1: INPUT ZONE แถบปัจจัยการผลิต (ซ้ายมือ) -->
+    <!-- ZONE 1: ข้อมูลนำเข้า (ซ้าย)                    -->
     <!-- ========================================== -->
     <aside class="z-panel-input" id="zoneInput">
       <div class="z-panel-header">
-        <h2><i class="fa-solid fa-sliders" style="color:#15803d;"></i> 1. ปัจจัยการเพาะปลูก (Inputs)</h2>
-        <span class="z-tag">ตั้งค่าแปลง</span>
+        <h2><i class="fa-solid fa-sliders" style="color:#15803d;"></i> ปัจจัยการเพาะปลูก</h2>
+        <button type="button" id="zBtnReset" class="z-btn-ghost" title="คืนค่าทุกตัวเลือกเป็นค่าเริ่มต้น (แปลงที่วาดไว้ยังอยู่)">
+          <i class="fa-solid fa-rotate-left"></i> รีเซ็ต
+        </button>
       </div>
 
-      <!-- Card 1: ข้อมูลแปลง & ดิน (Auto จากแผนที่) -->
-      <div class="z-card" style="background:#f8fafc;">
+      <!-- ข้อมูลแปลงและดิน (อัตโนมัติจากแผนที่) -->
+      <div class="z-card z-plot-card" id="zPlotCard">
         <div class="z-card-title">
-          <span class="z-step-num">1</span>
-          <span>ข้อมูลแปลงและดิน (อัตโนมัติ)</span>
+          <i class="fa-solid fa-map-location-dot" style="color:#15803d;"></i>
+          <span>ข้อมูลแปลง (อัตโนมัติจากแผนที่)</span>
         </div>
-        <div class="z-form-group">
-          <div style="font-size:11px; color:#64748b; margin-bottom:2px;">ขนาดพื้นที่แปลง:</div>
-          <div id="zDispArea" style="font-size:14px; font-weight:700; color:#0f172a;">
-            5.0 ไร่ <span style="font-size:11px; color:#64748b;">(ค่าจำลองเริ่มต้น)</span>
-          </div>
+        <div id="zPlotEmpty" class="z-plot-empty">
+          ยังไม่ได้วาดแปลง กดปุ่ม <strong><i class="fa-solid fa-draw-polygon"></i> วาดแปลง</strong> บนแผนที่
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
-          <div>
-            <div style="font-size:11px; color:#64748b;">ที่ตั้งอำเภอ:</div>
-            <div id="zDispAmphoe" style="font-size:13px; font-weight:700; color:#15803d;">อ.เมืองขอนแก่น</div>
+        <div id="zPlotInfo" hidden>
+          <div class="z-kv">
+            <span>ขนาดพื้นที่</span>
+            <strong id="zDispArea">-</strong>
           </div>
-          <div>
-            <div style="font-size:11px; color:#64748b;">กลุ่มชุดดิน LDD:</div>
-            <div id="zDispSoil"><span class="z-tag" style="background:#fef3c7; color:#78350f;">กลุ่มดินที่ 35 (S3)</span></div>
+          <div class="z-kv">
+            <span>อำเภอ</span>
+            <strong id="zDispAmphoe" style="color:#15803d;">-</strong>
           </div>
-        </div>
-        <div style="margin-top:10px;">
-          <div style="font-size:11px; color:#64748b; margin-bottom:3px;">การใช้ประโยชน์ที่ดิน LDD 2565:</div>
-          <div id="zDispLandUse">
-            <span class="z-tag" style="background:#dcfce7; color:#14532d;">✓ ในผังนาข้าว LDD (A101)</span>
+          <div class="z-kv">
+            <span>กลุ่มชุดดิน</span>
+            <span id="zDispSoil">-</span>
+          </div>
+          <div class="z-kv">
+            <span>การใช้ที่ดิน 2565</span>
+            <span id="zDispLandUse">-</span>
           </div>
         </div>
       </div>
 
-      <!-- Card 2: ปัจจัยการผลิตหลัก (Core Inputs) -->
-      <div class="z-card">
-        <div class="z-card-title">
-          <span class="z-step-num">2</span>
-          <span>ปัจจัยการผลิตและเป้าหมาย</span>
-        </div>
-
-        <!-- 2.1 เลือกพันธุ์ข้าว -->
-        <div class="z-form-group">
-          <label class="z-label" for="zInputVariety">🌾 พันธุ์ข้าวที่ปลูก:</label>
-          <select id="zInputVariety" class="z-select">
-            <option value="KDML105" selected>ขาวดอกมะลิ 105 (ข้าวเจ้านาปี · กลิ่นหอม)</option>
-            <option value="RD6">กข6 (ข้าวเหนียวนาปี · ยอดนิยมอีสาน)</option>
-            <option value="RD43">กข43 (ข้าวเจ้านาปรัง/นาปี · ดัชนีน้ำตาลต่ำ)</option>
-          </select>
-          <div style="font-size:11px; color:#64748b; margin-top:4px;">
-            เพดานทางพันธุกรรมสูงสุด: <strong id="zDispCeiling" style="color:#15803d;">550 กก./ไร่</strong>
+      <!-- พันธุ์และเป้าหมาย -->
+      <details class="z-acc" open data-acc="variety">
+        <summary>
+          <span class="z-acc-title">🌾 พันธุ์ข้าวและเป้าหมาย</span>
+          <span class="z-acc-value" id="zAccVariety">ขาวดอกมะลิ 105 · 450</span>
+        </summary>
+        <div class="z-acc-body">
+          <div class="z-form-group">
+            <label class="z-label" for="zInputVariety">พันธุ์ข้าว</label>
+            <select id="zInputVariety" class="z-select">
+              <option value="KDML105" selected>ขาวดอกมะลิ 105 (ข้าวเจ้าหอม)</option>
+              <option value="RD6">กข6 (ข้าวเหนียว)</option>
+              <option value="RD43">กข43 (ข้าวเจ้าน้ำตาลต่ำ)</option>
+            </select>
+            <div class="z-hint">ผลผลิตสูงสุดของพันธุ์: <strong id="zDispCeiling" style="color:#15803d;">550 กก./ไร่</strong></div>
+          </div>
+          <div class="z-form-group" style="margin-bottom:0;">
+            <label class="z-label" for="zNumTarget">เป้าหมายผลผลิต (กก./ไร่)</label>
+            <div class="z-slider-box">
+              <input type="range" id="zSliderTarget" class="z-range-slider" min="250" max="700" step="10" value="450">
+              <input type="number" id="zNumTarget" class="z-input" style="width:75px; text-align:center; font-weight:700;" min="200" max="800" value="450">
+            </div>
           </div>
         </div>
+      </details>
 
-        <!-- 2.2 ตั้งเป้าหมายผลผลิต -->
-        <div class="z-form-group">
-          <label class="z-label" for="zNumTarget">🎯 เป้าหมายผลผลิตที่ต้องการ (กก./ไร่):</label>
-          <div class="z-slider-box">
-            <input type="range" id="zSliderTarget" class="z-range-slider" min="250" max="700" step="10" value="450">
-            <input type="number" id="zNumTarget" class="z-input" style="width:75px; text-align:center; font-weight:700;" min="200" max="800" value="450">
-          </div>
-        </div>
-
-        <!-- 2.3 แหล่งน้ำในแปลง -->
-        <div class="z-form-group">
-          <label class="z-label">💧 ระบบน้ำในแปลง:</label>
+      <!-- ระบบน้ำ -->
+      <details class="z-acc" data-acc="water">
+        <summary>
+          <span class="z-acc-title">💧 ระบบน้ำ</span>
+          <span class="z-acc-value" id="zAccWater">มีสระน้ำไร่นา</span>
+        </summary>
+        <div class="z-acc-body">
           <div class="z-radio-group">
             <label class="z-radio-card">
               <input type="radio" name="zWater" value="irrigated">
               <div class="z-radio-content">
-                <span class="z-radio-title">ในเขตชลประทาน (น้ำสมบูรณ์)</span>
-                <span class="z-radio-desc">มีน้ำหล่อเลี้ยงตลอดฤดูกาลเพาะปลูก (F_water = 1.00)</span>
+                <span class="z-radio-title" data-short="ชลประทาน">ในเขตชลประทาน</span>
+                <span class="z-radio-desc">มีน้ำตลอดฤดู</span>
               </div>
             </label>
             <label class="z-radio-card active">
               <input type="radio" name="zWater" value="rainfed_pond" checked>
               <div class="z-radio-content">
-                <span class="z-radio-title">นอกเขตชลประทาน แต่มีสระน้ำไร่นา</span>
-                <span class="z-radio-desc">มีน้ำสำรองสูบช่วยช่วงฝนทิ้งช่วง (F_water = 0.88)</span>
+                <span class="z-radio-title" data-short="มีสระน้ำไร่นา">นอกเขตชลประทาน มีสระน้ำไร่นา</span>
+                <span class="z-radio-desc">สูบน้ำช่วยช่วงฝนทิ้งช่วงได้</span>
               </div>
             </label>
             <label class="z-radio-card">
               <input type="radio" name="zWater" value="pure_rainfed">
               <div class="z-radio-content">
-                <span class="z-radio-title">นอกเขต อาศัยน้ำฝนธรรมชาติ 100%</span>
-                <span class="z-radio-desc">เสี่ยงขาดน้ำหากฝนทิ้งช่วง (F_water = 0.72)</span>
+                <span class="z-radio-title" data-short="น้ำฝนอย่างเดียว">อาศัยน้ำฝนอย่างเดียว</span>
+                <span class="z-radio-desc">เสี่ยงขาดน้ำเมื่อฝนทิ้งช่วง</span>
               </div>
             </label>
           </div>
         </div>
+      </details>
 
-        <!-- 2.4 การจัดการปุ๋ย -->
-        <div class="z-form-group">
-          <label class="z-label">🌿 การจัดการปุ๋ย:</label>
+      <!-- การจัดการปุ๋ย -->
+      <details class="z-acc" data-acc="fert">
+        <summary>
+          <span class="z-acc-title">🌿 การใส่ปุ๋ย</span>
+          <span class="z-acc-value" id="zAccFert">SSNM 3 ระยะ</span>
+        </summary>
+        <div class="z-acc-body">
           <div class="z-radio-group">
             <label class="z-radio-card active">
               <input type="radio" name="zFert" value="ssnm_3split" checked>
               <div class="z-radio-content">
-                <span class="z-radio-title">ปุ๋ยสั่งตัด SSNM ครบ 3 ระยะ (แนะนำ)</span>
-                <span class="z-radio-desc">แตกกอ + กำเนิดรวง + สุกแก่ ตรงตามชุดดิน (F_fert = 1.00)</span>
+                <span class="z-radio-title" data-short="SSNM 3 ระยะ">ปุ๋ยสั่งตัด SSNM 3 ระยะ (แนะนำ)</span>
+                <span class="z-radio-desc">ใส่ตามชุดดิน แตกกอ + กำเนิดรวง + สุกแก่</span>
               </div>
             </label>
             <label class="z-radio-card">
               <input type="radio" name="zFert" value="standard_2split">
               <div class="z-radio-content">
-                <span class="z-radio-title">ปุ๋ยเคมีมาตรฐาน 2 รอบ</span>
-                <span class="z-radio-desc">ใส่รองพื้นและแต่งหน้ายูเรียทั่วไป (F_fert = 0.88)</span>
+                <span class="z-radio-title" data-short="มาตรฐาน 2 รอบ">ปุ๋ยเคมีมาตรฐาน 2 รอบ</span>
+                <span class="z-radio-desc">รองพื้น + แต่งหน้ายูเรีย</span>
               </div>
             </label>
             <label class="z-radio-card">
               <input type="radio" name="zFert" value="farmer_habit">
               <div class="z-radio-content">
-                <span class="z-radio-title">ใส่ปุ๋ยตามความคุ้นเคยรอบเดียว</span>
-                <span class="z-radio-desc">ใส่ครั้งเดียวช่วงต้นฤดู ปริมาณน้อย (F_fert = 0.75)</span>
+                <span class="z-radio-title" data-short="ใส่รอบเดียว">ใส่ปุ๋ยรอบเดียวตามความเคยชิน</span>
+                <span class="z-radio-desc">ใส่ต้นฤดู ปริมาณน้อย</span>
               </div>
             </label>
             <label class="z-radio-card">
               <input type="radio" name="zFert" value="none">
               <div class="z-radio-content">
-                <span class="z-radio-title">ไม่ใส่ปุ๋ยเคมี</span>
-                <span class="z-radio-desc">อาศัยธาตุอาหารธรรมชาติในดิน (F_fert = 0.58)</span>
+                <span class="z-radio-title" data-short="ไม่ใส่ปุ๋ย">ไม่ใส่ปุ๋ยเคมี</span>
+                <span class="z-radio-desc">อาศัยธาตุอาหารในดิน</span>
               </div>
             </label>
           </div>
         </div>
+      </details>
 
-        <!-- 2.5 วิธีการปลูก -->
-        <div class="z-form-group">
-          <label class="z-label">🚜 วิธีการปลูก:</label>
+      <!-- วิธีปลูก -->
+      <details class="z-acc" data-acc="method">
+        <summary>
+          <span class="z-acc-title">🚜 วิธีปลูก</span>
+          <span class="z-acc-value" id="zAccMethod">นาหว่านแห้ง</span>
+        </summary>
+        <div class="z-acc-body">
           <div class="z-radio-group">
             <label class="z-radio-card">
               <input type="radio" name="zMethod" value="transplanting">
               <div class="z-radio-content">
-                <span class="z-radio-title">นาดำ / รถปักดำ</span>
-                <span class="z-radio-desc">คุมวัชพืชได้ดีเยี่ยม แตกกอเต็มที่ (F_method = 1.00)</span>
+                <span class="z-radio-title" data-short="นาดำ">นาดำ / รถปักดำ</span>
+                <span class="z-radio-desc">คุมวัชพืชได้ดี</span>
               </div>
             </label>
             <label class="z-radio-card">
               <input type="radio" name="zMethod" value="wet_broadcast">
               <div class="z-radio-content">
-                <span class="z-radio-title">นาหว่านน้ำตม</span>
-                <span class="z-radio-desc">ข้าวขึ้นสม่ำเสมอปานกลาง (F_method = 0.94)</span>
+                <span class="z-radio-title" data-short="นาหว่านน้ำตม">นาหว่านน้ำตม</span>
+                <span class="z-radio-desc">ข้าวขึ้นสม่ำเสมอปานกลาง</span>
               </div>
             </label>
             <label class="z-radio-card active">
               <input type="radio" name="zMethod" value="dry_broadcast" checked>
               <div class="z-radio-content">
-                <span class="z-radio-title">นาหว่านข้าวแห้ง (วิธีหลักอีสาน)</span>
-                <span class="z-radio-desc">ประหยัดแรงงานแต่วัชพืชแย่งอาหาร (F_method = 0.88)</span>
+                <span class="z-radio-title" data-short="นาหว่านแห้ง">นาหว่านข้าวแห้ง (นิยมในอีสาน)</span>
+                <span class="z-radio-desc">ประหยัดแรงงาน แต่วัชพืชมาก</span>
               </div>
             </label>
           </div>
         </div>
-      </div>
+      </details>
 
-      <!-- Card 3: จำลองภัยพิบัติฉุกเฉิน (Disaster Shock) -->
-      <div class="z-card" style="background:#fffaf0; border-color:#fde68a;">
-        <div class="z-card-title" style="color:#b45309; border-color:#fde68a;">
-          <i class="fa-solid fa-cloud-showers-heavy"></i>
-          <span>จำลองภัยธรรมชาติฉุกเฉิน (ทางเลือก)</span>
-        </div>
-        <div class="z-form-group">
-          <label class="z-label" for="zInputDisasterType">เหตุการณ์ภัยพิบัติ:</label>
-          <select id="zInputDisasterType" class="z-select">
-            <option value="none" selected>ไม่มีภัยพิบัติ (สภาพอากาศปกติ)</option>
-            <option value="flood">น้ำท่วมขังฉับพลัน (Submergence)</option>
-            <option value="drought">ฝนทิ้งช่วง / ภัยแล้ง (Drought Stress)</option>
-          </select>
-        </div>
-        <div class="z-form-group">
-          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600; margin-bottom:4px;">
-            <span>ระยะเวลาที่เผชิญภัย:</span>
-            <span id="zNumDisasterDays" style="color:#b45309;">0 วัน</span>
+      <!-- ภัยธรรมชาติ (ไม่บังคับ) -->
+      <details class="z-acc z-acc-warn" data-acc="disaster">
+        <summary>
+          <span class="z-acc-title">⛈️ ภัยธรรมชาติ (ไม่บังคับ)</span>
+          <span class="z-acc-value" id="zAccDisaster">ไม่มี</span>
+        </summary>
+        <div class="z-acc-body">
+          <div class="z-form-group">
+            <label class="z-label" for="zInputDisasterType">ชนิดภัย</label>
+            <select id="zInputDisasterType" class="z-select">
+              <option value="none" selected>ไม่มีภัย (สภาพอากาศปกติ)</option>
+              <option value="flood">น้ำท่วมขัง</option>
+              <option value="drought">ฝนทิ้งช่วง / แล้ง</option>
+            </select>
           </div>
-          <input type="range" id="zSliderDisasterDays" class="z-range-slider" min="0" max="15" value="0">
+          <div class="z-form-group">
+            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600; margin-bottom:4px;">
+              <span>จำนวนวันที่เจอภัย</span>
+              <span id="zNumDisasterDays" style="color:#b45309;">0 วัน</span>
+            </div>
+            <input type="range" id="zSliderDisasterDays" class="z-range-slider" min="0" max="15" value="0">
+          </div>
+          <div class="z-form-group" style="margin-bottom:0;">
+            <label class="z-label" for="zInputDisasterStage">ช่วงอายุข้าวที่เกิดภัย</label>
+            <select id="zInputDisasterStage" class="z-select">
+              <option value="vegetative_tillering">ระยะกล้าและแตกกอ</option>
+              <option value="reproductive_flowering" selected>ระยะสร้างรวงและออกดอก (เสี่ยงที่สุด)</option>
+              <option value="ripening_harvest">ระยะสุกแก่</option>
+            </select>
+          </div>
         </div>
-        <div class="z-form-group">
-          <label class="z-label" for="zInputDisasterStage">ระยะการเจริญเติบโตที่เกิดภัย:</label>
-          <select id="zInputDisasterStage" class="z-select">
-            <option value="vegetative_tillering">ระยะกล้าและแตกกอ (วัน 1-40)</option>
-            <option value="reproductive_flowering" selected>ระยะสร้างรวงและออกดอก (วิกฤตสูงสุด)</option>
-            <option value="ripening_harvest">ระยะสุกแก่พร้อมเกี่ยว (วัน 100-120)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- ปุ่ม Action หลัก -->
-      <div style="padding: 0 14px 20px 14px;">
-        <button id="zBtnSimulate" class="z-btn-primary">
-          <i class="fa-solid fa-calculator"></i> จำลองผลผลิตและวิเคราะห์
-        </button>
-      </div>
+      </details>
+      <div style="height:16px; flex-shrink:0;"></div>
     </aside>
 
 
     <!-- ========================================== -->
-    <!-- ZONE 2: MAP ZONE แผนที่โต้ตอบ 26 อำเภอ (ตรงกลาง) -->
+    <!-- ZONE 2: แผนที่ (กลาง)                         -->
     <!-- ========================================== -->
     <section class="z-panel-map" id="zoneMap">
-      
-      <!-- แถบเครื่องมือลอยบนแผนที่ (Floating Map Toolbar) -->
+
       <div class="z-map-toolbar">
-        <button id="zToolDrawPoly" class="z-tool-btn" title="คลิกวางจุดทีละมุม คลิกจุดแรกเพื่อจบแปลง">
-          <i class="fa-solid fa-draw-polygon" style="color:#16a34a;"></i> วาดแปลงอิสระ
+        <button id="zToolDrawPoly" class="z-tool-btn" title="คลิกวางจุดทีละมุม แล้วคลิกจุดแรกเพื่อปิดแปลง">
+          <i class="fa-solid fa-draw-polygon"></i><span>วาดแปลง</span>
         </button>
-        <button id="zToolDrawRect" class="z-tool-btn" title="คลิก 2 ครั้งบนแผนที่เพื่อวาดสี่เหลี่ยม">
-          <i class="fa-regular fa-square" style="color:#2563eb;"></i> วาดสี่เหลี่ยม
+        <button id="zToolDrawRect" class="z-tool-btn" title="กดค้างแล้วลากเพื่อวาดสี่เหลี่ยม">
+          <i class="fa-regular fa-square"></i><span>สี่เหลี่ยม</span>
         </button>
-        <button id="zToolClear" class="z-tool-btn" title="ลบแปลงที่วาดออกเพื่อวาดใหม่">
-          <i class="fa-solid fa-trash-can" style="color:#dc2626;"></i> ลบแปลง
+        <button id="zToolClear" class="z-tool-btn" title="ลบแปลงที่วาดเพื่อวาดใหม่">
+          <i class="fa-solid fa-trash-can"></i><span>ลบ</span>
         </button>
-        <div style="width:1px; height:20px; background:#cbd5e1; margin:0 4px;"></div>
-        <button id="zToolFocus" class="z-tool-btn" title="ซูมกลับไปที่ภาพรวมจังหวัดขอนแก่น">
-          <i class="fa-solid fa-crosshairs" style="color:#d97706;"></i> ขอนแก่น
+        <span class="z-tool-sep"></span>
+        <button id="zToolFocus" class="z-tool-btn" title="ซูมกลับไปภาพรวมจังหวัดขอนแก่น">
+          <i class="fa-solid fa-crosshairs"></i><span>ขอนแก่น</span>
         </button>
-        <button id="zToolLayerSat" class="z-tool-btn active">🛰️ ดาวเทียม</button>
-        <button id="zToolLayerStreet" class="z-tool-btn">🗺️ ถนน</button>
+        <span class="z-tool-sep"></span>
+        <button id="zToolLayerSat" class="z-tool-btn active" title="ภาพดาวเทียม">
+          <i class="fa-solid fa-satellite"></i><span>ดาวเทียม</span>
+        </button>
+        <button id="zToolLayerStreet" class="z-tool-btn" title="แผนที่ถนน">
+          <i class="fa-solid fa-map"></i><span>ถนน</span>
+        </button>
       </div>
 
-      <!-- แผนที่ Leaflet Container -->
       <div id="map" style="width:100%; height:100%;"></div>
 
-      <!-- แถบคำแนะนำลอยมุมซ้ายล่าง -->
-      <div class="z-map-status-overlay">
+      <!-- คำแนะนำ (ซ่อนเองเมื่อวาดแปลงแล้ว) -->
+      <div class="z-map-status-overlay" id="zMapGuide">
+        <button type="button" class="z-guide-close" id="zMapGuideClose" title="ปิด">&times;</button>
         <div style="font-weight:700; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
-          <i class="fa-solid fa-circle-info" style="color:#2563eb;"></i> คำแนะนำการใช้งาน
+          <i class="fa-solid fa-circle-info" style="color:#2563eb;"></i> เริ่มต้นใช้งาน
         </div>
-        <div style="color:#475569; font-size:11px; line-height:1.4;">
-          1. ใช้ปุ่มด้านบนวาดแปลงนาบนแผนที่<br>
-          2. ปรับเป้าหมายและปัจจัยการผลิตที่แผงซ้าย<br>
-          3. แผนที่แสดงเส้นขอบเขต 26 อำเภอขอนแก่น (คลิกอำเภอเพื่อดูสถิติจริง สศก.)
+        <div style="color:#475569; font-size:12px; line-height:1.5;">
+          กด <strong>วาดแปลง</strong> หรือ <strong>สี่เหลี่ยม</strong> ด้านบน แล้ววาดแปลงนาบนแผนที่<br>
+          คลิกอำเภอเพื่อซูมเข้าไปยังอำเภอนั้น
         </div>
+      </div>
+
+      <!-- คำอธิบายสีแปลงตามความเหมาะสมของดิน -->
+      <div class="z-soil-legend" id="zSoilLegend" hidden>
+        <div class="z-soil-legend-title">สีแปลง = ความเหมาะสมของดิน</div>
+        <div><i style="background:#15803d"></i>S1 เหมาะสมมาก</div>
+        <div><i style="background:#65a30d"></i>S2 เหมาะสมปานกลาง</div>
+        <div><i style="background:#d97706"></i>S3 เหมาะสมน้อย</div>
+        <div><i style="background:#dc2626"></i>N ไม่เหมาะสม</div>
       </div>
     </section>
 
 
     <!-- ========================================== -->
-    <!-- ZONE 3: OUTPUT ZONE แถบผลลัพธ์และวิเคราะห์ (ขวามือ) -->
+    <!-- ZONE 3: ผลลัพธ์ (ขวา)                         -->
     <!-- ========================================== -->
     <aside class="z-panel-output" id="zoneOutput">
       <div class="z-panel-header">
-        <h2><i class="fa-solid fa-chart-column" style="color:#2563eb;"></i> 3. ผลการจำลองและการวิเคราะห์ (Outputs)</h2>
-        <span class="z-tag" style="background:#dbeafe; color:#1e40af;">สรุปผล</span>
+        <h2><i class="fa-solid fa-chart-column" style="color:#2563eb;"></i> ผลการจำลอง</h2>
       </div>
 
-      <!-- Card 1: สรุปผลผลิตและการเงิน (Highlight Card) -->
-      <div class="z-highlight-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div>
-            <div style="font-size:11px; font-weight:700; color:#166534; text-transform:uppercase;">ผลผลิตที่คาดว่าจะได้</div>
-            <div style="margin-top:2px;">
-              <span id="zDispYieldVal" class="z-yield-val">418.5</span>
-              <span class="z-yield-unit">กก./ไร่</span>
-            </div>
-            <div id="zDispTotalTons" style="font-size:12px; font-weight:600; color:#475569; margin-top:2px;">
-              2.09 ตัน (2,092 กก.)
-            </div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:11px; color:#64748b;">ราคาข้าวเปลือกตลาด:</div>
-            <div style="font-size:13px; font-weight:700; color:#0f172a;">17,000 บ./ตัน</div>
-            <div style="font-size:10px; color:#94a3b8;">ธ.ก.ส. ขอนแก่น (15% ความชื้น)</div>
-          </div>
-        </div>
-
-        <div style="margin-top:12px; padding-top:10px; border-top:1px dashed #bbf7d0; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-          <div>
-            <div style="font-size:11px; color:#64748b;">รายได้คาดการณ์:</div>
-            <div id="zDispGrossRev" style="font-size:13px; font-weight:700; color:#15803d;">35,564 บาท</div>
-          </div>
-          <div>
-            <div style="font-size:11px; color:#64748b;">ต้นทุนการผลิต:</div>
-            <div id="zDispTotalCost" style="font-size:13px; font-weight:700; color:#475569;">18,510 บาท</div>
-          </div>
-        </div>
-
-        <div id="zDispProfitBadge" class="z-profit-badge">
-          <i class="fa-solid fa-arrow-trend-up"></i> กำไรสุทธิ: +17,054 บาท (3,410 บ./ไร่)
+      <!-- ก่อนวาดแปลง -->
+      <div class="z-empty-state" id="zOutputEmpty">
+        <div class="z-empty-icon"><i class="fa-solid fa-draw-polygon"></i></div>
+        <div style="font-size:15px; font-weight:700; color:#0f172a; margin-bottom:6px;">วาดแปลงนาเพื่อดูผล</div>
+        <div style="font-size:13px; line-height:1.6;">
+          1. กด <strong>วาดแปลง</strong> บนแผนที่<br>
+          2. เลือกพันธุ์ เป้าหมาย และการจัดการทางซ้าย<br>
+          3. ผลผลิต ต้นทุน และกำไรจะแสดงที่นี่ทันที
         </div>
       </div>
 
-      <!-- Card 2: ความเป็นไปได้ & Yield Gap (Feasibility Gauge) -->
-      <div class="z-card">
-        <div class="z-card-title">
-          <i class="fa-solid fa-bullseye" style="color:#d97706;"></i>
-          <span>ความเป็นไปได้ต่อเป้าหมาย (Feasibility)</span>
+      <div id="zOutputResults" hidden>
+
+        <!-- (1) ผลผลิตคาดการณ์ + แถบแจกแจงตัวคูณ -->
+        <div class="z-highlight-card">
+          <div style="font-size:12px; font-weight:700; color:#166534;">ผลผลิตที่คาดว่าจะได้</div>
+          <div style="margin-top:2px;">
+            <span id="zDispYieldVal" class="z-yield-val">-</span>
+            <span class="z-yield-unit">กก./ไร่</span>
+          </div>
+          <div id="zDispTotalTons" style="font-size:13px; font-weight:600; color:#475569; margin-top:2px;">-</div>
+
+          <div class="z-breakdown">
+            <div class="z-breakdown-title">ที่มาของตัวเลข</div>
+            <div class="z-breakdown-row" id="zDispBreakdown"></div>
+          </div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span id="zDispFeasLabel" style="font-size:13px; font-weight:700; color:#15803d;">
-            บรรลุเป้าหมายได้อย่างมีประสิทธิภาพ
-          </span>
-          <span id="zDispFeasPct" style="font-size:16px; font-weight:800; color:#15803d;">93.0%</span>
+        <!-- (2) เทียบเป้าหมายและช่องว่างผลผลิต -->
+        <div class="z-card">
+          <div class="z-card-title">
+            <i class="fa-solid fa-bullseye" style="color:#d97706;"></i>
+            <span>เทียบเป้าหมายและช่องว่างผลผลิต (Yield Gap)</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <span id="zDispFeasLabel" style="font-size:13px; font-weight:700;">-</span>
+            <span id="zDispFeasPct" style="font-size:16px; font-weight:800;">-</span>
+          </div>
+          <div class="z-progress-bar">
+            <div id="zDispFeasProgress" class="z-progress-fill" style="width:0%;"></div>
+          </div>
+          <div id="zDispGapText" style="font-size:12px; font-weight:600; margin-top:6px;">-</div>
         </div>
 
-        <div class="z-progress-bar">
-          <div id="zDispFeasProgress" class="z-progress-fill" style="width: 93%;"></div>
+        <!-- (3) เปรียบเทียบ 4 ฉากทัศน์ (ตาราง + แถบกราฟ) -->
+        <div class="z-card">
+          <div class="z-card-title">
+            <i class="fa-solid fa-code-compare" style="color:#2563eb;"></i>
+            <span>เปรียบเทียบ 4 ฉากทัศน์</span>
+          </div>
+          <table class="z-table z-scen-table">
+            <thead>
+              <tr>
+                <th>ฉากทัศน์</th>
+                <th>ผลผลิต (กก./ไร่)</th>
+                <th style="text-align:right;">เทียบเป้า</th>
+              </tr>
+            </thead>
+            <tbody id="zTableScenariosBody"></tbody>
+          </table>
+          <div class="z-scen-legend"><span class="z-target-swatch"></span> เส้นประ = เป้าหมาย <span id="zDispTargetLegend">450</span> กก./ไร่</div>
         </div>
 
-        <div id="zDispGapText" style="font-size:12px; font-weight:600; color:#475569; margin-top:6px;">
-          ขาดอีก 31.5 กก./ไร่ จะบรรลุเป้าหมาย 450 กก./ไร่
-        </div>
-      </div>
-
-      <!-- Card 3: เปรียบเทียบ 4 กรณี (Scenario Comparison Table) -->
-      <div class="z-card">
-        <div class="z-card-title">
-          <i class="fa-solid fa-code-compare" style="color:#2563eb;"></i>
-          <span>เปรียบเทียบ 4 กรณีในขอนแก่น</span>
-        </div>
-        <table class="z-table">
-          <thead>
-            <tr>
-              <th>กรณีศึกษา (Case)</th>
-              <th>ผลผลิต</th>
-              <th>เทียบเป้าหมาย</th>
-            </tr>
-          </thead>
-          <tbody id="zTableScenariosBody">
-            <!-- ข้อมูลจะถูก Render ผ่าน JavaScript -->
-            <tr>
-              <td>สถิติจริง สศก. (อ.เมืองขอนแก่น)</td>
-              <td>345 กก./ไร่</td>
-              <td>-105 กก.</td>
-            </tr>
-            <tr class="highlight">
-              <td>การจัดการปัจจุบันของคุณ</td>
-              <td>418.5 กก./ไร่</td>
-              <td>-31.5 กก.</td>
-            </tr>
-            <tr>
-              <td>แนะนำปุ๋ยสั่งตัด SSNM</td>
-              <td>480.0 กก./ไร่</td>
-              <td>+30.0 กก.</td>
-            </tr>
-            <tr>
-              <td>เพดานพันธุกรรม (กข105)</td>
-              <td>550.0 กก./ไร่</td>
-              <td>+100.0 กก.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Card 4: แผนปุ๋ยสั่งตัด SSNM 3 ระยะ (Actionable Checklist) -->
-      <div class="z-card" style="margin-bottom:20px;">
-        <div class="z-card-title">
-          <i class="fa-solid fa-list-check" style="color:#16a34a;"></i>
-          <span>แผนปฏิบัติปุ๋ยสั่งตัด SSNM (3 ระยะ)</span>
-        </div>
-        <div id="zDispSsnmSteps">
-          <div class="z-ssnm-step">
-            <div class="z-step-pill">1</div>
-            <div style="flex:1;">
-              <div style="font-size:12px; font-weight:700; color:#0f172a;">ระยะรองพื้น (15-20 วันหลังหว่าน)</div>
-              <div style="font-size:12px; color:#15803d; font-weight:600; margin:2px 0;">สูตรปุ๋ย: 16-16-8 (อัตรา 25 กก./ไร่)</div>
-              <div style="font-size:11px; color:#64748b;">เสริมโพแทสเซียมสำหรับดินทราย เร่งสร้างรากและกอ</div>
+        <!-- (4) ตัวชี้วัดเศรษฐศาสตร์ -->
+        <div class="z-card">
+          <div class="z-card-title">
+            <i class="fa-solid fa-coins" style="color:#d97706;"></i>
+            <span>ต้นทุนและผลตอบแทน</span>
+          </div>
+          <div id="zDispProfitBadge" class="z-profit-badge">-</div>
+          <div class="z-eco-grid">
+            <div class="z-eco-item">
+              <span>ราคาข้าวเปลือก</span>
+              <strong id="zDispPrice">-</strong>
+            </div>
+            <div class="z-eco-item">
+              <span>รายได้</span>
+              <strong id="zDispGrossRev" style="color:#15803d;">-</strong>
+            </div>
+            <div class="z-eco-item">
+              <span>ต้นทุนการผลิต</span>
+              <strong id="zDispTotalCost">-</strong>
+            </div>
+            <div class="z-eco-item">
+              <span>ผลตอบแทน (ROI)</span>
+              <strong id="zDispRoi">-</strong>
             </div>
           </div>
-          <div class="z-ssnm-step">
-            <div class="z-step-pill">2</div>
-            <div style="flex:1;">
-              <div style="font-size:12px; font-weight:700; color:#0f172a;">ระยะแตกกอสูงสุด (30-40 วัน)</div>
-              <div style="font-size:12px; color:#15803d; font-weight:600; margin:2px 0;">สูตรปุ๋ย: 46-0-0 ยูเรีย (อัตรา 15 กก./ไร่)</div>
-              <div style="font-size:11px; color:#64748b;">เพิ่มจำนวนต้นต่อกอและขยายพื้นที่ใบรับแสง</div>
-            </div>
+          <div class="z-bep" id="zDispBep">-</div>
+        </div>
+
+        <!-- (5) แผนปุ๋ย SSNM 3 ระยะ -->
+        <div class="z-card" style="margin-bottom:20px;">
+          <div class="z-card-title">
+            <i class="fa-solid fa-list-check" style="color:#16a34a;"></i>
+            <span>แผนปุ๋ยสั่งตัด SSNM (3 ระยะ)</span>
           </div>
-          <div class="z-ssnm-step">
-            <div class="z-step-pill">3</div>
-            <div style="flex:1;">
-              <div style="font-size:12px; font-weight:700; color:#0f172a;">ระยะสร้างรวงอ่อน/ตั้งท้อง (ก่อนออกดอก 30 วัน)</div>
-              <div style="font-size:12px; color:#15803d; font-weight:600; margin:2px 0;">สูตรปุ๋ย: 0-0-60 หรือ 15-15-15 (อัตรา 10 กก./ไร่)</div>
-              <div style="font-size:11px; color:#64748b;">บำรุงเมล็ด เพิ่มน้ำหนักรวง ลดเมล็ดลีบ</div>
-            </div>
-          </div>
+          <div id="zDispSsnmSteps"></div>
         </div>
       </div>
     </aside>

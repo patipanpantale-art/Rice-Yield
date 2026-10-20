@@ -453,3 +453,369 @@
   color: #94a3b8;
   margin-bottom: 12px;
 }
+
+/* ==========================================================================
+   UX update: stepper, status dot, accordion, plot label, breakdown, bars
+   ========================================================================== */
+
+[hidden] { display: none !important; }
+.z-muted { font-size: 11px; color: var(--z-text-muted); font-weight: 400; }
+
+/* แถบขั้นตอน 1-2-3 */
+.z-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.z-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 20px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--z-text-light);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.z-step:hover { background: #f1f5f9; }
+.z-step-circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  border: 2px solid #cbd5e1;
+  color: var(--z-text-light);
+  background: #fff;
+}
+.z-step.current { color: var(--z-primary); }
+.z-step.current .z-step-circle {
+  background: var(--z-primary);
+  border-color: var(--z-primary);
+  color: #fff;
+  box-shadow: 0 0 0 3px var(--z-primary-light);
+}
+.z-step.done { color: var(--z-text-main); }
+.z-step.done .z-step-circle {
+  border-color: var(--z-primary);
+  color: var(--z-primary);
+}
+.z-step-line {
+  width: 28px;
+  height: 2px;
+  background: #cbd5e1;
+}
+
+/* สถานะเซิร์ฟเวอร์: จุดสี + tooltip */
+.z-status {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: help;
+  outline: none;
+}
+.z-status:hover, .z-status:focus { background: #f1f5f9; }
+.z-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+.z-status.online .z-status-dot { background: #16a34a; }
+.z-status.offline .z-status-dot { background: #94a3b8; }
+.z-status::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: max-content;
+  max-width: 260px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: var(--z-shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+  z-index: 2000;
+}
+.z-status:hover::after, .z-status:focus::after { opacity: 1; }
+
+/* ปุ่มรีเซ็ต */
+.z-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--z-border);
+  border-radius: 14px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+}
+.z-btn-ghost:hover { border-color: var(--z-primary); color: var(--z-primary); }
+
+/* การ์ดข้อมูลแปลง */
+.z-plot-card { background: #f8fafc; }
+.z-plot-empty {
+  font-size: 12px;
+  color: var(--z-text-muted);
+  line-height: 1.6;
+  padding: 6px 2px;
+}
+.z-kv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 0;
+}
+.z-kv > span:first-child { color: var(--z-text-muted); }
+.z-kv strong { font-size: 13px; color: var(--z-text-main); text-align: right; }
+.z-hint { font-size: 11px; color: var(--z-text-muted); margin-top: 4px; }
+
+/* หมวดพับได้ (Accordion) */
+.z-acc {
+  margin: 0 14px 8px;
+  border: 1px solid var(--z-border);
+  border-radius: 10px;
+  background: #fff;
+  flex-shrink: 0;
+}
+.z-acc > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.z-acc > summary::-webkit-details-marker { display: none; }
+.z-acc > summary::after {
+  content: "\f078";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 10px;
+  color: var(--z-text-light);
+  transition: transform 0.15s;
+}
+.z-acc[open] > summary::after { transform: rotate(180deg); }
+.z-acc[open] > summary { border-bottom: 1px dashed var(--z-border); }
+.z-acc-title { font-size: 13px; font-weight: 700; color: var(--z-text-main); white-space: nowrap; }
+.z-acc-value {
+  flex: 1;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--z-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.z-acc-body { padding: 10px 12px 12px; }
+.z-acc-warn { background: #fffaf0; border-color: #fde68a; }
+.z-acc-warn .z-acc-value { color: var(--z-amber); }
+
+/* แถบเครื่องมือแผนที่: ไอคอน + ป้ายสั้นบรรทัดเดียว */
+.z-map-toolbar { gap: 4px; white-space: nowrap; }
+.z-tool-btn { white-space: nowrap; padding: 6px 11px; }
+.z-tool-btn i { font-size: 13px; }
+.z-tool-sep { width: 1px; height: 20px; background: #cbd5e1; margin: 0 2px; }
+#zToolClear:hover { color: var(--z-danger); border-color: var(--z-danger); }
+
+/* กล่องคำแนะนำบนแผนที่ */
+.z-map-status-overlay { padding-right: 30px; }
+.z-guide-close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  border: none;
+  background: none;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--z-text-light);
+  cursor: pointer;
+}
+.z-guide-close:hover { color: var(--z-text-main); }
+
+/* คำอธิบายสีดิน */
+.z-soil-legend {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--z-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.7;
+  box-shadow: var(--z-shadow-md);
+}
+.z-soil-legend-title { font-weight: 700; color: var(--z-text-main); margin-bottom: 2px; }
+.z-soil-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+
+/* ป้ายพื้นที่บนแปลง */
+.leaflet-tooltip.z-plot-label {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  font-family: 'Sarabun', sans-serif;
+  text-align: center;
+}
+.leaflet-tooltip.z-plot-label::before { display: none; }
+.z-plot-label-area { font-size: 13px; font-weight: 700; color: #0f172a; }
+.z-plot-label-soil { font-size: 11px; font-weight: 700; }
+
+/* ผลลัพธ์ก่อนวาดแปลง */
+#zOutputEmpty { flex: 1; }
+
+/* แถบแจกแจงตัวคูณ */
+.z-breakdown {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #bbf7d0;
+}
+.z-breakdown-title { font-size: 11px; font-weight: 700; color: var(--z-text-muted); margin-bottom: 6px; }
+.z-breakdown-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.z-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 40px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid #d1fae5;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--z-text-main);
+  line-height: 1.15;
+}
+.z-chip small { font-size: 10px; font-weight: 600; color: var(--z-text-muted); }
+.z-chip.low { border-color: #fde68a; background: #fffbeb; color: var(--z-amber); }
+.z-chip.result { background: var(--z-primary); border-color: var(--z-primary); color: #fff; }
+.z-chip.result small { color: #dcfce7; }
+.z-op { font-size: 12px; font-weight: 700; color: var(--z-text-light); }
+
+/* ตาราง 4 ฉากทัศน์ + แถบกราฟ */
+.z-scen-table td { vertical-align: middle; }
+.z-scen-table th { white-space: nowrap; }
+.z-scen-table td:nth-child(2) { width: 42%; }
+.z-bar-track {
+  position: relative;
+  height: 10px;
+  background: #f1f5f9;
+  border-radius: 5px;
+}
+.z-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: #94a3b8;
+  transition: width 0.3s ease;
+}
+.z-bar-fill.current { background: var(--z-primary); }
+.z-bar-target {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 0;
+  border-left: 2px dashed #b45309;
+}
+.z-bar-val { font-size: 12px; font-weight: 700; margin-top: 2px; }
+.z-scen-legend {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--z-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.z-target-swatch {
+  display: inline-block;
+  width: 0;
+  height: 12px;
+  border-left: 2px dashed #b45309;
+}
+
+/* เศรษฐศาสตร์ */
+.z-profit-badge { margin-top: 0; font-size: 13px; }
+.z-profit-badge.profit { background: #dcfce7; color: #14532d; }
+.z-profit-badge.loss { background: #fee2e2; color: #991b1b; }
+.z-badge-sub { font-weight: 600; opacity: 0.8; }
+.z-eco-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.z-eco-item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+.z-eco-item span { font-size: 11px; color: var(--z-text-muted); }
+.z-eco-item strong { font-size: 14px; color: var(--z-text-main); }
+.z-bep {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px dashed var(--z-border);
+  font-size: 12px;
+  color: var(--z-text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+.z-bep strong { font-size: 14px; color: var(--z-text-main); }
+.z-bep-note { flex-basis: 100%; font-weight: 600; }
+
+.z-note {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #fef3c7;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #78350f;
+}
+.z-acc-body .z-range-slider { width: 100%; }

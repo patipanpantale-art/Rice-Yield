@@ -22,6 +22,7 @@
     },
     "ripening_harvest": {
       "stage_name": "ระยะสุกแก่พร้อมเกี่ยว (วัน 100-120)",
+      "safe_submerged_days": 1,
       "damage_curves": [
         { "submerged_days": 2, "yield_loss_pct": 30, "description": "ต้นข้าวล้ม เมล็ดเริ่มแช่น้ำ" },
         { "submerged_days": 5, "yield_loss_pct": 70, "description": "เมล็ดข้าวในรวงงอก (Sprouting) หรือเน่าดำ เสียคุณภาพ" },
@@ -43,6 +44,13 @@
       "damage_per_day_after_threshold_pct": 5.0,
       "max_loss_pct": 90,
       "description": "วิกฤตที่สุด ขาดน้ำช่วงนี้เกสรเป็นหมัน รวงโผล่ไม่พ้นกาบใบ เมล็ดลีบมหาศาล"
+    },
+    "ripening_harvest": {
+      "stage_name": "ระยะสุกแก่พร้อมเกี่ยว (วัน 100-120)",
+      "dry_spell_days_threshold": 30,
+      "damage_per_day_after_threshold_pct": 0,
+      "max_loss_pct": 0,
+      "description": "ระยะนี้ดินแห้งเป็นผลดี ข้าวเริ่มสุกแก่ สะสมแป้ง ไม่ต้องการน้ำขัง"
     },
     "ripening": {
       "stage_name": "ระยะสุกแก่ (วัน 100-120)",

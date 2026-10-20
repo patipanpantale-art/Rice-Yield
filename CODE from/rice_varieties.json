@@ -1,0 +1,46 @@
+{
+  "description": "ฐานข้อมูลพันธุ์ข้าวหลักสำหรับจังหวัดขอนแก่น (อ้างอิงกรมการข้าว)",
+  "varieties": {
+    "KDML105": {
+      "id": "KDML105",
+      "name_th": "ขาวดอกมะลิ 105",
+      "type": "ข้าวเจ้านาปี (หอมมะลิ)",
+      "photoperiod_sensitive": true,
+      "harvest_time_window": "กลางเดือนพฤศจิกายน (ประมาณ 15-25 พ.ย.)",
+      "growth_days_average": 120,
+      "genetic_yield_potential_max_kg_rai": 550,
+      "regional_average_yield_kg_rai": 380,
+      "preferred_soil_types": ["S1", "S2"],
+      "soil_stress_tolerance": "ทนดินเค็มปานกลาง ทนแล้งปานกลาง อ่อนแอต่อน้ำท่วม",
+      "water_requirement_mm": 1100,
+      "description": "พันธุ์ข้าวยอดนิยมในขอนแก่น ไวต่อช่วงแสง คุณภาพการหุงต้มดีเยี่ยม นุ่ม หอม เหมาะกับดินร่วนปนทรายนาดอน แต่หากน้ำท่วมฉับพลันจะเสียหายหนัก"
+    },
+    "RD6": {
+      "id": "RD6",
+      "name_th": "กข6",
+      "type": "ข้าวเหนียวนาปี",
+      "photoperiod_sensitive": true,
+      "harvest_time_window": "ปลายเดือนพฤศจิกายน (ประมาณ 20-30 พ.ย.)",
+      "growth_days_average": 130,
+      "genetic_yield_potential_max_kg_rai": 800,
+      "regional_average_yield_kg_rai": 420,
+      "preferred_soil_types": ["S1", "S2"],
+      "soil_stress_tolerance": "ทนแล้งได้ดี แตกกอดี ปรับตัวเข้ากับสภาพดินภาคอีสานได้สูง",
+      "water_requirement_mm": 1150,
+      "description": "ข้าวเหนียวยอดนิยมอันดับหนึ่งของภาคอีสาน กลิ่นหอม เมล็ดเรียวยาว ให้ผลผลิตต่อไร่สูงกว่าขาวดอกมะลิ 105 เล็กน้อย"
+    },
+    "RD43": {
+      "id": "RD43",
+      "name_th": "กข43",
+      "type": "ข้าวเจ้านาปรัง/นาปี (ดัชนีน้ำตาลต่ำ)",
+      "photoperiod_sensitive": false,
+      "growth_days_average": 95,
+      "genetic_yield_potential_max_kg_rai": 700,
+      "regional_average_yield_kg_rai": 520,
+      "preferred_soil_types": ["S1"],
+      "soil_stress_tolerance": "ต้องการน้ำสม่ำเสมอ เหมาะสำหรับพื้นที่ชลประทาน (เช่น เขตลุ่มน้ำพอง)",
+      "water_requirement_mm": 950,
+      "description": "ข้าวไม่ไวต่อช่วงแสง อายุเก็บเกี่ยวสั้น เหมาะสำหรับปลูกในเขตชลประทานหนองหวายหรือนาปรัง"
+    }
+  }
+}

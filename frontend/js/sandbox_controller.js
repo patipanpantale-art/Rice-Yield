@@ -24,7 +24,7 @@ const SandboxController = {
 
   varieties: {
     "KDML105": { name_th: "ขาวดอกมะลิ 105", ceiling: 550, type: "ข้าวเจ้านาปี (ไวแสง)", duration: 120 },
-    "RD6": { name_th: "กข6", ceiling: 650, type: "ข้าวเหนียวนาปี (ไวแสง)", duration: 130 },
+    "RD6": { name_th: "กข6", ceiling: 800, type: "ข้าวเหนียวนาปี (ไวแสง)", duration: 130 },
     "RD43": { name_th: "กข43", ceiling: 700, type: "ข้าวน้ำตาลต่ำ (ไม่ไวแสง)", duration: 95 }
   },
 
@@ -483,8 +483,8 @@ const SandboxController = {
 
     const total_prod_kg = current_yield * p.area_rai;
     const total_prod_tons = total_prod_kg / 1000.0;
-    const price_per_ton = p.variety_id === "KDML105" ? 17000.0 : (p.variety_id === "RD6" ? 12500.0 : 11500.0);
-    const cost_per_rai = 3902.0;
+    const price_per_ton = p.variety_id === "KDML105" ? 17000.0 : (p.variety_id === "RD6" ? 12500.0 : 8800.0);
+    const cost_per_rai = 4926.01;
     const total_cost = cost_per_rai * p.area_rai;
     const gross_rev = total_prod_tons * price_per_ton;
     const net_profit = gross_rev - total_cost;

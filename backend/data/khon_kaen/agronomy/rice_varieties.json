@@ -22,7 +22,7 @@
       "photoperiod_sensitive": true,
       "harvest_time_window": "ปลายเดือนพฤศจิกายน (ประมาณ 20-30 พ.ย.)",
       "growth_days_average": 130,
-      "genetic_yield_potential_max_kg_rai": 650,
+      "genetic_yield_potential_max_kg_rai": 800,
       "regional_average_yield_kg_rai": 420,
       "preferred_soil_types": ["S1", "S2"],
       "soil_stress_tolerance": "ทนแล้งได้ดี แตกกอดี ปรับตัวเข้ากับสภาพดินภาคอีสานได้สูง",

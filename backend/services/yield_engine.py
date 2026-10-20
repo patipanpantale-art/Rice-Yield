@@ -16,14 +16,14 @@ FERTILIZER_PATH = os.path.join(AGRONOMY_DIR, "fertilizer_ssnm.json")
 DISASTER_PATH = os.path.join(AGRONOMY_DIR, "disaster_thresholds.json")
 AMPHOE_STATS_PATH = os.path.join(STATS_DIR, "khonkaen_amphoe_rice_yield.json")
 
-# ต้นทุนการผลิตเฉลี่ยต่อไร่ (อ้างอิง สศก. ขอนแก่น ปี 2567 ข้าวนาปี)
-BASELINE_COST_PER_RAI = 3902.0  # บาท/ไร่
+# ต้นทุนการผลิตเฉลี่ยต่อไร่ (ต้นทุนรวมข้าวนาปี จ.ขอนแก่น ปี 2567/68, สำนักงานเกษตรและสหกรณ์จังหวัดขอนแก่น 2568)
+BASELINE_COST_PER_RAI = 4926.01  # บาท/ไร่
 
 # ราคาข้าวเปลือก ณ ตลาดกลาง/สหกรณ์ ธ.ก.ส. ขอนแก่น (บาท/ตัน)
 PADDY_PRICES_PER_TON = {
     "KDML105": 17000.0,  # ข้าวหอมมะลิ 105 ความชื้น 15%
     "RD6": 12500.0,      # ข้าวเหนียว กข6
-    "RD43": 11500.0      # ข้าวเจ้า กข43
+    "RD43": 8800.0       # ข้าวเจ้า กข43 (ข้าวเปลือกเจ้า ความชื้น 15%, สศก. ต.ค. 2569)
 }
 
 # ปัจจัยระบบน้ำ (Water Factor)

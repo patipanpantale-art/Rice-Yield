@@ -1,0 +1,81 @@
+From 5f7c79df20689fc0e5c6a98d49c59d8f5d43f731 Mon Sep 17 00:00:00 2001
+From: Arnat-Aree <arnatarriy@gmail.com>
+Date: Wed, 21 Oct 2026 02:59:25 +0700
+Subject: [PATCH] Align model parameters with proposal (RD6 ceiling, RD43
+ price, baseline cost)
+
+- RD6 genetic yield ceiling 650 -> 800 kg/rai (above Rice Dept average 666)
+- RD43 paddy price 11,500 -> 8,800 THB/ton (OAE, Oct 2026)
+- Baseline cost 3,902 -> 4,926.01 THB/rai (Khon Kaen 2024/25 total cost)
+Applied to backend and client fallback.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TS1LkheY9hxM1pmvYxPEar
+---
+ backend/data/khon_kaen/agronomy/rice_varieties.json | 2 +-
+ backend/services/yield_engine.py                    | 6 +++---
+ frontend/js/sandbox_controller.js                   | 6 +++---
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/backend/data/khon_kaen/agronomy/rice_varieties.json b/backend/data/khon_kaen/agronomy/rice_varieties.json
+index 5f29f9a..6da0c83 100644
+--- a/backend/data/khon_kaen/agronomy/rice_varieties.json
++++ b/backend/data/khon_kaen/agronomy/rice_varieties.json
+@@ -22,7 +22,7 @@
+       "photoperiod_sensitive": true,
+       "harvest_time_window": "ปลายเดือนพฤศจิกายน (ประมาณ 20-30 พ.ย.)",
+       "growth_days_average": 130,
+-      "genetic_yield_potential_max_kg_rai": 650,
++      "genetic_yield_potential_max_kg_rai": 800,
+       "regional_average_yield_kg_rai": 420,
+       "preferred_soil_types": ["S1", "S2"],
+       "soil_stress_tolerance": "ทนแล้งได้ดี แตกกอดี ปรับตัวเข้ากับสภาพดินภาคอีสานได้สูง",
+diff --git a/backend/services/yield_engine.py b/backend/services/yield_engine.py
+index 4d28736..4303f9c 100644
+--- a/backend/services/yield_engine.py
++++ b/backend/services/yield_engine.py
+@@ -16,14 +16,14 @@ FERTILIZER_PATH = os.path.join(AGRONOMY_DIR, "fertilizer_ssnm.json")
+ DISASTER_PATH = os.path.join(AGRONOMY_DIR, "disaster_thresholds.json")
+ AMPHOE_STATS_PATH = os.path.join(STATS_DIR, "khonkaen_amphoe_rice_yield.json")
+ 
+-# ต้นทุนการผลิตเฉลี่ยต่อไร่ (อ้างอิง สศก. ขอนแก่น ปี 2567 ข้าวนาปี)
+-BASELINE_COST_PER_RAI = 3902.0  # บาท/ไร่
++# ต้นทุนการผลิตเฉลี่ยต่อไร่ (ต้นทุนรวมข้าวนาปี จ.ขอนแก่น ปี 2567/68, สำนักงานเกษตรและสหกรณ์จังหวัดขอนแก่น 2568)
++BASELINE_COST_PER_RAI = 4926.01  # บาท/ไร่
+ 
+ # ราคาข้าวเปลือก ณ ตลาดกลาง/สหกรณ์ ธ.ก.ส. ขอนแก่น (บาท/ตัน)
+ PADDY_PRICES_PER_TON = {
+     "KDML105": 17000.0,  # ข้าวหอมมะลิ 105 ความชื้น 15%
+     "RD6": 12500.0,      # ข้าวเหนียว กข6
+-    "RD43": 11500.0      # ข้าวเจ้า กข43
++    "RD43": 8800.0       # ข้าวเจ้า กข43 (ข้าวเปลือกเจ้า ความชื้น 15%, สศก. ต.ค. 2569)
+ }
+ 
+ # ปัจจัยระบบน้ำ (Water Factor)
+diff --git a/frontend/js/sandbox_controller.js b/frontend/js/sandbox_controller.js
+index aaf9831..bc00056 100644
+--- a/frontend/js/sandbox_controller.js
++++ b/frontend/js/sandbox_controller.js
+@@ -24,7 +24,7 @@ const SandboxController = {
+ 
+   varieties: {
+     "KDML105": { name_th: "ขาวดอกมะลิ 105", ceiling: 550, type: "ข้าวเจ้านาปี (ไวแสง)", duration: 120 },
+-    "RD6": { name_th: "กข6", ceiling: 650, type: "ข้าวเหนียวนาปี (ไวแสง)", duration: 130 },
++    "RD6": { name_th: "กข6", ceiling: 800, type: "ข้าวเหนียวนาปี (ไวแสง)", duration: 130 },
+     "RD43": { name_th: "กข43", ceiling: 700, type: "ข้าวน้ำตาลต่ำ (ไม่ไวแสง)", duration: 95 }
+   },
+ 
+@@ -483,8 +483,8 @@ const SandboxController = {
+ 
+     const total_prod_kg = current_yield * p.area_rai;
+     const total_prod_tons = total_prod_kg / 1000.0;
+-    const price_per_ton = p.variety_id === "KDML105" ? 17000.0 : (p.variety_id === "RD6" ? 12500.0 : 11500.0);
+-    const cost_per_rai = 3902.0;
++    const price_per_ton = p.variety_id === "KDML105" ? 17000.0 : (p.variety_id === "RD6" ? 12500.0 : 8800.0);
++    const cost_per_rai = 4926.01;
+     const total_cost = cost_per_rai * p.area_rai;
+     const gross_rev = total_prod_tons * price_per_ton;
+     const net_profit = gross_rev - total_cost;
+-- 
+2.43.0
+
